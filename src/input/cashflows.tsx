@@ -1,4 +1,8 @@
+import React, { useEffect } from 'react';
+
 import { InputDataProps } from "./types";
+import Plotly from 'plotly.js-cartesian-dist'
+
 
 export const CashflowsForm: React.FC<InputDataProps> = ({ inputData, setInputData }) => {
 
@@ -16,6 +20,35 @@ export const CashflowsForm: React.FC<InputDataProps> = ({ inputData, setInputDat
         );
     };
 
+    useEffect(() => {
+        // Sample data
+        const xData: number[] = [1, 2, 3, 4, 5];
+        const yData: number[] = [10, 6, 3, 8, 12];
+    
+        // Create the trace for the scatter plot
+        const trace: Partial<Plotly.ScatterData> = {
+          x: xData,
+          y: yData,
+          mode: 'markers',
+          type: 'scatter'
+        };
+    
+        // Layout configuration
+        const layout: Partial<Plotly.Layout> = {
+          title: 'Scatter Plot',
+          xaxis: { title: 'X Axis' },
+          yaxis: { title: 'Y Axis' }
+        };
+    
+        // Create the plot
+        Plotly.newPlot('plot-container', [trace], layout);
+    
+        // Clean up on component unmount
+        return () => {
+          Plotly.purge('plot-container');
+        };
+      }, []);
+
     return (
         <div>
             Cashflows:
@@ -25,6 +58,8 @@ export const CashflowsForm: React.FC<InputDataProps> = ({ inputData, setInputDat
                 onChange={handleChange}
             />
             {validateCashFlows(inputData.cashflows, inputData.periods) || <p> Bad cashflow </p>}
+
+            <div id="plot-container" style={{ width: '600px', height: '400px' }}></div>
 
         </div>
         // TODO: Add plot of the current cashflows vector
