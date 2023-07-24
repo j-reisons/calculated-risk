@@ -1,4 +1,5 @@
-import React from 'react';
+import Plotly from "plotly.js-cartesian-dist";
+import React, { useEffect } from 'react';
 
 import { Matrix, evaluate, isMatrix } from "mathjs";
 import "./input.css";
@@ -36,7 +37,22 @@ export const CashflowsForm: React.FC<InputDataProps> = ({ inputData, setInputDat
             })
         }
     }
-    
+
+    // TODO: Use more of the space
+    useEffect(() => {
+        // Create the plot
+        Plotly.newPlot('plotting-area', [{
+            y: inputData.cashflows,
+            type: 'bar'
+        }]);
+
+        // Clean up on component unmount
+        return () => {
+            Plotly.purge('plotting-area');
+        };
+
+    })
+
     // useEffect to sync plot to the vector
 
     return (
@@ -45,21 +61,24 @@ export const CashflowsForm: React.FC<InputDataProps> = ({ inputData, setInputDat
                 <div className="title">Cashflows</div>
                 Lorem ipsum dolor sit amet</div>
             <textarea className={"input-box"}
-                style = {!inputData.cashflowStringValid ? {borderColor:"red"} : {}}
+                style={!inputData.cashflowStringValid ? { borderColor: "red" } : {}}
                 placeholder="Type some math here"
                 onChange={handleInput}
                 onFocus={onFocus}
                 onBlur={onBlur}
                 value={inputData.cashflowString}>
             </textarea>
-            <svg className="plotting-area" width="100%" height="100%">
-                <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" fontSize="24">Plot here</text>
-            </svg>
+            <div id="plotting-area">
+            </div>
         </div>
     )
 
 }
 
+//TODO: allow multiline,e.g.
+// concat(ones(10),zeros(10))*50000 
+// - concat(zeros(10),ones(10))*50000 
+// Right now it errors
 function parseCashflowArray(cashflowString: string): (number[] | null) {
     let result;
     try {
