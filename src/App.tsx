@@ -7,11 +7,8 @@ const App: React.FC = () => {
 
   const [inputData, setInputData] = useState<InputData>(
     {
-      periods: 0,
-      cashflowString: '',
-      cashflows: null,
-      strategies: [],
-      utility: '',
+      cashflowString: 'zeros(1,10)',
+      cashflows: [0,0,0,0,0,0,0,0,0,0,0],
     });
 
   return (

@@ -1,8 +1,6 @@
 class Problem {
     constructor(
-        // Number of periods
-        public readonly periods: number,
-        // Cashflows occuring at each period
+        // Cashflows occuring at each period.
         public readonly cashflows: number[],
         // Wealth grid boundaries
         // Monotonically increasing, with -Infinity and +Infininty at the edges.
@@ -12,8 +10,6 @@ class Problem {
         // The utility function at the end of the periods.
         public readonly utility: Utility,
     ) {
-        assert(Number.isInteger(periods) && periods > 0, "periods must be a positive integer");
-        assert(cashflows.length == periods, "Cashflows array length must match periods");
         assert(checkWealthGrid(wealthGrid), "Invalid wealth grid. Should be monotonically increasing with -/+ Infinity at the edges");
 
     }
