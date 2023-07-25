@@ -38,22 +38,25 @@ export const CashflowsForm: React.FC<InputDataProps> = ({ inputData, setInputDat
         }
     }
 
-    // TODO: Use more of the space
     useEffect(() => {
-        // Create the plot
-        Plotly.newPlot('plotting-area', [{
+
+        const data: Plotly.Data[] = [{
             y: inputData.cashflows,
             type: 'bar'
-        }]);
+        }];
+
+        const margin = 30;
+        const layout: Partial<Plotly.Layout> = {
+            margin: { t: margin, l: margin, r: margin, b: margin }
+        }
+        // Create the plot
+        Plotly.newPlot('plotting-area', data, layout);
 
         // Clean up on component unmount
         return () => {
             Plotly.purge('plotting-area');
         };
-
-    })
-
-    // useEffect to sync plot to the vector
+    });
 
     return (
         <div className="container">
@@ -75,14 +78,12 @@ export const CashflowsForm: React.FC<InputDataProps> = ({ inputData, setInputDat
 
 }
 
-//TODO: allow multiline,e.g.
-// concat(ones(10),zeros(10))*50000 
-// - concat(zeros(10),ones(10))*50000 
-// Right now it errors
 function parseCashflowArray(cashflowString: string): (number[] | null) {
+    // Needed for multiline expressions
+    const stripped = cashflowString.replace(/\s/g, '');
     let result;
     try {
-        result = evaluate(cashflowString);
+        result = evaluate(stripped);
         if (isMatrix(result) && result.size().length === 1) {
             return (result as Matrix).toArray() as number[];
         }

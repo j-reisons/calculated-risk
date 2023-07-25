@@ -7,9 +7,9 @@ const App: React.FC = () => {
 
   const [inputData, setInputData] = useState<InputData>(
     {
-      cashflowString: 'zeros(10)',
+      cashflowString: '20 * concat(ones(5),zeros(5)) \n- 10 * concat(zeros(5),ones(5))',
       cashflowStringValid: true,
-      cashflows: [0,0,0,0,0,0,0,0,0,0,0],
+      cashflows: [20,20,20,20,20,-10,-10,-10,-10,-10],
     });
 
   return (
