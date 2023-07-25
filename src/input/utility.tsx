@@ -1,10 +1,16 @@
 import React from 'react';
-import { InputDataProps } from "./types";
 
-export const UtilityForm: React.FC<InputDataProps> = ({ inputData, setInputData }) => {
+export interface UtilityFormState { }
 
-    inputData;
-    setInputData;
+export interface UtilityFormProps {
+    state: UtilityFormState;
+    setState: React.Dispatch<React.SetStateAction<UtilityFormState>>
+}
+
+export const UtilityForm: React.FC<UtilityFormProps> = ({ state, setState }) => {
+
+    state;
+    setState;
 
     return (
         <div className="container">

@@ -3,35 +3,47 @@ import React, { useEffect } from 'react';
 
 import { Matrix, evaluate, isMatrix } from "mathjs";
 import "./input.css";
-import { InputDataProps } from "./types";
 
+export interface CashflowsFormState {
+    // Contents of the textarea
+    readonly cashflowString: string;
+    // Set on blur, reset on focus
+    readonly cashflowStringValid: boolean;
+    // Updated on blur, if valid
+    readonly cashflows: number[];
+}
 
-export const CashflowsForm: React.FC<InputDataProps> = ({ inputData, setInputData }) => {
+export interface CashflowFormProps {
+    state: CashflowsFormState;
+    setState: React.Dispatch<React.SetStateAction<CashflowsFormState>>
+}
+
+export const CashflowsForm: React.FC<CashflowFormProps> = ({ state, setState }) => {
 
     const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setInputData({
-            ...inputData,
+        setState({
+            ...state,
             cashflowString: event.target.value,
         })
     }
 
     const onFocus = () => {
-        setInputData({
-            ...inputData,
+        setState({
+            ...state,
             cashflowStringValid: true,
         })
     }
 
     const onBlur = () => {
-        const arrayOrNull = parseCashflowArray(inputData.cashflowString);
+        const arrayOrNull = parseCashflowArray(state.cashflowString);
         if (arrayOrNull == null) {
-            setInputData({
-                ...inputData,
+            setState({
+                ...state,
                 cashflowStringValid: false,
             })
         } else {
-            setInputData({
-                ...inputData,
+            setState({
+                ...state,
                 cashflowStringValid: true,
                 cashflows: arrayOrNull
             })
@@ -41,7 +53,7 @@ export const CashflowsForm: React.FC<InputDataProps> = ({ inputData, setInputDat
     useEffect(() => {
 
         const data: Plotly.Data[] = [{
-            y: inputData.cashflows,
+            y: state.cashflows,
             type: 'bar'
         }];
 
@@ -64,12 +76,12 @@ export const CashflowsForm: React.FC<InputDataProps> = ({ inputData, setInputDat
                 <div className="title">Cashflows</div>
                 Lorem ipsum dolor sit amet</div>
             <textarea className={"input-box"}
-                style={!inputData.cashflowStringValid ? { borderColor: "red" } : {}}
+                style={!state.cashflowStringValid ? { borderColor: "red" } : {}}
                 placeholder="Type some math here"
                 onChange={handleInput}
                 onFocus={onFocus}
                 onBlur={onBlur}
-                value={inputData.cashflowString}>
+                value={state.cashflowString}>
             </textarea>
             <div id="plotting-area">
             </div>
