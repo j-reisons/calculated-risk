@@ -7,6 +7,12 @@ export interface StrategiesFormProps {
     setState: React.Dispatch<React.SetStateAction<StrategiesFormState>>
 }
 
+// Parse a positive linear combination of a set of known functions: normal and delta, potentially more in the future
+// Plot their PDFs and compute their CDFs.
+//
+// I need a symbolic representation of the strategies, along with a way to plot the supported primitives.
+// I can leverage the MathJS parser, simplifier, and then compile the remaining terms into my strategy objects
+//
 export const StrategiesForm: React.FC<StrategiesFormProps> = ({ state, setState }) => {
 
     state;
