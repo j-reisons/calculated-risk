@@ -61,12 +61,11 @@ export const CashflowsForm: React.FC<CashflowFormProps> = ({ state, setState }) 
         const layout: Partial<Plotly.Layout> = {
             margin: { t: margin, l: margin, r: margin, b: margin }
         }
-        // Create the plot
-        Plotly.newPlot('plotting-area', data, layout);
 
-        // Clean up on component unmount
+        Plotly.newPlot('plotting-area-cashflows', data, layout);
+
         return () => {
-            Plotly.purge('plotting-area');
+            Plotly.purge('plotting-area-cashflows');
         };
     });
 
@@ -83,7 +82,7 @@ export const CashflowsForm: React.FC<CashflowFormProps> = ({ state, setState }) 
                 onBlur={onBlur}
                 value={state.cashflowString}>
             </textarea>
-            <div id="plotting-area">
+            <div id="plotting-area-cashflows">
             </div>
         </div>
     )

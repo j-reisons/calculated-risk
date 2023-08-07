@@ -1,5 +1,6 @@
 import { AssignmentNode, BlockNode, ConstantNode, FunctionNode, parse } from "mathjs";
-import React from "react";
+import Plotly from "plotly.js-cartesian-dist";
+import React, { useEffect } from "react";
 
 export interface StrategiesFormState {
     // Contents of the textarea
@@ -10,12 +11,10 @@ export interface StrategiesFormState {
     readonly strategies: Strategy[];
 }
 
-class Strategy {
-    constructor(
-        public readonly name: string,
-        public readonly mu: number,
-        public readonly sigma: number,
-    ) { }
+interface Strategy {
+    readonly name: string,
+    readonly mu: number,
+    readonly sigma: number,
 }
 
 export interface StrategiesFormProps {
@@ -55,7 +54,31 @@ export const StrategiesForm: React.FC<StrategiesFormProps> = ({ state, setState 
         }
     }
 
-    // TODO: useEffect for plotting
+    useEffect(() => {
+        const traces = [];
+        for (let i = 0; i < state.strategies.length; i++) {
+            const strategy = state.strategies[i];
+            const data: Plotly.Data = {
+                x: plotX(strategy),
+                y: plotY(strategy),
+                type: 'scatter',
+                name: strategy.name
+            };
+            traces.push(data)
+        }
+
+        const margin = 30;
+        const layout: Partial<Plotly.Layout> = {
+            margin: { t: margin, l: margin, r: margin, b: margin }
+        }
+
+        Plotly.newPlot('plotting-area-strategies', traces, layout);
+
+        return () => {
+            Plotly.purge('plotting-area-strategies');
+        };
+    });
+
 
     return (
         <div className="container">
@@ -70,9 +93,8 @@ export const StrategiesForm: React.FC<StrategiesFormProps> = ({ state, setState 
                 onBlur={onBlur}
                 value={state.strategiesString}
             ></textarea>
-            <svg className="plotting-area" width="100%" height="100%">
-                <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" fontSize="24">Plot here</text>
-            </svg>
+            <div id="plotting-area-strategies">
+            </div>
         </div>
     )
 }
@@ -121,7 +143,42 @@ function parseStrategyAssignment(assignment: AssignmentNode): (Strategy | null) 
     if (functionNode.args[0].type !== 'ConstantNode') return null;
     if (functionNode.args[1].type !== 'ConstantNode') return null;
 
-    return new Strategy(assignment.object.name,
-        (functionNode.args[0] as ConstantNode).value,
-        (functionNode.args[1] as ConstantNode).value);
+    return {
+        name: assignment.object.name,
+        mu: (functionNode.args[0] as ConstantNode).value,
+        sigma: (functionNode.args[1] as ConstantNode).value
+    };
+}
+
+const PLOT_POINTS = (100 * 2) + 1;
+const RANGE_SIGMAS = 5;
+
+function plotX(s: Strategy): number[] {
+    if (s.sigma === 0) {
+        return [(1 - Number.EPSILON) * s.mu, s.mu, (1 + Number.EPSILON) * s.mu]
+    }
+
+    const out = new Array(PLOT_POINTS);
+    const start = s.mu - s.sigma * RANGE_SIGMAS;
+    const step = s.sigma * (2 * RANGE_SIGMAS) / (PLOT_POINTS - 1);
+    for (let i = 0; i < PLOT_POINTS; i++) {
+        out[i] = start + i * step;
+    }
+    return out;
+}
+
+function plotY(s: Strategy): number[] {
+    if (s.sigma === 0) {
+        return [0, 1, 0];
+    }
+    const start = -RANGE_SIGMAS;
+    const step = 2 * RANGE_SIGMAS / (PLOT_POINTS - 1);
+    const out: number[] = new Array(PLOT_POINTS);
+
+    for (let i = 0; i < PLOT_POINTS; i++) {
+        const exponent = - ((start + i * step) ** 2) / 2;
+        out[i] = Math.exp(exponent);
+    }
+    return out;
+
 }
