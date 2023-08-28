@@ -18,7 +18,6 @@ export interface CashflowFormProps {
     setState: React.Dispatch<React.SetStateAction<CashflowsFormState>>
 }
 
-// TODO: explicitly define time range
 export const CashflowsForm: React.FC<CashflowFormProps> = ({ state, setState }) => {
 
     const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {

@@ -18,13 +18,23 @@ body {
   .container {
     border: 2px solid #aaa;
     min-height: 400px;
-    min-width: 400px;
+    width: 400px;
     height: auto;
     margin: auto;
     display: grid;
     grid-template-rows: 20% 20% 60%;
     padding: 30px;
     grid-gap: 10px;
+  }
+
+  .two-by-two {
+    display: grid;
+    grid-template-rows: 50% 50%;
+    grid-template-columns: 50% 50%;
+  }
+
+  input:invalid {
+    border: 2px solid red;
   }
   
   .title {

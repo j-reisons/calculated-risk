@@ -6,10 +6,20 @@ const App: React.FC = () => {
 
   const [state, setState] = useState<MainFormState>(
     {
+      gridFormState: {
+        wealthMinString: "0",
+        wealthMin: 0,
+        wealthMaxString: "4000000",
+        wealthMax: 4_000_000,
+        wealthStepsString: "100",
+        wealthSteps: 100,
+        timeStepsString: "10",
+        timeSteps: 10
+      },
       cashflowsFormState: {
-        cashflowString: '20 * concat(ones(5),zeros(5)) \n- 10 * concat(zeros(5),ones(5))',
+        cashflowString: '40000 * concat(ones(5),zeros(5)) \n- 40000 * concat(zeros(5),ones(5))',
         cashflowStringValid: true,
-        cashflows: [20, 20, 20, 20, 20, -10, -10, -10, -10, -10],
+        cashflows: [40000, 40000, 40000, 40000, 40000, -40000, -40000, -40000, -40000, -40000],
 
       },
       strategiesFormState: {
@@ -29,7 +39,6 @@ const App: React.FC = () => {
         ],
       },
       utilityFormState: {},
-      wealthGridFormState: {},
     });
 
   return (
