@@ -8,9 +8,8 @@ import { WealthGridForm, WealthGridFormState } from './wealthGrid';
 export interface MainFormState {
     cashflowsFormState: CashflowsFormState;
     strategiesFormState: StrategiesFormState;
-    utilityFormState: UtilityFormState;
     wealthGridFormState: WealthGridFormState;
-
+    utilityFormState: UtilityFormState;
 }
 
 export interface MainFormProps {

@@ -140,6 +140,9 @@ function parseStrategyAssignment(assignment: AssignmentNode): (Strategy | null) 
     const functionNode = (assignment.value as FunctionNode);
     if (functionNode.fn.name.toLowerCase() !== 'normal') return null;
     if (functionNode.args.length !== 2) return null;
+    // TODO: Support percentages here. Requires parsing an OperatorNode rather than a ConstantNode.
+    // TODO: Support comments
+    // TODO: Support combinations of gaussians.
     if (functionNode.args[0].type !== 'ConstantNode') return null;
     if (functionNode.args[1].type !== 'ConstantNode') return null;
 
@@ -153,6 +156,7 @@ function parseStrategyAssignment(assignment: AssignmentNode): (Strategy | null) 
 const PLOT_POINTS = (100 * 2) + 1;
 const RANGE_SIGMAS = 5;
 
+// TODO: Cash looks weird plotted on its own
 function plotX(s: Strategy): number[] {
     if (s.sigma === 0) {
         return [(1 - Number.EPSILON) * s.mu, s.mu, (1 + Number.EPSILON) * s.mu]
