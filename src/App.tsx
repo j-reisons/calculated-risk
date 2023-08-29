@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import { GridForm, GridFormState } from "./output/gridform";
-import { Grid } from "./output/grid";
+import { GridPlot, GridPlotState } from "./output/gridplot";
 import MainForm, { MainFormState } from "./input/main";
 
 const App: React.FC = () => {
@@ -42,11 +42,20 @@ const App: React.FC = () => {
     }
   )
 
+  const [gridState, setGridState] = useState<GridPlotState>(
+    {
+      wealthMin: 0,
+      wealthMax: 400000,
+      wealthStep: 10000,
+      periods: 10,
+    }
+  )
+
   return (
     <>
       <MainForm state={state} setState={setState} />
       <GridForm state={gridFormState} setState={setGridFormState}/>
-      <Grid />
+      <GridPlot state={gridState}/>
 
     </>
   )
