@@ -1,16 +1,8 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 10px;
-  }
-
   .top-container {
-    border: 2px solid #aaa;
     height: auto;
     margin: auto;
-    max-width: 1000px;
-    display: grid;
-    grid-template-rows: 50% 50%;
-    grid-template-columns: 50% 50%;
+    display: inline-flex;
+    flex-wrap: wrap;
     padding: 30px;
     grid-gap: 10px;
   }
@@ -25,16 +17,6 @@ body {
     grid-template-rows: 20% 20% 60%;
     padding: 30px;
     grid-gap: 10px;
-  }
-
-  .two-by-two {
-    display: grid;
-    grid-template-rows: 50% 50%;
-    grid-template-columns: 50% 50%;
-  }
-
-  input:invalid {
-    border: 2px solid red;
   }
   
   .title {

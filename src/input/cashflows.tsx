@@ -2,7 +2,6 @@ import Plotly from "plotly.js-cartesian-dist";
 import React, { useEffect } from 'react';
 
 import { Matrix, evaluate, isMatrix } from "mathjs";
-import "./input.css";
 
 export interface CashflowsFormState {
     // Contents of the textarea

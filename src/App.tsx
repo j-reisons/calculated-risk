@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+import { GridForm, GridFormState } from "./output/gridform";
 import MainForm, { MainFormState } from "./input/main";
 
 const App: React.FC = () => {
@@ -41,9 +42,24 @@ const App: React.FC = () => {
       utilityFormState: {},
     });
 
+  const [gridFormState, setGridFormState] = useState<GridFormState>(
+    {
+      wealthMinString: "0",
+      wealthMin: 0,
+      wealthMaxString: "4000000",
+      wealthMax: 4_000_000,
+      wealthStepsString: "100",
+      wealthSteps: 100,
+      timeStepsString: "10",
+      timeSteps: 10
+    }
+  )
+
   return (
     <>
       <MainForm state={state} setState={setState} />
+      <GridForm state={gridFormState} setState={setGridFormState}/>
+
     </>
   )
 }
