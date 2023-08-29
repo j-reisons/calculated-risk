@@ -1,6 +1,9 @@
 import { AssignmentNode, BlockNode, ConstantNode, FunctionNode, parse } from "mathjs";
 import Plotly from "plotly.js-cartesian-dist";
-import React, { useEffect } from "react";
+import React from "react";
+import createPlotlyComponent from 'react-plotly.js/factory';
+
+const Plot = createPlotlyComponent(Plotly);
 
 export interface StrategiesFormState {
     // Contents of the textarea
@@ -54,30 +57,22 @@ export const StrategiesForm: React.FC<StrategiesFormProps> = ({ state, setState 
         }
     }
 
-    useEffect(() => {
-        const traces = [];
-        for (let i = 0; i < state.strategies.length; i++) {
-            const strategy = state.strategies[i];
-            const data: Plotly.Data = {
-                x: plotX(strategy),
-                y: plotY(strategy),
-                type: 'scatter',
-                name: strategy.name
-            };
-            traces.push(data)
-        }
 
-        const margin = 30;
-        const layout: Partial<Plotly.Layout> = {
-            margin: { t: margin, l: margin, r: margin, b: margin }
-        }
-
-        Plotly.newPlot('plotting-area-strategies', traces, layout);
-
-        return () => {
-            Plotly.purge('plotting-area-strategies');
+    const traces = [];
+    for (let i = 0; i < state.strategies.length; i++) {
+        const strategy = state.strategies[i];
+        const data: Plotly.Data = {
+            x: plotX(strategy),
+            y: plotY(strategy),
+            type: 'scatter',
+            name: strategy.name
         };
-    });
+        traces.push(data)
+    }
+    const margin = 30;
+    const layout: Partial<Plotly.Layout> = {
+        margin: { t: margin, l: margin, r: margin, b: margin }
+    }
 
 
     return (
@@ -93,8 +88,9 @@ export const StrategiesForm: React.FC<StrategiesFormProps> = ({ state, setState 
                 onBlur={onBlur}
                 value={state.strategiesString}
             ></textarea>
-            <div id="plotting-area-strategies">
-            </div>
+            <Plot
+                data={traces}
+                layout={layout} />
         </div>
     )
 }

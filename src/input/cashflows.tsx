@@ -1,5 +1,8 @@
 import Plotly from "plotly.js-cartesian-dist";
-import React, { useEffect } from 'react';
+import React from 'react';
+import createPlotlyComponent from 'react-plotly.js/factory';
+
+const Plot = createPlotlyComponent(Plotly);
 
 import { Matrix, evaluate, isMatrix } from "mathjs";
 
@@ -49,24 +52,14 @@ export const CashflowsForm: React.FC<CashflowFormProps> = ({ state, setState }) 
         }
     }
 
-    useEffect(() => {
-
-        const data: Plotly.Data[] = [{
-            y: state.cashflows,
-            type: 'bar'
-        }];
-
-        const margin = 30;
-        const layout: Partial<Plotly.Layout> = {
-            margin: { t: margin, l: margin, r: margin, b: margin }
-        }
-
-        Plotly.newPlot('plotting-area-cashflows', data, layout);
-
-        return () => {
-            Plotly.purge('plotting-area-cashflows');
-        };
-    });
+    const traces: Plotly.Data[] = [{
+        y: state.cashflows,
+        type: 'bar'
+    }];
+    const margin = 30;
+    const layout: Partial<Plotly.Layout> = {
+        margin: { t: margin, l: margin, r: margin, b: margin }
+    }
 
     return (
         <div className="container">
@@ -81,8 +74,9 @@ export const CashflowsForm: React.FC<CashflowFormProps> = ({ state, setState }) 
                 onBlur={onBlur}
                 value={state.cashflowString}>
             </textarea>
-            <div id="plotting-area-cashflows">
-            </div>
+            <Plot
+                data={traces}
+                layout={layout} />
         </div>
     )
 

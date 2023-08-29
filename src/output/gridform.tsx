@@ -1,5 +1,4 @@
-import Plotly from "plotly.js-cartesian-dist";
-import React, { useEffect } from 'react';
+import React from 'react';
 
 export interface GridFormState {
     readonly wealthMinString: string;
@@ -17,72 +16,33 @@ export const GridForm: React.FC<GridFormProps> = ({ state, setState }) => {
 
     // TODO: less insane validation
     const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-        let value = null;
-        try {
-            value = parseInt(event.target.value);
-        } catch (e) {
-            return;
-        }
         switch (event.target.id) {
             case "wealth_min":
                 setState({
                     ...state,
                     wealthMinString: event.target.value,
-                    wealthMin: value === null ? state.wealthMin : value,
                 })
                 return;
             case "wealth_max":
                 setState({
                     ...state,
                     wealthMaxString: event.target.value,
-                    wealthMax: value === null ? state.wealthMax : value,
                 })
                 return;
             case "wealth_steps":
                 setState({
                     ...state,
-                    wealthStepsString: event.target.value,
-                    wealthSteps: value === null ? state.wealthSteps : value,
+                    wealthStepString: event.target.value,
                 })
                 return;
             case "time_steps":
                 setState({
                     ...state,
-                    timeStepsString: event.target.value,
-                    timeSteps: value === null ? state.timeSteps : value,
+                    periodsString: event.target.value,
                 })
                 return;
         }
     }
-
-    // useEffect(() => {
-    //     // TODO: Customize heatmap to make a good picture of the grid
-    //     const data: Plotly.Data[] = [{
-    //         z: [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
-    //         type: 'heatmap',
-    //         xgap: 1,
-    //         ygap: 1,
-    //         hoverinfo: "none",
-    //         showscale: false,
-    //         x0: 0.5,
-    //         y0: 0.5
-    //     }];
-
-    //     const layout: Partial<Plotly.Layout> = {
-    //         dragmode: false,
-    //         hovermode: false,
-    //     }
-        
-    //     const config: Partial<Plotly.Config> = {
-    //         displayModeBar: false
-    //     }
-
-    //     Plotly.newPlot('plotting-area-grid', data, layout,config);
-
-    //     return () => {
-    //         Plotly.purge('plotting-area-grid');
-    //     };
-    // });
 
     return (
         <div>
