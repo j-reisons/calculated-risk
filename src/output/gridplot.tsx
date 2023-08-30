@@ -1,26 +1,30 @@
-import { range, zeros } from "mathjs";
+import { Matrix, range, zeros } from "mathjs";
 import Plotly from "plotly.js-cartesian-dist";
-import React from 'react';
 import createPlotlyComponent from 'react-plotly.js/factory';
 
 const Plot = createPlotlyComponent(Plotly);
 
-export interface GridPlotState {
+export interface GridSize {
     readonly wealthMin: number;
     readonly wealthMax: number;
     readonly wealthStep: number;
     readonly periods: number;
 }
 
-export const GridPlot: React.FC<GridPlotState> = ({state}) => {
-    // TODO: Customize heatmap to make a good picture of the grid
-    const timeRange: number[] = range(0.5,state.periods + 0.5).toArray();
-    const wealthRange: number[] = range(state.wealthMin + state.wealthStep/2, state.wealthMax + state.wealthStep/2, state.wealthStep).toArray()
-    const z: number[][] = zeros(wealthRange.length, state.periods).toArray();
+export interface GridPlotProps {
+    readonly gridSize: GridSize;
+}
+
+export const GridPlot = ({ gridSize }: GridPlotProps) => {
+    const timeRange: number[] = (range(0.5, gridSize.periods + 0.5).toArray() as number[]);
+    const wealthRange: number[] = (range(gridSize.wealthMin + gridSize.wealthStep / 2, gridSize.wealthMax + gridSize.wealthStep / 2, gridSize.wealthStep).toArray() as number[])
+    const z: number[][] = ((zeros(wealthRange.length, gridSize.periods) as Matrix).toArray() as number[][]);
 
     const traces: Plotly.Data[] = [{
         x: timeRange,
         y: wealthRange,
+        xgap: 0.5,
+        ygap:0.5,
         z: z,
         type: 'heatmap',
         showscale: false,
@@ -38,8 +42,8 @@ export const GridPlot: React.FC<GridPlotState> = ({state}) => {
         <Plot
             data={traces}
             layout={layout}
-            config={config} 
-            />
+            config={config}
+        />
     )
 }
 

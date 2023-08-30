@@ -25,7 +25,7 @@ export interface StrategiesFormProps {
     setState: React.Dispatch<React.SetStateAction<StrategiesFormState>>
 }
 
-export const StrategiesForm: React.FC<StrategiesFormProps> = ({ state, setState }) => {
+export const StrategiesForm = ({ state, setState }: StrategiesFormProps) => {
 
     const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setState({

@@ -20,7 +20,7 @@ export interface CashflowFormProps {
     setState: React.Dispatch<React.SetStateAction<CashflowsFormState>>
 }
 
-export const CashflowsForm: React.FC<CashflowFormProps> = ({ state, setState }) => {
+export const CashflowsForm = ({ state, setState }: CashflowFormProps) => {
 
     const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setState({

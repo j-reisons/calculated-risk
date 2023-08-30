@@ -7,7 +7,7 @@ export interface UtilityFormProps {
     setState: React.Dispatch<React.SetStateAction<UtilityFormState>>
 }
 
-export const UtilityForm: React.FC<UtilityFormProps> = ({ state, setState }) => {
+export const UtilityForm = ({ state, setState }: UtilityFormProps) => {
 
     state;
     setState;

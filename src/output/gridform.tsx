@@ -1,10 +1,13 @@
 import React from 'react';
+import { GridSize } from './gridplot';
 
 export interface GridFormState {
-    readonly wealthMinString: string;
-    readonly wealthMaxString: string;
-    readonly wealthStepString: string;
-    readonly periodsString: string;
+    readonly wealthMin: string;
+    readonly wealthMax: string;
+    readonly wealthStep: string;
+    readonly periods: string;
+    // Output
+    readonly gridSize: GridSize;
 }
 
 export interface GridFormProps {
@@ -12,44 +15,27 @@ export interface GridFormProps {
     setState: React.Dispatch<React.SetStateAction<GridFormState>>
 }
 
-export const GridForm: React.FC<GridFormProps> = ({ state, setState }) => {
+export const GridForm = ({ state, setState }: GridFormProps) => {
 
     // TODO: less insane validation
     const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-        switch (event.target.id) {
-            case "wealth_min":
-                setState({
-                    ...state,
-                    wealthMinString: event.target.value,
-                })
-                return;
-            case "wealth_max":
-                setState({
-                    ...state,
-                    wealthMaxString: event.target.value,
-                })
-                return;
-            case "wealth_steps":
-                setState({
-                    ...state,
-                    wealthStepString: event.target.value,
-                })
-                return;
-            case "time_steps":
-                setState({
-                    ...state,
-                    periodsString: event.target.value,
-                })
-                return;
-        }
+        const value: number = parseInt(event.target.value);
+        setState({
+            ...state,
+            [event.target.id]: event.target.value,
+            gridSize: {
+                ...state.gridSize,
+                [event.target.id]: value
+            }
+        });
     }
 
     return (
         <div>
-            <div>Wealth max <input type="text" inputMode="numeric" value={state.wealthMaxString} onChange={handleInput} id="wealth_max" name="wealth_max" pattern="^-?\d+$" /></div>
-            <div>Wealth step <input type="text" inputMode="numeric" value={state.wealthStepString} onChange={handleInput} id="wealth_steps" name="wealth_steps" pattern="^-?\d+$" /></div>
-            <div>Wealth min <input type="text" inputMode="numeric" value={state.wealthMinString} onChange={handleInput} id="wealth_min" name="wealth_min" pattern="^-?\d+$" /></div>    
-            <div>Periods <input type="text" inputMode="numeric" value={state.periodsString} onChange={handleInput} id="time_steps" name="time_steps" pattern="^-?\d+$" /></div> 
+            <div>Wealth max <input type="text" inputMode="numeric" value={state.wealthMax} onChange={handleInput} id="wealthMax" name="wealthMax" pattern="^-?\d+$" /></div>
+            <div>Wealth step <input type="text" inputMode="numeric" value={state.wealthStep} onChange={handleInput} id="wealthStep" name="wealthStep" pattern="^-?\d+$" /></div>
+            <div>Wealth min <input type="text" inputMode="numeric" value={state.wealthMin} onChange={handleInput} id="wealthMin" name="wealthMin" pattern="^-?\d+$" /></div>
+            <div>Periods <input type="text" inputMode="numeric" value={state.periods} onChange={handleInput} id="periods" name="periods" pattern="^-?\d+$" /></div>
         </div>
     )
 }

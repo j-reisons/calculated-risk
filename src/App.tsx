@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
-import { GridForm, GridFormState } from "./output/gridform";
-import { GridPlot, GridPlotState } from "./output/gridplot";
 import MainForm, { MainFormState } from "./input/main";
+import { GridForm, GridFormState } from "./output/gridform";
+import { GridPlot } from "./output/gridplot";
 
-const App: React.FC = () => {
+const App = () => {
 
   const [state, setState] = useState<MainFormState>(
     {
@@ -35,28 +35,24 @@ const App: React.FC = () => {
 
   const [gridFormState, setGridFormState] = useState<GridFormState>(
     {
-      wealthMinString: "0",
-      wealthMaxString: "4000000",
-      wealthStepString: "100",
-      periodsString: "10",
-    }
-  )
-
-  const [gridState, setGridState] = useState<GridPlotState>(
-    {
-      wealthMin: 0,
-      wealthMax: 400000,
-      wealthStep: 10000,
-      periods: 10,
+      wealthMin: "0",
+      wealthMax: "4000000",
+      wealthStep: "10000",
+      periods: "10",
+      gridSize: {
+        wealthMin: 0,
+        wealthMax: 4000000,
+        wealthStep: 10000,
+        periods: 10
+      }
     }
   )
 
   return (
     <>
       <MainForm state={state} setState={setState} />
-      <GridForm state={gridFormState} setState={setGridFormState}/>
-      <GridPlot state={gridState}/>
-
+      <GridForm state={gridFormState} setState={setGridFormState} />
+      <GridPlot gridSize={gridFormState.gridSize} />
     </>
   )
 }
