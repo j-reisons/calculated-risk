@@ -18,9 +18,11 @@ export interface MainFormProps {
 
 export const MainForm = ({ state, setState }: MainFormProps) => {
 
-    const setStrategies = (strategiesFormState: StrategiesFormState) => { setState({ ...state, strategiesFormState: strategiesFormState }) };
-    const setCashflows = (cashflowsFormState: CashflowsFormState) => { setState({ ...state, cashflowsFormState: cashflowsFormState }) };
-    const setUtility = (utilityFormState: UtilityFormState) => { setState({ ...state, utilityFormState: utilityFormState }) };
+    // Dispatch<A|(A) => A> Is not the same as Dispatch<A> | Dispatch<(A) => A>
+    // Odious hack
+    const setStrategies = (strategiesFormState: React.SetStateAction<StrategiesFormState>) => { setState({ ...state, strategiesFormState: strategiesFormState as StrategiesFormState }) };
+    const setCashflows = (cashflowsFormState: React.SetStateAction<CashflowsFormState>) => { setState({ ...state, cashflowsFormState: cashflowsFormState as CashflowsFormState }) };
+    const setUtility = (utilityFormState: React.SetStateAction<UtilityFormState>) => { setState({ ...state, utilityFormState: utilityFormState as UtilityFormState }) };
 
     return (
         <div className="top-container">
