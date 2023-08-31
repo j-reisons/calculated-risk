@@ -20,8 +20,8 @@ export interface UtilityFormProps {
 export const UtilityForm = ({ gridSize }: UtilityFormProps) => {
 
     const [state, setState] = useState<UtilityFormState>({
-        utilityString: "f(x)=log(x) + step(x, 100000)",
-        utilityFunction: (x: number) => log(x) + step(x, 100000)
+        utilityString: "f(x)=log(x) + step(x - 100000)",
+        utilityFunction: (x: number) => log(x) + step(x - 100000)
     });
 
     const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -43,7 +43,7 @@ export const UtilityForm = ({ gridSize }: UtilityFormProps) => {
     // No complex numbers or other shenanigans
     const valid = utility.every(item => typeof item === 'number')
 
-    const traces = [{
+    const traces: Plotly.Data[] = [{
         x: wealthRange,
         y: utility,
         type: 'scatter'
@@ -77,6 +77,6 @@ function parseUtilityFunction(utilityString: string): (i: number) => number {
     return (i: number) => { return parsed(i) };
 }
 
-function step(x: number, s: number): number {
-    return x > s ? 1 : 0;
+function step(x: number): number {
+    return x > 0 ? 1 : 0;
 }

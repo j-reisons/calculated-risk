@@ -31,7 +31,7 @@ export const GridForm = ({ gridFormState, setGridFormState, setGridSize }: GridF
                 [event.target.id]: event.target.value
             }
         )
-        if (value) {
+        if (value !== null) {
             setGridSize(
                 (gridSize: GridSize) => {
                     return {

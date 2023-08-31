@@ -46,16 +46,16 @@ export const CashflowsForm = ({ gridSize }: CashflowsFormProps) => {
 
     const onBlur = () => {
         const arrayOrNull = parseCashflowArray(state.cashflowString);
-        if (arrayOrNull) {
+        if (arrayOrNull == null) {
             setState({
                 ...state,
-                cashflowStringValid: true,
-                cashflows: arrayOrNull
+                cashflowStringValid: false,
             })
         } else {
             setState({
                 ...state,
-                cashflowStringValid: false,
+                cashflowStringValid: true,
+                cashflows: arrayOrNull
             })
         }
     }
@@ -69,7 +69,7 @@ export const CashflowsForm = ({ gridSize }: CashflowsFormProps) => {
     },
     {
         x: [-1, gridSize.periods + 1, gridSize.periods + 1, -1],
-        y: [gridSize.wealthStep, gridSize.wealthStep, -gridSize.wealthStep , -gridSize.wealthStep],
+        y: [gridSize.wealthStep, gridSize.wealthStep, -gridSize.wealthStep, -gridSize.wealthStep],
         mode: "lines",
         type: "scatter"
     },];
