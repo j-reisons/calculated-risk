@@ -1,26 +1,15 @@
 import { Matrix, range, zeros } from "mathjs";
 import Plotly from "plotly.js-cartesian-dist";
 import createPlotlyComponent from 'react-plotly.js/factory';
+import { GridSize } from "./gridform";
 
 const Plot = createPlotlyComponent(Plotly);
 
-export interface GridSize {
-    readonly wealthMin: number;
-    readonly wealthMax: number;
-    readonly wealthStep: number;
-    readonly periods: number;
-}
-
-export interface GridPlotState {
+export interface GridPlotProps {
     readonly gridSize: GridSize;
 }
 
-export interface GridPlotProps {
-    readonly state: GridPlotState;
-}
-
-export const GridPlot = ({ state }: GridPlotProps) => {
-    const gridSize = state.gridSize;
+export const GridPlot = ({ gridSize }: GridPlotProps) => {
     const timeRange: number[] = (range(0.5, gridSize.periods + 0.5).toArray() as number[]);
     const wealthRange: number[] = (range(gridSize.wealthMin + gridSize.wealthStep / 2, gridSize.wealthMax + gridSize.wealthStep / 2, gridSize.wealthStep).toArray() as number[])
     const z: number[][] = ((zeros(wealthRange.length, gridSize.periods) as Matrix).toArray() as number[][]);

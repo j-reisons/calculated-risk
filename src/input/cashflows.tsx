@@ -1,10 +1,11 @@
 import Plotly from "plotly.js-cartesian-dist";
-import React from 'react';
+import React, { useState } from 'react';
 import createPlotlyComponent from 'react-plotly.js/factory';
 
 const Plot = createPlotlyComponent(Plotly);
 
 import { Matrix, evaluate, isMatrix } from "mathjs";
+import { GridSize } from "../grid/gridform";
 
 export interface CashflowsFormState {
     // Contents of the textarea
@@ -15,12 +16,19 @@ export interface CashflowsFormState {
     readonly cashflows: number[];
 }
 
-export interface CashflowFormProps {
-    state: CashflowsFormState;
-    setState: React.Dispatch<React.SetStateAction<CashflowsFormState>>
+export interface CashflowsFormProps {
+    gridSize: GridSize;
 }
 
-export const CashflowsForm = ({ state, setState }: CashflowFormProps) => {
+export const CashflowsForm = ({ gridSize }: CashflowsFormProps) => {
+
+    const [state, setState] = useState<CashflowsFormState>(
+        {
+            cashflowString: '40000 * concat(ones(5),zeros(5)) \n- 40000 * concat(zeros(5),ones(5))',
+            cashflowStringValid: true,
+            cashflows: [40000, 40000, 40000, 40000, 40000, -40000, -40000, -40000, -40000, -40000],
+        }
+    );
 
     const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setState({
@@ -38,26 +46,39 @@ export const CashflowsForm = ({ state, setState }: CashflowFormProps) => {
 
     const onBlur = () => {
         const arrayOrNull = parseCashflowArray(state.cashflowString);
-        if (arrayOrNull == null) {
-            setState({
-                ...state,
-                cashflowStringValid: false,
-            })
-        } else {
+        if (arrayOrNull) {
             setState({
                 ...state,
                 cashflowStringValid: true,
                 cashflows: arrayOrNull
             })
+        } else {
+            setState({
+                ...state,
+                cashflowStringValid: false,
+            })
         }
     }
 
     const traces: Plotly.Data[] = [{
-        y: state.cashflows,
+        // Match plotted vector length to periods
+        y: state.cashflows.length >= gridSize.periods
+            ? state.cashflows.slice(0, gridSize.periods)
+            : [...state.cashflows, ...Array(gridSize.periods - state.cashflows.length).fill(0)],
         type: 'bar'
-    }];
+    },
+    {
+        x: [-1, gridSize.periods + 1, gridSize.periods + 1, -1],
+        y: [gridSize.wealthStep, gridSize.wealthStep, -gridSize.wealthStep , -gridSize.wealthStep],
+        mode: "lines",
+        type: "scatter"
+    },];
     const margin = 30;
     const layout: Partial<Plotly.Layout> = {
+        showlegend: false,
+        xaxis: {
+            range: [-0.5, gridSize.periods - 0.5],
+        },
         margin: { t: margin, l: margin, r: margin, b: margin }
     }
 
