@@ -1,3 +1,4 @@
+import { evaluate, log, range } from "mathjs";
 import Plotly from "plotly.js-cartesian-dist";
 import React, { useState } from 'react';
 import createPlotlyComponent from 'react-plotly.js/factory';
@@ -8,9 +9,7 @@ const Plot = createPlotlyComponent(Plotly);
 export interface UtilityFormState {
     // Contents of the textarea
     readonly utilityString: string;
-    // Set on blue, reset on focus
-    readonly utilityStringValid: boolean;
-    // Updated on blur, if valid
+    // Updated on blur
     readonly utilityFunction: (wealth: number) => number;
 }
 
@@ -20,7 +19,10 @@ export interface UtilityFormProps {
 
 export const UtilityForm = ({ gridSize }: UtilityFormProps) => {
 
-    const [state, setState] = useState<UtilityFormState>({});
+    const [state, setState] = useState<UtilityFormState>({
+        utilityString: "f(x)=log(x) + step(x, 100000)",
+        utilityFunction: (x: number) => log(x) + step(x, 100000)
+    });
 
     const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setState({
@@ -29,52 +31,52 @@ export const UtilityForm = ({ gridSize }: UtilityFormProps) => {
         })
     }
 
-    const onFocus = () => {
+    const onBlur = () => {
         setState({
             ...state,
-            utilityStringValid: true,
-        })
+            utilityFunction: parseUtilityFunction(state.utilityString)
+        });
     }
 
-    const onBlur = () => {
-        const functionOrNull = parseUtilityFunction(state.utilityString);
-        if (functionOrNull) {
-            setState({
-                ...state,
-                utilityStringValid: true,
-                utilityFunction: functionOrNull
-            })
-        } else {
-            setState({
-                ...state,
-                utilityStringValid: false,
-            })
-        }
+    const wealthRange: number[] = (range(gridSize.wealthMin + gridSize.wealthStep / 2, gridSize.wealthMax + gridSize.wealthStep / 2, gridSize.wealthStep).toArray() as number[]);
+    const utility = wealthRange.map(state.utilityFunction);
+    // No complex numbers or other shenanigans
+    const valid = utility.every(item => typeof item === 'number')
+
+    const traces = [{
+        x: wealthRange,
+        y: utility,
+        type: 'scatter'
+    }];
+    const margin = 30;
+    const layout: Partial<Plotly.Layout> = {
+        margin: { t: margin, l: margin, r: margin, b: margin }
     }
 
-    // TODO: Get the wealth range
-    // TODO: plot the function
     return (
         <div className="container">
             <div className="instructions">
                 <div className="title">Utility</div>
                 Lorem ipsum dolor sic amet</div>
             <textarea className={"input-box"}
-                style={!state.utilityStringValid ? { borderColor: "red" } : {}}
+                style={!valid ? { borderColor: "red" } : {}}
                 placeholder="Type some math here"
                 onChange={handleInput}
-                onFocus={onFocus}
                 onBlur={onBlur}
                 value={state.utilityString}>
             </textarea>
-            <svg className="plotting-area" width="100%" height="100%">
-                <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" fontSize="24">Plot here</text>
-            </svg>
+            <Plot
+                data={traces}
+                layout={layout} />
         </div>
     )
 }
 
-// TODO: parse the function
 function parseUtilityFunction(utilityString: string): (i: number) => number {
-    return i => i
+    const parsed = evaluate(utilityString, { step: step });
+    return (i: number) => { return parsed(i) };
+}
+
+function step(x: number, s: number): number {
+    return x > s ? 1 : 0;
 }
