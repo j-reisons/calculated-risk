@@ -14,7 +14,7 @@ export interface StrategiesFormState {
     readonly strategies: Strategy[];
 }
 
-interface Strategy {
+export interface Strategy {
     readonly name: string,
     readonly mu: number,
     readonly sigma: number,
