@@ -1,45 +1,41 @@
-import { AssignmentNode, BlockNode, ConstantNode, FunctionNode, parse } from "mathjs";
+import { AssignmentNode, BlockNode, ConstantNode, FunctionNode, erf, parse } from "mathjs";
 import Plotly from "plotly.js-cartesian-dist";
 import React, { useState } from "react";
 import createPlotlyComponent from 'react-plotly.js/factory';
+import { initStrategiesForm } from "../InitState";
 
 const Plot = createPlotlyComponent(Plotly);
+
+export interface Strategy {
+    readonly name: string,
+    readonly CDF: (r: number) => number;
+}
+
+export interface StrategiesState {
+    readonly strategies: Strategy[];
+}
+
+export interface StrategiesFormProps {
+    setStrategiesState: React.Dispatch<React.SetStateAction<StrategiesState>>;
+}
 
 export interface StrategiesFormState {
     // Contents of the textarea
     readonly strategiesString: string;
     // Set on blur, reset on focus
     readonly strategiesStringValid: boolean;
-    // Updated on blur, if valid
-    readonly strategies: Strategy[];
+    readonly strategies: Strategy_[];
 }
 
-export interface Strategy {
-    readonly name: string,
-    readonly mu: number,
-    readonly sigma: number,
+interface Strategy_ {
+    readonly name: string;
+    readonly mu: number;
+    readonly sigma: number;
 }
 
-export const StrategiesForm = () => {
+export const StrategiesForm = ({ setStrategiesState }: StrategiesFormProps) => {
 
-    const [state, setState] = useState<StrategiesFormState>(
-        {
-            strategiesString:
-                'cash = Normal(0.01, 0)\n' +
-                'e_25 = Normal(0.02, 0.05)\n' +
-                'e_50 = Normal(0.03, 0.1)\n' +
-                'e_75 = Normal(0.04, 0.15)\n' +
-                'e_100 = Normal(0.05, 0.2)',
-            strategiesStringValid: true,
-            strategies: [
-                { name: 'cash', mu: 0.01, sigma: 0 },
-                { name: 'e_25', mu: 0.02, sigma: 0.05 },
-                { name: 'e_50', mu: 0.03, sigma: 0.1 },
-                { name: 'e_75', mu: 0.04, sigma: 0.15 },
-                { name: 'e_100', mu: 0.05, sigma: 0.2 }
-            ],
-        }
-    );
+    const [state, setState] = useState<StrategiesFormState>(initStrategiesForm);
 
     const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setState({
@@ -66,8 +62,13 @@ export const StrategiesForm = () => {
             setState({
                 ...state,
                 strategiesStringValid: true,
-                strategies: arrayOrNull
-            })
+                strategies: arrayOrNull,
+            });
+            setStrategiesState(
+                {
+                    strategies: arrayOrNull.map(mapStrategy)
+                }
+            );
         }
     }
 
@@ -109,7 +110,7 @@ export const StrategiesForm = () => {
     )
 }
 
-function parseStrategiesArray(strategiesString: string): (Strategy[] | null) {
+function parseStrategiesArray(strategiesString: string): (Strategy_[] | null) {
     const assignments: AssignmentNode[] = [];
     let root;
     try {
@@ -139,12 +140,12 @@ function parseStrategiesArray(strategiesString: string): (Strategy[] | null) {
             return null;
     }
 
-    const out: Strategy[] = assignments.map(parseStrategyAssignment)
-        .filter((item): item is Strategy => item !== null);
+    const out: Strategy_[] = assignments.map(parseStrategyAssignment)
+        .filter((item): item is Strategy_ => item !== null);
     return out.length === assignments.length ? out : null;
 }
 
-function parseStrategyAssignment(assignment: AssignmentNode): (Strategy | null) {
+function parseStrategyAssignment(assignment: AssignmentNode): (Strategy_ | null) {
     if (assignment.object.type !== 'SymbolNode') return null;
     if (assignment.value.type !== 'FunctionNode') return null;
     const functionNode = (assignment.value as FunctionNode);
@@ -156,10 +157,12 @@ function parseStrategyAssignment(assignment: AssignmentNode): (Strategy | null) 
     if (functionNode.args[0].type !== 'ConstantNode') return null;
     if (functionNode.args[1].type !== 'ConstantNode') return null;
 
+    const mu = (functionNode.args[0] as ConstantNode).value;
+    const sigma = (functionNode.args[1] as ConstantNode).value;
     return {
         name: assignment.object.name,
-        mu: (functionNode.args[0] as ConstantNode).value,
-        sigma: (functionNode.args[1] as ConstantNode).value
+        mu: mu,
+        sigma: sigma,
     };
 }
 
@@ -167,7 +170,7 @@ const PLOT_POINTS = (100 * 2) + 1;
 const RANGE_SIGMAS = 5;
 
 // TODO: Cash looks weird plotted on its own
-function plotX(s: Strategy): number[] {
+function plotX(s: Strategy_): number[] {
     if (s.sigma === 0) {
         return [(1 - Number.EPSILON) * s.mu, s.mu, (1 + Number.EPSILON) * s.mu]
     }
@@ -181,7 +184,7 @@ function plotX(s: Strategy): number[] {
     return out;
 }
 
-function plotY(s: Strategy): number[] {
+function plotY(s: Strategy_): number[] {
     if (s.sigma === 0) {
         return [0, 1, 0];
     }
@@ -194,5 +197,15 @@ function plotY(s: Strategy): number[] {
         out[i] = Math.exp(exponent);
     }
     return out;
+}
 
+function mapStrategy(s: Strategy_): Strategy {
+    return {
+        name: s.name,
+        CDF: normalCdf(s.mu, s.sigma)
+    }
+}
+
+export function normalCdf(mu: number, sigma: number): (r: number) => number {
+    return (r: number) => { return 0.5 + erf((r - mu) / (1.41421356237 * sigma)) }
 }

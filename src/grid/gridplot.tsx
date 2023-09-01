@@ -1,25 +1,36 @@
 import { Matrix, range, zeros } from "mathjs";
 import Plotly from "plotly.js-cartesian-dist";
 import createPlotlyComponent from 'react-plotly.js/factory';
+import { CashflowsState } from "../input/cashflows";
+import { StrategiesState } from "../input/strategies";
+import { UtilityState } from "../input/utility";
 import { GridState } from "./gridform";
 
 const Plot = createPlotlyComponent(Plotly);
 
 export interface GridPlotProps {
     readonly gridState: GridState;
+    readonly strategiesState: StrategiesState,
+    readonly cashflowsState: CashflowsState,
+    readonly utilityState: UtilityState,
 }
 
-export const GridPlot = ({ gridState }: GridPlotProps) => {
+export interface Strategy {
+    readonly name: string;
+    readonly CDF: (r: number) => number;
+}
+
+export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilityState }: GridPlotProps) => {
     // Offset everything by a half interval to get the heatmap cells to align with the axes;
     const timeRange: number[] = (range(0.5, gridState.periods + 0.5).toArray() as number[]);
-    const halfStep = (gridState.wealthBoundaries[1] - gridState.wealthBoundaries[0]) / 2
-    const wealthRange: number[] = gridState.wealthBoundaries.map((i: number) => { return (i + halfStep) });
+    const wealthBoundaries = gridState.wealthBoundaries;
+    const wealthValues = [...wealthBoundaries.keys()].slice(0, -1).map(i => (wealthBoundaries[i] + wealthBoundaries[i + 1]) / 2);
 
-    const z: number[][] = ((zeros(wealthRange.length, timeRange.length) as Matrix).toArray() as number[][]);
+    const z: number[][] = ((zeros(wealthValues.length, timeRange.length) as Matrix).toArray() as number[][]);
 
     const traces: Plotly.Data[] = [{
         x: timeRange,
-        y: wealthRange,
+        y: wealthValues,
         xgap: 0.5,
         ygap: 0.5,
         z: z,

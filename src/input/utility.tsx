@@ -1,28 +1,29 @@
-import { evaluate, log, max } from "mathjs";
+import { evaluate } from "mathjs";
 import Plotly from "plotly.js-cartesian-dist";
 import React, { useState } from 'react';
 import createPlotlyComponent from 'react-plotly.js/factory';
+import { initUtilityForm } from "../InitState";
 import { GridState } from "../grid/gridform";
 
 const Plot = createPlotlyComponent(Plotly);
 
 export interface UtilityFormState {
-    // Contents of the textarea
     readonly utilityString: string;
-    // Updated on blur
+}
+
+export interface UtilityState {
     readonly utilityFunction: (wealth: number) => number;
 }
 
 export interface UtilityFormProps {
     gridState: GridState;
+    utilityState: UtilityState;
+    setUtilityState: React.Dispatch<React.SetStateAction<UtilityState>>;
 }
 
-export const UtilityForm = ({ gridState }: UtilityFormProps) => {
+export const UtilityForm = ({ gridState, utilityState, setUtilityState }: UtilityFormProps) => {
 
-    const [state, setState] = useState<UtilityFormState>({
-        utilityString: "f(x)=log(x) + step(x - 100000)",
-        utilityFunction: (x: number) => log(x) + step(x - 100000)
-    });
+    const [state, setState] = useState<UtilityFormState>(initUtilityForm);
 
     const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setState({
@@ -32,21 +33,20 @@ export const UtilityForm = ({ gridState }: UtilityFormProps) => {
     }
 
     const onBlur = () => {
-        setState({
-            ...state,
+        setUtilityState({
             utilityFunction: parseUtilityFunction(state.utilityString)
         });
     }
 
     // Evaluate on center of bins
-    const halfStep = (gridState.wealthBoundaries[1] - gridState.wealthBoundaries[0]) / 2
-    const wealthRange: number[] = gridState.wealthBoundaries.map((i: number) => { return (i + halfStep) });
-    const utility = wealthRange.map(state.utilityFunction);
+    const wealthBoundaries = gridState.wealthBoundaries;
+    const wealthValues = [...wealthBoundaries.keys()].slice(0, -1).map(i => (wealthBoundaries[i] + wealthBoundaries[i + 1]) / 2)
+    const utility = wealthValues.map(utilityState.utilityFunction);
     // No complex numbers or other shenanigans
     const valid = utility.every(item => typeof item === 'number' && isFinite(item) && !isNaN(item))
 
     const traces: Plotly.Data[] = [{
-        x: wealthRange,
+        x: wealthValues,
         y: utility,
         type: 'scatter'
     }];
@@ -77,11 +77,12 @@ export const UtilityForm = ({ gridState }: UtilityFormProps) => {
     )
 }
 
+// TODO: validation of some kind
 function parseUtilityFunction(utilityString: string): (i: number) => number {
     const parsed = evaluate(utilityString, { step: step });
     return (i: number) => { return parsed(i) };
 }
 
-function step(x: number): number {
+export function step(x: number): number {
     return x > 0 ? 1 : 0;
 }

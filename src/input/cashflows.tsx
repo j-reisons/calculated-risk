@@ -5,30 +5,30 @@ import createPlotlyComponent from 'react-plotly.js/factory';
 const Plot = createPlotlyComponent(Plotly);
 
 import { Matrix, evaluate, isMatrix } from "mathjs";
+import { initCashflowsForm } from "../InitState";
 import { GridState } from "../grid/gridform";
+
 
 export interface CashflowsFormState {
     // Contents of the textarea
     readonly cashflowString: string;
     // Set on blur, reset on focus
     readonly cashflowStringValid: boolean;
-    // Updated on blur, if valid
+}
+
+export interface CashflowsState {
     readonly cashflows: number[];
 }
 
 export interface CashflowsFormProps {
     gridState: GridState;
+    cashflowsState: CashflowsState;
+    setCashflowsState: React.Dispatch<React.SetStateAction<CashflowsState>>;
 }
 
-export const CashflowsForm = ({ gridState }: CashflowsFormProps) => {
+export const CashflowsForm = ({ gridState, cashflowsState, setCashflowsState }: CashflowsFormProps) => {
 
-    const [state, setState] = useState<CashflowsFormState>(
-        {
-            cashflowString: '40000 * concat(ones(5),zeros(5)) \n- 40000 * concat(zeros(5),ones(5))',
-            cashflowStringValid: true,
-            cashflows: [40000, 40000, 40000, 40000, 40000, -40000, -40000, -40000, -40000, -40000],
-        }
-    );
+    const [state, setState] = useState<CashflowsFormState>(initCashflowsForm);
 
     const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setState({
@@ -55,17 +55,19 @@ export const CashflowsForm = ({ gridState }: CashflowsFormProps) => {
             setState({
                 ...state,
                 cashflowStringValid: true,
+            });
+            setCashflowsState({
                 cashflows: arrayOrNull
-            })
+            });
         }
     }
 
     const wealthStep = gridState.wealthBoundaries[1] - gridState.wealthBoundaries[0];
     const traces: Plotly.Data[] = [{
         // Match plotted vector length to periods
-        y: state.cashflows.length >= gridState.periods
-            ? state.cashflows.slice(0, gridState.periods)
-            : [...state.cashflows, ...Array(gridState.periods - state.cashflows.length).fill(0)],
+        y: cashflowsState.cashflows.length >= gridState.periods
+            ? cashflowsState.cashflows.slice(0, gridState.periods)
+            : [...cashflowsState.cashflows, ...Array(gridState.periods - cashflowsState.cashflows.length).fill(0)],
         type: 'bar'
     },
     {

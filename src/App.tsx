@@ -1,29 +1,36 @@
 import { useState } from 'react';
 
-import { range } from 'mathjs';
-import { GridFormState, GridState } from './grid/gridform';
+import { initCashflows, initGridState, initStrategies, initUtility } from './InitState';
+import { GridState } from './grid/gridform';
 import { Grid } from './grid/main';
+import { CashflowsState } from './input/cashflows';
 import MainForm from "./input/main";
+import { StrategiesState } from './input/strategies';
+import { UtilityState } from './input/utility';
 
 const App = () => {
 
-  const [gridFormState, setGridFormState] = useState<GridFormState>(
-    {
-      wealthMin: "0",
-      wealthMax: "400000",
-      wealthStep: "10000",
-      periods: "10",
-    });
-  const [gridState, setGridState] = useState<GridState>(
-    {
-      wealthBoundaries: range(0, 400000, 10000).toArray() as number[],
-      periods: 10,
-    });
+  const [gridState, setGridState] = useState<GridState>(initGridState);
+  const [strategiesState, setStrategiesState] = useState<StrategiesState>(initStrategies);
+  const [cashflowsState, setCashflowsState] = useState<CashflowsState>(initCashflows);
+  const [utilityState, setUtilityState] = useState<UtilityState>(initUtility);
 
   return (
     <>
-      <Grid gridFormState={gridFormState} setGridFormState={setGridFormState} gridState={gridState} setGridState={setGridState} />
-      <MainForm gridState={gridState} />
+      <Grid
+        gridState={gridState}
+        strategiesState={strategiesState}
+        cashflowsState={cashflowsState}
+        utilityState={utilityState}
+        setGridState={setGridState}
+      />
+
+      <MainForm gridState={gridState} setStrategiesState={setStrategiesState}
+        cashflowsState={cashflowsState}
+        setCashflowsState={setCashflowsState}
+        utilityState={utilityState}
+        setUtilityState={setUtilityState}
+      />
     </>
   )
 }

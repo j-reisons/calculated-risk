@@ -1,5 +1,6 @@
 import { range } from 'mathjs';
-import React from 'react';
+import React, { useState } from 'react';
+import { initGridFormState } from '../InitState';
 
 export interface GridFormState {
     readonly wealthMin: string;
@@ -14,12 +15,12 @@ export interface GridState {
 }
 
 export interface GridFormProps {
-    gridFormState: GridFormState;
-    setGridFormState: React.Dispatch<React.SetStateAction<GridFormState>>;
     setGridState: React.Dispatch<React.SetStateAction<GridState>>;
 }
 
-export const GridForm = ({ gridFormState, setGridFormState, setGridState }: GridFormProps) => {
+export const GridForm = ({ setGridState }: GridFormProps) => {
+
+    const [gridFormState, setGridFormState] = useState<GridFormState>(initGridFormState);
 
     const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
         setGridFormState(
@@ -66,7 +67,7 @@ function gridIfValid(gridFormState: GridFormState): GridState | null {
     if (periods <= 0) return null;
 
     return {
-        wealthBoundaries: range(wealthMin, wealthMax, wealthStep).toArray() as number[],
+        wealthBoundaries: range(wealthMin, wealthMax, wealthStep, true).toArray() as number[],
         periods: periods,
     }
 
