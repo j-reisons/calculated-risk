@@ -1,20 +1,20 @@
-import { GridSize } from '../grid/gridform';
+import { GridState } from '../grid/gridform';
 import { CashflowsForm } from './cashflows';
 import "./main.css";
 import { StrategiesForm } from './strategies';
 import { UtilityForm } from './utility';
 
 export interface MainFormProps {
-    gridSize: GridSize;
+    gridState: GridState;
 }
 
-export const MainForm = ({ gridSize }: MainFormProps) => {
+export const MainForm = ({ gridState }: MainFormProps) => {
 
     return (
         <div className="top-container">
             <StrategiesForm />
-            <CashflowsForm gridSize={gridSize} />
-            <UtilityForm gridSize={gridSize} />
+            <CashflowsForm gridState={gridState} />
+            <UtilityForm gridState={gridState} />
         </div>
     );
 };

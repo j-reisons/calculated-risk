@@ -5,7 +5,7 @@ import createPlotlyComponent from 'react-plotly.js/factory';
 const Plot = createPlotlyComponent(Plotly);
 
 import { Matrix, evaluate, isMatrix } from "mathjs";
-import { GridSize } from "../grid/gridform";
+import { GridState } from "../grid/gridform";
 
 export interface CashflowsFormState {
     // Contents of the textarea
@@ -17,10 +17,10 @@ export interface CashflowsFormState {
 }
 
 export interface CashflowsFormProps {
-    gridSize: GridSize;
+    gridState: GridState;
 }
 
-export const CashflowsForm = ({ gridSize }: CashflowsFormProps) => {
+export const CashflowsForm = ({ gridState }: CashflowsFormProps) => {
 
     const [state, setState] = useState<CashflowsFormState>(
         {
@@ -60,16 +60,17 @@ export const CashflowsForm = ({ gridSize }: CashflowsFormProps) => {
         }
     }
 
+    const wealthStep = gridState.wealthBoundaries[1] - gridState.wealthBoundaries[0];
     const traces: Plotly.Data[] = [{
         // Match plotted vector length to periods
-        y: state.cashflows.length >= gridSize.periods
-            ? state.cashflows.slice(0, gridSize.periods)
-            : [...state.cashflows, ...Array(gridSize.periods - state.cashflows.length).fill(0)],
+        y: state.cashflows.length >= gridState.periods
+            ? state.cashflows.slice(0, gridState.periods)
+            : [...state.cashflows, ...Array(gridState.periods - state.cashflows.length).fill(0)],
         type: 'bar'
     },
     {
-        x: [-1, gridSize.periods + 1, gridSize.periods + 1, -1],
-        y: [gridSize.wealthStep, gridSize.wealthStep, -gridSize.wealthStep, -gridSize.wealthStep],
+        x: [-1, gridState.periods + 1, gridState.periods + 1, -1],
+        y: [wealthStep, wealthStep, -wealthStep, -wealthStep],
         mode: "lines",
         type: "scatter"
     },];
@@ -77,7 +78,7 @@ export const CashflowsForm = ({ gridSize }: CashflowsFormProps) => {
     const layout: Partial<Plotly.Layout> = {
         showlegend: false,
         xaxis: {
-            range: [-0.5, gridSize.periods - 0.5],
+            range: [-0.5, gridState.periods - 0.5],
         },
         margin: { t: margin, l: margin, r: margin, b: margin }
     }

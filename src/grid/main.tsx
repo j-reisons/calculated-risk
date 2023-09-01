@@ -1,21 +1,21 @@
-import { GridForm, GridFormState, GridSize } from "./gridform";
+import { GridForm, GridFormState, GridState } from "./gridform";
 import { GridPlot } from "./gridplot";
 import "./main.css";
 
 export interface GridProps {
     gridFormState: GridFormState;
     setGridFormState: React.Dispatch<React.SetStateAction<GridFormState>>;
-    
-    gridSize: GridSize;
-    setGridSize: React.Dispatch<React.SetStateAction<GridSize>>;
+
+    gridState: GridState;
+    setGridState: React.Dispatch<React.SetStateAction<GridState>>;
 }
 
-export const Grid = ({ gridFormState, setGridFormState, gridSize, setGridSize }: GridProps) => {
+export const Grid = ({ gridFormState, setGridFormState, gridState, setGridState }: GridProps) => {
 
 
     return (
         <div className="grid">
-            <GridForm gridFormState={gridFormState} setGridFormState={setGridFormState} setGridSize={setGridSize} />
-            <GridPlot gridSize={gridSize} />
+            <GridForm gridFormState={gridFormState} setGridFormState={setGridFormState} setGridState={setGridState} />
+            <GridPlot gridState={gridState} />
         </div>)
 }

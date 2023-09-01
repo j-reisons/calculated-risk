@@ -1,18 +1,21 @@
 import { Matrix, range, zeros } from "mathjs";
 import Plotly from "plotly.js-cartesian-dist";
 import createPlotlyComponent from 'react-plotly.js/factory';
-import { GridSize } from "./gridform";
+import { GridState } from "./gridform";
 
 const Plot = createPlotlyComponent(Plotly);
 
 export interface GridPlotProps {
-    readonly gridSize: GridSize;
+    readonly gridState: GridState;
 }
 
-export const GridPlot = ({ gridSize }: GridPlotProps) => {
-    const timeRange: number[] = (range(0.5, gridSize.periods + 0.5).toArray() as number[]);
-    const wealthRange: number[] = (range(gridSize.wealthMin + gridSize.wealthStep / 2, gridSize.wealthMax + gridSize.wealthStep / 2, gridSize.wealthStep).toArray() as number[])
-    const z: number[][] = ((zeros(wealthRange.length, gridSize.periods) as Matrix).toArray() as number[][]);
+export const GridPlot = ({ gridState }: GridPlotProps) => {
+    // Offset everything by a half interval to get the heatmap cells to align with the axes;
+    const timeRange: number[] = (range(0.5, gridState.periods + 0.5).toArray() as number[]);
+    const halfStep = (gridState.wealthBoundaries[1] - gridState.wealthBoundaries[0]) / 2
+    const wealthRange: number[] = gridState.wealthBoundaries.map((i: number) => { return (i + halfStep) });
+
+    const z: number[][] = ((zeros(wealthRange.length, timeRange.length) as Matrix).toArray() as number[][]);
 
     const traces: Plotly.Data[] = [{
         x: timeRange,

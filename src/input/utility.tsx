@@ -1,8 +1,8 @@
-import { evaluate, log, range } from "mathjs";
+import { evaluate, log, max } from "mathjs";
 import Plotly from "plotly.js-cartesian-dist";
 import React, { useState } from 'react';
 import createPlotlyComponent from 'react-plotly.js/factory';
-import { GridSize } from "../grid/gridform";
+import { GridState } from "../grid/gridform";
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -14,10 +14,10 @@ export interface UtilityFormState {
 }
 
 export interface UtilityFormProps {
-    gridSize: GridSize;
+    gridState: GridState;
 }
 
-export const UtilityForm = ({ gridSize }: UtilityFormProps) => {
+export const UtilityForm = ({ gridState }: UtilityFormProps) => {
 
     const [state, setState] = useState<UtilityFormState>({
         utilityString: "f(x)=log(x) + step(x - 100000)",
@@ -38,10 +38,12 @@ export const UtilityForm = ({ gridSize }: UtilityFormProps) => {
         });
     }
 
-    const wealthRange: number[] = (range(gridSize.wealthMin + gridSize.wealthStep / 2, gridSize.wealthMax + gridSize.wealthStep / 2, gridSize.wealthStep).toArray() as number[]);
+    // Evaluate on center of bins
+    const halfStep = (gridState.wealthBoundaries[1] - gridState.wealthBoundaries[0]) / 2
+    const wealthRange: number[] = gridState.wealthBoundaries.map((i: number) => { return (i + halfStep) });
     const utility = wealthRange.map(state.utilityFunction);
     // No complex numbers or other shenanigans
-    const valid = utility.every(item => typeof item === 'number')
+    const valid = utility.every(item => typeof item === 'number' && isFinite(item) && !isNaN(item))
 
     const traces: Plotly.Data[] = [{
         x: wealthRange,
@@ -50,6 +52,9 @@ export const UtilityForm = ({ gridSize }: UtilityFormProps) => {
     }];
     const margin = 30;
     const layout: Partial<Plotly.Layout> = {
+        xaxis: {
+            range: [gridState.wealthBoundaries[0], gridState.wealthBoundaries[gridState.wealthBoundaries.length - 1]],
+        },
         margin: { t: margin, l: margin, r: margin, b: margin }
     }
 

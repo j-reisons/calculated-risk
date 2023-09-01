@@ -1,3 +1,4 @@
+import { range } from 'mathjs';
 import React from 'react';
 
 export interface GridFormState {
@@ -7,66 +8,66 @@ export interface GridFormState {
     readonly periods: string;
 }
 
-export interface GridSize {
-    readonly wealthMin: number;
-    readonly wealthMax: number;
-    readonly wealthStep: number;
+export interface GridState {
+    readonly wealthBoundaries: number[];
     readonly periods: number;
 }
 
 export interface GridFormProps {
     gridFormState: GridFormState;
     setGridFormState: React.Dispatch<React.SetStateAction<GridFormState>>;
-    setGridSize: React.Dispatch<React.SetStateAction<GridSize>>;
+    setGridState: React.Dispatch<React.SetStateAction<GridState>>;
 }
 
-export const GridForm = ({ gridFormState, setGridFormState, setGridSize }: GridFormProps) => {
+export const GridForm = ({ gridFormState, setGridFormState, setGridState }: GridFormProps) => {
 
     const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-
-        const value: number | null = parseIfValid(event);
         setGridFormState(
             {
                 ...gridFormState,
                 [event.target.id]: event.target.value
             }
         )
-        if (value !== null) {
-            setGridSize(
-                (gridSize: GridSize) => {
-                    return {
-                        ...gridSize,
-                        [event.target.id]: value
-                    }
-                }
-            )
-        }
     };
+
+    const onBlur = () => {
+        const gridOrNull = gridIfValid(gridFormState)
+        if (gridOrNull !== null) {
+            setGridState(gridOrNull);
+        }
+    }
 
     return (
         <div>
-            <div>Wealth max <input type="text" inputMode="numeric" value={gridFormState.wealthMax} onChange={handleInput} id="wealthMax" name="wealthMax" pattern="^\d+$" /></div>
-            <div>Wealth step <input type="text" inputMode="numeric" value={gridFormState.wealthStep} onChange={handleInput} id="wealthStep" name="wealthStep" pattern="^\d+$" /></div>
-            <div>Wealth min <input type="text" inputMode="numeric" value={gridFormState.wealthMin} onChange={handleInput} id="wealthMin" name="wealthMin" pattern="^-?\d+$" /></div>
-            <div>Periods <input type="text" inputMode="numeric" value={gridFormState.periods} onChange={handleInput} id="periods" name="periods" pattern="^\d+$" /></div>
+            <div>Wealth max <input type="text" inputMode="numeric" value={gridFormState.wealthMax} onChange={handleInput} onBlur={onBlur} id="wealthMax" name="wealthMax" pattern="^\d+$" /></div>
+            <div>Wealth step <input type="text" inputMode="numeric" value={gridFormState.wealthStep} onChange={handleInput} onBlur={onBlur} id="wealthStep" name="wealthStep" pattern="^\d+$" /></div>
+            <div>Wealth min <input type="text" inputMode="numeric" value={gridFormState.wealthMin} onChange={handleInput} onBlur={onBlur} id="wealthMin" name="wealthMin" pattern="^-?\d+$" /></div>
+            <div>Periods <input type="text" inputMode="numeric" value={gridFormState.periods} onChange={handleInput} onBlur={onBlur} id="periods" name="periods" pattern="^\d+$" /></div>
         </div>
     )
 }
 
-function parseIfValid(event: React.ChangeEvent<HTMLInputElement>): number | null {
-    let value = null;
+function gridIfValid(gridFormState: GridFormState): GridState | null {
+    let wealthMin, wealthStep, wealthMax, periods: number;
+
     try {
-        value = parseInt(event.target.value);
+        wealthMin = parseInt(gridFormState.wealthMin);
+        wealthStep = parseInt(gridFormState.wealthStep);
+        wealthMax = parseInt(gridFormState.wealthMax);
+        periods = parseInt(gridFormState.periods);
     }
     catch (e) {
         return null;
     }
 
-    switch (event.target.id) {
-        case "wealthMin":
-            break;
-        default:
-            if (value <= 0) return null;
+    if (wealthMin >= wealthMax) return null;
+    if (wealthMax <= 0) return null;
+    if (wealthStep <= 0) return null;
+    if (periods <= 0) return null;
+
+    return {
+        wealthBoundaries: range(wealthMin, wealthMax, wealthStep).toArray() as number[],
+        periods: periods,
     }
-    return value;
+
 }
