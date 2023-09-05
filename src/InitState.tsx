@@ -13,7 +13,7 @@ export const initGridFormState: GridFormState = {
 }
 
 export const initGridState: GridState = {
-    wealthBoundaries: range(0, 400000, 10000, true).toArray() as number[],
+    wealthBoundaries: range(0, 400000, 10000, true).valueOf() as number[],
     periods: 10,
 };
 

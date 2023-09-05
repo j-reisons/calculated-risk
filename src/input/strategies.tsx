@@ -207,5 +207,5 @@ function mapStrategy(s: Strategy_): Strategy {
 }
 
 export function normalCdf(mu: number, sigma: number): (r: number) => number {
-    return (r: number) => { return 0.5 + erf((r - mu) / (1.41421356237 * sigma)) }
+    return (r: number) => { return 0.5 * (1 + erf((r - mu) / (1.41421356237 * sigma))) }
 }

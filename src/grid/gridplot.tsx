@@ -4,6 +4,7 @@ import createPlotlyComponent from 'react-plotly.js/factory';
 import { CashflowsState } from "../input/cashflows";
 import { StrategiesState } from "../input/strategies";
 import { UtilityState } from "../input/utility";
+import { Problem, Solution, solve } from "../solver/main";
 import { GridState } from "./gridform";
 
 const Plot = createPlotlyComponent(Plotly);
@@ -21,12 +22,22 @@ export interface Strategy {
 }
 
 export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilityState }: GridPlotProps) => {
+
+    const problem: Problem = {
+        strategyCDFs: strategiesState.strategies.map(s => s.CDF),
+        wealthBoundaries: gridState.wealthBoundaries,
+        cashflows: cashflowsState.cashflows,
+        utilityFunction: utilityState.utilityFunction,
+    }
+    const solution = solve(problem);
+
+
     // Offset everything by a half interval to get the heatmap cells to align with the axes;
-    const timeRange: number[] = (range(0.5, gridState.periods + 0.5).toArray() as number[]);
+    const timeRange: number[] = (range(0.5, gridState.periods + 0.5).valueOf() as number[]);
     const wealthBoundaries = gridState.wealthBoundaries;
     const wealthValues = [...wealthBoundaries.keys()].slice(0, -1).map(i => (wealthBoundaries[i] + wealthBoundaries[i + 1]) / 2);
 
-    const z: number[][] = ((zeros(wealthValues.length, timeRange.length) as Matrix).toArray() as number[][]);
+    const z: number[][] = solution.optimalStrategies;
 
     const traces: Plotly.Data[] = [{
         x: timeRange,
@@ -38,7 +49,6 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
         showscale: false,
     }];
 
-
     const layout: Partial<Plotly.Layout> = {
         width: 1100,
         height: 500,
@@ -49,7 +59,6 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
     const config: Partial<Plotly.Config> = {
         // displayModeBar: false
     }
-
 
     return (
         <Plot

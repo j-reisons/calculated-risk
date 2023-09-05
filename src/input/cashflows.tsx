@@ -113,7 +113,7 @@ function parseCashflowArray(cashflowString: string): (number[] | null) {
     try {
         result = evaluate(stripped);
         if (isMatrix(result) && result.size().length === 1) {
-            return (result as Matrix).toArray() as number[];
+            return (result as Matrix).valueOf() as number[];
         }
         return null;
     }

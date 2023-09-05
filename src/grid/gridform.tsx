@@ -67,7 +67,7 @@ function gridIfValid(gridFormState: GridFormState): GridState | null {
     if (periods <= 0) return null;
 
     return {
-        wealthBoundaries: range(wealthMin, wealthMax, wealthStep, true).toArray() as number[],
+        wealthBoundaries: range(wealthMin, wealthMax, wealthStep, true).valueOf() as number[],
         periods: periods,
     }
 
