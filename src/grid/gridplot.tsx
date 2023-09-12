@@ -1,11 +1,9 @@
-import { Matrix, range, zeros } from "mathjs";
+import { range } from "mathjs";
 import Plotly from "plotly.js-cartesian-dist";
 import createPlotlyComponent from 'react-plotly.js/factory';
-import { CashflowsState } from "../input/cashflows";
-import { StrategiesState } from "../input/strategies";
-import { UtilityState } from "../input/utility";
-import { Problem, Solution, solve } from "../solver/main";
-import { GridState } from "./gridform";
+import { CashflowsState, StrategiesState, UtilityState } from "../input/state";
+import { Problem, solve } from "../solver/main";
+import { GridState } from "./state";
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -14,11 +12,6 @@ export interface GridPlotProps {
     readonly strategiesState: StrategiesState,
     readonly cashflowsState: CashflowsState,
     readonly utilityState: UtilityState,
-}
-
-export interface Strategy {
-    readonly name: string;
-    readonly CDF: (r: number) => number;
 }
 
 export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilityState }: GridPlotProps) => {

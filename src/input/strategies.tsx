@@ -1,36 +1,14 @@
-import { AssignmentNode, BlockNode, ConstantNode, FunctionNode, erf, parse } from "mathjs";
+import { AssignmentNode, BlockNode, ConstantNode, FunctionNode, parse } from "mathjs";
 import Plotly from "plotly.js-cartesian-dist";
 import React, { useState } from "react";
 import createPlotlyComponent from 'react-plotly.js/factory';
 import { initStrategiesForm } from "../InitState";
+import { StrategiesFormState, StrategiesState, Strategy, Strategy_, normalCdf } from "./state";
 
 const Plot = createPlotlyComponent(Plotly);
 
-export interface Strategy {
-    readonly name: string,
-    readonly CDF: (r: number) => number;
-}
-
-export interface StrategiesState {
-    readonly strategies: Strategy[];
-}
-
 export interface StrategiesFormProps {
     setStrategiesState: React.Dispatch<React.SetStateAction<StrategiesState>>;
-}
-
-export interface StrategiesFormState {
-    // Contents of the textarea
-    readonly strategiesString: string;
-    // Set on blur, reset on focus
-    readonly strategiesStringValid: boolean;
-    readonly strategies: Strategy_[];
-}
-
-interface Strategy_ {
-    readonly name: string;
-    readonly mu: number;
-    readonly sigma: number;
 }
 
 export const StrategiesForm = ({ setStrategiesState }: StrategiesFormProps) => {
@@ -204,8 +182,4 @@ function mapStrategy(s: Strategy_): Strategy {
         name: s.name,
         CDF: normalCdf(s.mu, s.sigma)
     }
-}
-
-export function normalCdf(mu: number, sigma: number): (r: number) => number {
-    return (r: number) => { return 0.5 * (1 + erf((r - mu) / (1.41421356237 * sigma))) }
 }

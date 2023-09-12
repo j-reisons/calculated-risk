@@ -6,19 +6,9 @@ const Plot = createPlotlyComponent(Plotly);
 
 import { Matrix, evaluate, isMatrix } from "mathjs";
 import { initCashflowsForm } from "../InitState";
-import { GridState } from "../grid/gridform";
+import { GridState } from "../grid/state";
+import { CashflowsFormState, CashflowsState } from "./state";
 
-
-export interface CashflowsFormState {
-    // Contents of the textarea
-    readonly cashflowString: string;
-    // Set on blur, reset on focus
-    readonly cashflowStringValid: boolean;
-}
-
-export interface CashflowsState {
-    readonly cashflows: number[];
-}
 
 export interface CashflowsFormProps {
     gridState: GridState;

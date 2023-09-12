@@ -1,12 +1,10 @@
 import { useState } from 'react';
 
 import { initCashflows, initGridState, initStrategies, initUtility } from './InitState';
-import { GridState } from './grid/gridform';
 import { Grid } from './grid/main';
-import { CashflowsState } from './input/cashflows';
+import { GridState } from './grid/state';
 import MainForm from "./input/main";
-import { StrategiesState } from './input/strategies';
-import { UtilityState } from './input/utility';
+import { CashflowsState, StrategiesState, UtilityState } from './input/state';
 
 const App = () => {
 

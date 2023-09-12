@@ -1,8 +1,6 @@
 import { log, range } from "mathjs";
-import { GridFormState, GridState } from "./grid/gridform";
-import { CashflowsFormState, CashflowsState } from "./input/cashflows";
-import { StrategiesFormState, StrategiesState, normalCdf } from "./input/strategies";
-import { UtilityFormState, UtilityState, step } from "./input/utility";
+import { GridFormState, GridState } from "./grid/state";
+import { CashflowsFormState, CashflowsState, StrategiesFormState, StrategiesState, UtilityFormState, UtilityState, normalCdf, step } from "./input/state";
 
 
 export const initGridFormState: GridFormState = {

@@ -1,5 +1,4 @@
-import { Matrix, index, multiply, range, reshape, squeeze, zeros,transpose } from "mathjs";
-
+import { Matrix, index, multiply, range, reshape, squeeze, transpose, zeros } from "mathjs";
 
 export interface Problem {
     readonly strategyCDFs: ((r: number) => number)[],
@@ -70,8 +69,15 @@ export function solve(problem: Problem): Solution {
 }
 
 function max(array: number[]): { max: number, argmax: number } {
-    const argmax = array.reduce((i_max, x, i, arr) => { return x > arr[i_max] ? i : i_max; }, 0);
-    return { max: array[argmax], argmax: argmax };
+    return array.reduce(
+        (value, x, i) => {
+            return x > value.max ?
+                { max: x, argmax: i }
+                : x === value.max
+                    ? { max: x, argmax: -1 } // -1 indicates multiple maxima
+                    : value
+        },
+        { max: 0, argmax: 0 });
 }
 
 // Wrapper around reshape-multiply to multiply Matrices 3+ dimensional matrices.

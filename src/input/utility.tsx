@@ -3,17 +3,10 @@ import Plotly from "plotly.js-cartesian-dist";
 import React, { useState } from 'react';
 import createPlotlyComponent from 'react-plotly.js/factory';
 import { initUtilityForm } from "../InitState";
-import { GridState } from "../grid/gridform";
+import { GridState } from "../grid/state";
+import { UtilityFormState, UtilityState, step } from "./state";
 
 const Plot = createPlotlyComponent(Plotly);
-
-export interface UtilityFormState {
-    readonly utilityString: string;
-}
-
-export interface UtilityState {
-    readonly utilityFunction: (wealth: number) => number;
-}
 
 export interface UtilityFormProps {
     gridState: GridState;
@@ -81,8 +74,4 @@ export const UtilityForm = ({ gridState, utilityState, setUtilityState }: Utilit
 function parseUtilityFunction(utilityString: string): (i: number) => number {
     const parsed = evaluate(utilityString, { step: step });
     return (i: number) => { return parsed(i) };
-}
-
-export function step(x: number): number {
-    return x > 0 ? 1 : 0;
 }

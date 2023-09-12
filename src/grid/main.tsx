@@ -1,9 +1,8 @@
-import { CashflowsState } from "../input/cashflows";
-import { StrategiesState } from "../input/strategies";
-import { UtilityState } from "../input/utility";
-import { GridForm, GridState } from "./gridform";
+import { CashflowsState, StrategiesState, UtilityState } from "../input/state";
+import { GridForm } from "./gridform";
 import { GridPlot } from "./gridplot";
 import "./main.css";
+import { GridState } from "./state";
 
 export interface GridProps {
     gridState: GridState;

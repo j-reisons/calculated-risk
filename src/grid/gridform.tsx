@@ -1,18 +1,7 @@
 import { range } from 'mathjs';
 import React, { useState } from 'react';
 import { initGridFormState } from '../InitState';
-
-export interface GridFormState {
-    readonly wealthMin: string;
-    readonly wealthMax: string;
-    readonly wealthStep: string;
-    readonly periods: string;
-}
-
-export interface GridState {
-    readonly wealthBoundaries: number[];
-    readonly periods: number;
-}
+import { GridFormState, GridState } from './state';
 
 export interface GridFormProps {
     setGridState: React.Dispatch<React.SetStateAction<GridState>>;
