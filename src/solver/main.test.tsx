@@ -22,9 +22,15 @@ test('The init problem is solved sensibly', () => {
 
 // Save a debug page alongside the snapshots
 function saveDebugPage(problem: Problem, solution: Solution, filename: string) {
-    const path = join(__dirname, "__snapshots__", filename);
     const debugPageHtml = renderToStaticMarkup(<DebugPage problem={problem} solution={solution} />);
-    writeFileSync(path, debugPageHtml);
+    const tempPath = join(__dirname, "__snapshots__", "__newsnap__." + filename);
+    const path = join(__dirname, "__snapshots__", filename);
+
+    if (process.argv.includes('--updateSnapshot') || process.argv.includes('-u')) {
+        writeFileSync(path, debugPageHtml);
+    } else {
+        writeFileSync(tempPath, debugPageHtml);
+    }
 }
 
 interface DebugProps {
