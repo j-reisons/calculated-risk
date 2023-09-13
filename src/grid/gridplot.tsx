@@ -19,6 +19,7 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
     const problem: Problem = {
         strategyCDFs: strategiesState.strategies.map(s => s.CDF),
         wealthBoundaries: gridState.wealthBoundaries,
+        periods: gridState.periods,
         cashflows: cashflowsState.cashflows,
         utilityFunction: utilityState.utilityFunction,
     }

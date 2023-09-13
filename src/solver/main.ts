@@ -3,6 +3,7 @@ import { Matrix, index, multiply, range, reshape, squeeze, transpose, zeros } fr
 export interface Problem {
     readonly strategyCDFs: ((r: number) => number)[],
     readonly wealthBoundaries: number[],
+    readonly periods: number,
     readonly cashflows: number[],
     readonly utilityFunction: (w: number) => number,
 }

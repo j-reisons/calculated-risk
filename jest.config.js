@@ -1,4 +1,3 @@
 export default {
-  preset: 'ts-jest',
-  testEnvironment: 'jsdom'
+  preset: 'ts-jest'
 };
