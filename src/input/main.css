@@ -37,6 +37,7 @@
   .input-box {
     grid-row:2;
     resize:none;
+    height:80px;
   }
   
   .plotting-area {

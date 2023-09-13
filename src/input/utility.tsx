@@ -45,6 +45,8 @@ export const UtilityForm = ({ gridState, utilityState, setUtilityState }: Utilit
     }];
     const margin = 30;
     const layout: Partial<Plotly.Layout> = {
+        height: 250,
+        width: 400,
         xaxis: {
             range: [gridState.wealthBoundaries[0], gridState.wealthBoundaries[gridState.wealthBoundaries.length - 1]],
         },

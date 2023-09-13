@@ -64,6 +64,8 @@ export const StrategiesForm = ({ setStrategiesState }: StrategiesFormProps) => {
     }
     const margin = 30;
     const layout: Partial<Plotly.Layout> = {
+        height: 250,
+        width: 400,
         margin: { t: margin, l: margin, r: margin, b: margin }
     }
 

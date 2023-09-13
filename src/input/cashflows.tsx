@@ -69,6 +69,8 @@ export const CashflowsForm = ({ gridState, cashflowsState, setCashflowsState }: 
     const margin = 30;
     const layout: Partial<Plotly.Layout> = {
         showlegend: false,
+        height: 250,
+        width: 400,
         xaxis: {
             range: [-0.5, gridState.periods - 0.5],
         },
