@@ -1,4 +1,4 @@
-import { log, range } from "mathjs";
+import { range } from "mathjs";
 import { GridFormState, GridState } from "./grid/state";
 import { CashflowsFormState, CashflowsState, StrategiesFormState, StrategiesState, UtilityFormState, UtilityState, normalCdf, step } from "./input/state";
 
@@ -52,9 +52,9 @@ export const initStrategies: StrategiesState = {
 }
 
 export const initUtilityForm: UtilityFormState = {
-    utilityString: "f(x)=log(x) + step(x - 100000)"
+    utilityString: "f(x)= step(x - 100000)"
 }
 
 export const initUtility: UtilityState = {
-    utilityFunction: (x: number) => { return log(x) + step(x - 100000) }
+    utilityFunction: (x: number) => { return step(x - 100000) }
 }
