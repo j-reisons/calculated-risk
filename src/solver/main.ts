@@ -25,9 +25,14 @@ export function solve(problem: Problem): Solution {
         }
     }
 
-    const wealthBoundaries = problem.wealthBoundaries;
-    const periods = problem.cashflows.length;
+    // Add boundary bins
+    const wealthBoundaries = [-Infinity, ...problem.wealthBoundaries, Infinity];
     const wealthValues = [...wealthBoundaries.keys()].slice(0, -1).map(i => (wealthBoundaries[i] + wealthBoundaries[i + 1]) / 2);
+    const initUtilities = wealthValues.map(problem.utilityFunction);
+    initUtilities[0] = initUtilities[1];
+    initUtilities[initUtilities.length - 1] = initUtilities[initUtilities.length - 2];
+
+    const periods = problem.periods;
 
     const transition = zeros([cashflowToIndex.size, wealthValues.length, problem.strategyCDFs.length, wealthValues.length], 'dense') as Matrix;
     for (const c of indexToCashflow.keys()) {
@@ -36,7 +41,13 @@ export function solve(problem: Problem): Solution {
             for (let s = 0; s < problem.strategyCDFs.length; s++) {
                 const CDF = problem.strategyCDFs[s];
                 for (let j = 0; j < wealthValues.length; j++) {
-                    const ijtop = ((wealthBoundaries[j + 1] - cashflow) / wealthValues[i]) - 1; // 0-centered returns
+                    // Guard clause for boundary bins: they only transition to themselves
+                    if (i == 0 || i == wealthValues.length - 1) {
+                        transition.set([c, i, s, j], i == j ? 1 : 0);
+                        continue;
+                    }
+                    // 0-centered returns
+                    const ijtop = ((wealthBoundaries[j + 1] - cashflow) / wealthValues[i]) - 1;
                     const ijbottom = ((wealthBoundaries[j] - cashflow) / wealthValues[i]) - 1;
                     const value = CDF(ijtop) - CDF(ijbottom);
                     transition.set([c, i, s, j], value);
@@ -48,9 +59,9 @@ export function solve(problem: Problem): Solution {
     const allStrategies = range(0, problem.strategyCDFs.length);
     const allWealths = range(0, wealthValues.length);
 
-    const strategies = zeros([periods, wealthValues.length], 'dense') as Matrix;
-    const utilities = zeros([periods + 1, wealthValues.length], 'dense') as Matrix;
-    utilities.subset(index(periods, allWealths), wealthValues.map(problem.utilityFunction));
+    let strategies = zeros([periods, wealthValues.length], 'dense') as Matrix;
+    let utilities = zeros([periods + 1, wealthValues.length], 'dense') as Matrix;
+    utilities.subset(index(periods, allWealths), initUtilities);
 
     for (let p = periods - 1; p >= 0; p--) {
         const nextUtility = squeeze(utilities.subset(index(p + 1, allWealths)));
@@ -63,6 +74,10 @@ export function solve(problem: Problem): Solution {
         utilities.subset(index(p, allWealths), optimalStrategies.map(item => item.max));
     }
 
+    // Remove boundary bins
+    strategies = strategies.subset(index(range(0, periods), range(1, wealthValues.length - 1)));
+    utilities = utilities.subset(index(range(0, periods + 1), range(1, wealthValues.length - 1)));
+    
     return {
         optimalStrategies: (transpose(strategies).valueOf() as number[][]),
         utilities: (transpose(utilities).valueOf() as number[][])
