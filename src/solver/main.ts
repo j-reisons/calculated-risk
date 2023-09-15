@@ -39,8 +39,8 @@ export function solve({ strategyCDFs, wealthBoundaries, periods, cashflows, util
                         continue;
                     }
                     // 0-centered returns
-                    const ijtop = ((wealthBoundaries[j + 1] - cashflows[p]) / wealthValues[i]) - 1;
-                    const ijbottom = ((wealthBoundaries[j] - cashflows[p]) / wealthValues[i]) - 1;
+                    const ijtop = ((wealthBoundaries[j + 1] - (cashflows[p] || 0)) / wealthValues[i]) - 1;
+                    const ijbottom = ((wealthBoundaries[j] - (cashflows[p] || 0)) / wealthValues[i]) - 1;
                     const value = CDF(ijtop) - CDF(ijbottom);
                     transitionTensor.set([p, i, s, j], value);
                 }
