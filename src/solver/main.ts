@@ -26,14 +26,6 @@ export function solve({ strategyCDFs, wealthBoundaries, periods, cashflows, util
             for (let s = 0; s < strategyCDFs.length; s++) {
                 const CDF = strategyCDFs[s];
                 for (let j = 0; j < values.length; j++) {
-                    // Guard clause for boundary bins: they only transition to themselves
-                    // This is not ideal.
-                    // Top should be able to go down
-                    // Bottom should not be able to go up
-                    if (i == 0 || i == values.length - 1) {
-                        transitionTensor.set([p, i, s, j], i == j ? 1 : 0);
-                        continue;
-                    }
                     // 0-centered returns
                     const ijtop = ((boundaries[j + 1] - (cashflows[p] || 0)) / values[i]) - 1;
                     const ijbottom = ((boundaries[j] - (cashflows[p] || 0)) / values[i]) - 1;

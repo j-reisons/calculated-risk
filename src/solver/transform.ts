@@ -13,7 +13,7 @@ export function computeWealthBins(
     wealthBoundaries: number[],
     utilityFunction: (w: number) => number): WealthBins {
 
-    const boundaries = [-Infinity, ...wealthBoundaries, Infinity];
+    const boundaries = [-Number.MAX_VALUE, ...wealthBoundaries, Number.MAX_VALUE];
     const values = [...boundaries.keys()].slice(0, -1).map(i => (boundaries[i] + boundaries[i + 1]) / 2);
     const finalUtilities = values.map(utilityFunction);
     finalUtilities[0] = finalUtilities[1];
