@@ -64,7 +64,7 @@ function DebugPage({ solution, problem }: DebugProps): JSX.Element {
       Plotly.newPlot(document.getElementById('utilities'),[{
                x: timeRange_utilities,
                y: wealthValues,
-               z: solution.utilities,
+               z: solution.expectedUtilities,
                type: 'heatmap',
                showscale: false,
                xgap: 0.5,

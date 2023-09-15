@@ -1,35 +1,59 @@
-import { Matrix, range } from "mathjs";
+import { Matrix, range, zeros } from "mathjs";
 
 // Pre and post-processing steps around the core solver.
 
+// Extend bins defined by the original wealthBoundaries to include suitable boundary conditions.
+// Assign wealth values and utilities to all bins.
+// Provide index range of original bins in the extended ones.
 
 export interface WealthBins {
     boundaries: number[],
     values: number[],
     finalUtilities: number[],
-    resultRange: Matrix
+    originalRange: Matrix
 }
-export function computeWealthBins(
-    wealthBoundaries: number[],
+export function extendWealthBins(
+    originalBoundaries: number[],
     utilityFunction: (w: number) => number): WealthBins {
 
-    const boundaries = [-Number.MAX_VALUE, ...wealthBoundaries, Number.MAX_VALUE];
+    const boundaries = [-Number.MAX_VALUE, ...originalBoundaries, Number.MAX_VALUE];
     const values = [...boundaries.keys()].slice(0, -1).map(i => (boundaries[i] + boundaries[i + 1]) / 2);
+    
     const finalUtilities = values.map(utilityFunction);
     finalUtilities[0] = finalUtilities[1];
     finalUtilities[finalUtilities.length - 1] = finalUtilities[finalUtilities.length - 2];
 
-    const resultRange = range(1, values.length - 1)
+    const originalRange = range(1, values.length - 1)
 
-    return { boundaries, values, finalUtilities, resultRange };
+    return { boundaries, values, finalUtilities, originalRange };
 }
 
-// Given boundaries, values, cashflows, periods, CDFs, compute the transition tensor.
-export function computeTransitionMatrix() {
-
+export function computeTransitionTensor(
+    periods: number,
+    boundaries: number[],
+    values: number[],
+    strategyCDFs: ((r: number) => number)[],
+    cashflows: number[],
+): Matrix {
+    const transitionTensor = zeros([periods, values.length, strategyCDFs.length, values.length], 'dense') as Matrix;
+    for (let p = 0; p < periods; p++) {
+        for (let i = 0; i < values.length; i++) {
+            for (let s = 0; s < strategyCDFs.length; s++) {
+                const CDF = strategyCDFs[s];
+                for (let j = 0; j < values.length; j++) {
+                    // 0-centered returns
+                    const ijtop = ((boundaries[j + 1] - (cashflows[p] || 0)) / values[i]) - 1;
+                    const ijbottom = ((boundaries[j] - (cashflows[p] || 0)) / values[i]) - 1;
+                    const value = CDF(ijtop) - CDF(ijbottom);
+                    transitionTensor.set([p, i, s, j], value);
+                }
+            }
+        }
+    }
+    return transitionTensor;
 }
 
-// -1 strategy indices are output by max when multiple maxima are found.
+// -1 indices are output by the solver when multiple maxima are found.
 // This function overwrites -1 areas with values found either above or below them.
 // If values are present both above and below a -1 area they must match to be used for overwriting.
 export function replaceUnknownStrategies(optimalStrategies: Matrix): void {

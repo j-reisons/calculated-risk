@@ -1,6 +1,6 @@
-import { Matrix, index, range, transpose, zeros } from "mathjs";
-import { coreSolve } from "./solve";
-import { computeWealthBins, replaceUnknownStrategies } from "./transform";
+import { index, range, transpose } from "mathjs";
+import { coreSolve } from "./core";
+import { computeTransitionTensor, extendWealthBins, replaceUnknownStrategies } from "./transform";
 
 export interface Problem {
     readonly strategyCDFs: ((r: number) => number)[],
@@ -12,40 +12,24 @@ export interface Problem {
 
 export interface Solution {
     readonly optimalStrategies: number[][];
-    readonly utilities: number[][];
+    readonly expectedUtilities: number[][];
 }
 
 export function solve({ strategyCDFs, wealthBoundaries, periods, cashflows, utilityFunction }: Problem): Solution {
 
-    // Add boundary bins
-    const { boundaries, values, finalUtilities, resultRange } = computeWealthBins(wealthBoundaries, utilityFunction);
-
-    const transitionTensor = zeros([periods, values.length, strategyCDFs.length, values.length], 'dense') as Matrix;
-    for (let p = 0; p < periods; p++) {
-        for (let i = 0; i < values.length; i++) {
-            for (let s = 0; s < strategyCDFs.length; s++) {
-                const CDF = strategyCDFs[s];
-                for (let j = 0; j < values.length; j++) {
-                    // 0-centered returns
-                    const ijtop = ((boundaries[j + 1] - (cashflows[p] || 0)) / values[i]) - 1;
-                    const ijbottom = ((boundaries[j] - (cashflows[p] || 0)) / values[i]) - 1;
-                    const value = CDF(ijtop) - CDF(ijbottom);
-                    transitionTensor.set([p, i, s, j], value);
-                }
-            }
-        }
-    }
+    const { boundaries, values, finalUtilities, originalRange } = extendWealthBins(wealthBoundaries, utilityFunction);
+    const transitionTensor = computeTransitionTensor(periods, boundaries, values, strategyCDFs, cashflows);
 
     let { optimalStrategies, expectedUtilities } = coreSolve({ transitionTensor, finalUtilities });
 
-    // Remove boundary bins
-    optimalStrategies = optimalStrategies.subset(index(range(0, periods), resultRange));
-    expectedUtilities = expectedUtilities.subset(index(range(0, periods + 1), resultRange));
+    // Recover original bins from the extended ones
+    optimalStrategies = optimalStrategies.subset(index(range(0, periods), originalRange));
+    expectedUtilities = expectedUtilities.subset(index(range(0, periods + 1), originalRange));
 
     replaceUnknownStrategies(optimalStrategies);
 
     return {
         optimalStrategies: (transpose(optimalStrategies).valueOf() as number[][]),
-        utilities: (transpose(expectedUtilities).valueOf() as number[][])
+        expectedUtilities: (transpose(expectedUtilities).valueOf() as number[][])
     }
 }
