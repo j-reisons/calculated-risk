@@ -31,7 +31,8 @@ export const GridForm = ({ setGridState }: GridFormProps) => {
         <div>
             <div>Wealth max <input type="text" inputMode="numeric" value={gridFormState.wealthMax} onChange={handleInput} onBlur={onBlur} id="wealthMax" name="wealthMax" pattern="^\d+$" /></div>
             <div>Wealth step <input type="text" inputMode="numeric" value={gridFormState.wealthStep} onChange={handleInput} onBlur={onBlur} id="wealthStep" name="wealthStep" pattern="^\d+$" /></div>
-            <div>Wealth min <input type="text" inputMode="numeric" value={gridFormState.wealthMin} onChange={handleInput} onBlur={onBlur} id="wealthMin" name="wealthMin" pattern="^-?\d+$" /></div>
+            {/* I think wealth min != 0 is more trouble than it is worth for now */}
+            {/* <div>Wealth min <input type="text" inputMode="numeric" value={gridFormState.wealthMin} onChange={handleInput} onBlur={onBlur} id="wealthMin" name="wealthMin" pattern="^-?\d+$" /></div> */}
             <div>Periods <input type="text" inputMode="numeric" value={gridFormState.periods} onChange={handleInput} onBlur={onBlur} id="periods" name="periods" pattern="^\d+$" /></div>
         </div>
     )
