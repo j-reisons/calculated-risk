@@ -1,9 +1,38 @@
-import { Matrix } from "mathjs";
+import { Matrix, range } from "mathjs";
+
+// Pre and post-processing steps around the core solver.
+
+
+export interface WealthBins {
+    boundaries: number[],
+    values: number[],
+    finalUtilities: number[],
+    resultRange: Matrix
+}
+export function computeWealthBins(
+    wealthBoundaries: number[],
+    utilityFunction: (w: number) => number): WealthBins {
+
+    const boundaries = [-Infinity, ...wealthBoundaries, Infinity];
+    const values = [...boundaries.keys()].slice(0, -1).map(i => (boundaries[i] + boundaries[i + 1]) / 2);
+    const finalUtilities = values.map(utilityFunction);
+    finalUtilities[0] = finalUtilities[1];
+    finalUtilities[finalUtilities.length - 1] = finalUtilities[finalUtilities.length - 2];
+
+    const resultRange = range(1, values.length - 1)
+
+    return { boundaries, values, finalUtilities, resultRange };
+}
+
+// Given boundaries, values, cashflows, periods, CDFs, compute the transition tensor.
+export function computeTransitionMatrix() {
+
+}
 
 // -1 strategy indices are output by max when multiple maxima are found.
 // This function overwrites -1 areas with values found either above or below them.
 // If values are present both above and below a -1 area they must match to be used for overwriting.
-export function postProcessStrategies(optimalStrategies: Matrix): void {
+export function replaceUnknownStrategies(optimalStrategies: Matrix): void {
     const strategiesArray = optimalStrategies.valueOf() as number[][];
     for (let i = 0; i < strategiesArray.length; i++) {
         const periodArray = strategiesArray[i];
