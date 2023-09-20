@@ -36,8 +36,6 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
     const traces: Plotly.Data[] = [{
         x: timeRange,
         y: wealthValues,
-        xgap: 0.5,
-        ygap: 0.5,
         z: z,
         type: 'heatmap',
         showscale: false,
@@ -47,11 +45,8 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
         width: 1100,
         height: 500,
         margin: { t: 0, l: 40, r: 0, b: 30 },
-        // dragmode: false,
-        // hovermode: false,
     }
     const config: Partial<Plotly.Config> = {
-        // displayModeBar: false
     }
 
     return (

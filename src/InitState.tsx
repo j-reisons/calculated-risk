@@ -1,17 +1,19 @@
-import { range } from "mathjs";
-import { GridFormState, GridState } from "./grid/state";
+import { GridFormState, GridState, logRange } from "./grid/state";
 import { CashflowsFormState, CashflowsState, StrategiesFormState, StrategiesState, UtilityFormState, UtilityState, normalCdf, step } from "./input/state";
 
 
 export const initGridFormState: GridFormState = {
-    wealthMin: "0",
+    wealthMin: "40000",
     wealthMax: "400000",
-    wealthStep: "10000",
+    wealthStep: "1%",
     periods: "10",
 }
 
 export const initGridState: GridState = {
-    wealthBoundaries: range(0, 400000, 10000, true).valueOf() as number[],
+    wealthBoundaries: logRange(40000, 400000, 0.01),
+    wealthMin: 40000,
+    wealthMax: 400000,
+    wealthStep: 0.01,
     periods: 10,
 };
 
