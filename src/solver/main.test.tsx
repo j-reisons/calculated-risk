@@ -7,7 +7,7 @@ import { Problem, Solution, solve } from "./main";
 test('The init problem is solved sensibly', () => {
     const initProblem: Problem =
     {
-        strategyCDFs: initStrategies.strategies.map(s => s.CDF),
+        strategies: initStrategies.strategies,
         wealthBoundaries: initGridState.wealthBoundaries,
         periods: initGridState.periods,
         cashflows: initCashflows.cashflows,

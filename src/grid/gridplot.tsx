@@ -17,7 +17,7 @@ export interface GridPlotProps {
 export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilityState }: GridPlotProps) => {
 
     const problem: Problem = {
-        strategyCDFs: strategiesState.strategies.map(s => s.CDF),
+        strategies: strategiesState.strategies,
         wealthBoundaries: gridState.wealthBoundaries,
         periods: gridState.periods,
         cashflows: cashflowsState.cashflows,

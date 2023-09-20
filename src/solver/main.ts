@@ -1,9 +1,10 @@
 import { index, range, transpose } from "mathjs";
+import { Strategy } from "../input/state";
 import { coreSolve } from "./core";
 import { computeTransitionTensor, extendWealthBins, replaceUnknownStrategies } from "./transform";
 
 export interface Problem {
-    readonly strategyCDFs: ((r: number) => number)[],
+    readonly strategies: Strategy[]
     readonly wealthBoundaries: number[],
     readonly periods: number,
     readonly cashflows: number[],
@@ -15,16 +16,16 @@ export interface Solution {
     readonly expectedUtilities: number[][];
 }
 
-export function solve({ strategyCDFs, wealthBoundaries, periods, cashflows, utilityFunction }: Problem): Solution {
+export function solve(problem: Problem): Solution {
 
-    const { boundaries, values, finalUtilities, originalRange } = extendWealthBins(wealthBoundaries, utilityFunction);
-    const transitionTensor = computeTransitionTensor(periods, boundaries, values, strategyCDFs, cashflows);
+    const { boundaries, values, finalUtilities, originalRange } = extendWealthBins(problem);
+    const transitionTensor = computeTransitionTensor(problem.periods, boundaries, values, problem.strategies.map(s => s.CDF), problem.cashflows);
 
     let { optimalStrategies, expectedUtilities } = coreSolve({ transitionTensor, finalUtilities });
 
     // Recover original bins from the extended ones
-    optimalStrategies = optimalStrategies.subset(index(range(0, periods), originalRange));
-    expectedUtilities = expectedUtilities.subset(index(range(0, periods + 1), originalRange));
+    optimalStrategies = optimalStrategies.subset(index(range(0, problem.periods), originalRange));
+    expectedUtilities = expectedUtilities.subset(index(range(0, problem.periods + 1), originalRange));
 
     replaceUnknownStrategies(optimalStrategies);
 

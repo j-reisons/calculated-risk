@@ -182,6 +182,8 @@ function plotY(s: Strategy_): number[] {
 function mapStrategy(s: Strategy_): Strategy {
     return {
         name: s.name,
-        CDF: normalCdf(s.mu, s.sigma)
+        CDF: normalCdf(s.mu, s.sigma),
+        mean: s.mu,
+        vola: s.sigma
     }
 }

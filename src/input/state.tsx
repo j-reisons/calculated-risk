@@ -18,6 +18,9 @@ export interface StrategiesState {
 export interface Strategy {
     readonly name: string,
     readonly CDF: (r: number) => number;
+    // Easier to pass along than compute from the CDF
+    readonly mean: number;
+    readonly vola: number;
 }
 
 export interface StrategiesFormState {

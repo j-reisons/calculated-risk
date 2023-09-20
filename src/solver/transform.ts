@@ -1,4 +1,5 @@
 import { Matrix, range, zeros } from "mathjs";
+import { Problem } from "./main";
 
 // Pre and post-processing steps around the core solver.
 
@@ -12,20 +13,71 @@ export interface WealthBins {
     finalUtilities: number[],
     originalRange: Matrix
 }
-export function extendWealthBins(
-    originalBoundaries: number[],
-    utilityFunction: (w: number) => number): WealthBins {
-
-    const boundaries = [-Number.MAX_VALUE, ...originalBoundaries, Number.MAX_VALUE];
+export function extendWealthBins(problem: Problem): WealthBins {
+    const boundaries = [-Number.MAX_VALUE, ...problem.wealthBoundaries, Number.MAX_VALUE];
     const values = [...boundaries.keys()].slice(0, -1).map(i => (boundaries[i] + boundaries[i + 1]) / 2);
-    
-    const finalUtilities = values.map(utilityFunction);
+
+    const finalUtilities = values.map(problem.utilityFunction);
     finalUtilities[0] = finalUtilities[1];
     finalUtilities[finalUtilities.length - 1] = finalUtilities[finalUtilities.length - 2];
 
     const originalRange = range(1, values.length - 1)
 
     return { boundaries, values, finalUtilities, originalRange };
+}
+
+function computeCoarseGrid(problem: Problem): number[] {
+    const minStrategySize = problem.strategies.reduce(
+        (minSize, strategy) => {
+            return Math.min(minSize, (Math.abs(strategy.mean) + strategy.vola));
+        }
+        , Infinity);
+
+    const minAbsoluteCashflow = problem.cashflows.reduce(
+        (minAbsoluteCashflow, num) => {
+            return Math.min(minAbsoluteCashflow, Math.abs(num));
+        }, 0);
+
+    // Below this value, use a linear coarse grid to capture all cashflows accurately
+    // Above this value, use a log coarse grid to save memory
+    const linToLogWealth = minAbsoluteCashflow / minStrategySize;
+
+    const coarseMin = problem.wealthBoundaries[problem.wealthBoundaries.length - 1];
+    const coarseMax = computeCoarseMax(problem);
+
+    const coarseGrid = new Array<number>();
+    let prevValue = coarseMin;
+
+    while (prevValue < coarseMax) {
+        if (prevValue < linToLogWealth) {
+            prevValue = prevValue + minAbsoluteCashflow;
+            coarseGrid.push(prevValue);
+        }
+        else {
+            prevValue = prevValue * (1 + minStrategySize);
+            coarseGrid.push(prevValue);
+        }
+    }
+    return coarseGrid;
+}
+
+function computeCoarseMax(problem: Problem): number {
+    const gridMax = problem.wealthBoundaries[problem.wealthBoundaries.length - 1];
+
+    const cashflowRunningSumMax = problem.cashflows.reduce(
+        (value, num) => {
+            return { max: Math.max(value.max, value.sum + num), sum: value.sum + num }
+        }
+        , { max: 0, sum: 0 }).max;
+
+    const maxStrategySize = problem.strategies.reduce(
+        (maxSize, strategy) => {
+            return Math.max(maxSize, (strategy.mean + strategy.vola));
+        }
+        , 0
+    );
+
+    return (gridMax + cashflowRunningSumMax) * (1 + (maxStrategySize * problem.periods));
 }
 
 export function computeTransitionTensor(

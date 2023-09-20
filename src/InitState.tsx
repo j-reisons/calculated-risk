@@ -43,11 +43,11 @@ export const initStrategiesForm: StrategiesFormState = {
 
 export const initStrategies: StrategiesState = {
     strategies: [
-        { name: 'cash', CDF: normalCdf(0.01, 0) },
-        { name: 'e_25', CDF: normalCdf(0.02, 0.05) },
-        { name: 'e_50', CDF: normalCdf(0.03, 0.1) },
-        { name: 'e_75', CDF: normalCdf(0.04, 0.15) },
-        { name: 'e_100', CDF: normalCdf(0.05, 0.2) }
+        { name: 'cash', CDF: normalCdf(0.01, 0), mean: 0.01, vola: 0 },
+        { name: 'e_25', CDF: normalCdf(0.02, 0.05), mean: 0.02, vola: 0.05 },
+        { name: 'e_50', CDF: normalCdf(0.03, 0.1), mean: 0.03, vola: 0.1 },
+        { name: 'e_75', CDF: normalCdf(0.04, 0.15), mean: 0.04, vola: 0.15 },
+        { name: 'e_100', CDF: normalCdf(0.05, 0.2), mean: 0.05, vola: 0.2 }
     ]
 }
 
