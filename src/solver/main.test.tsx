@@ -2,9 +2,9 @@ import { writeFileSync } from 'fs';
 import { join } from 'path';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { initCashflows, initGridState, initStrategies, initUtility } from "../InitState";
-import { Problem, Solution, solve } from "./main";
+import { Problem, Solution, solveCPU } from "./main";
 
-test('The init problem is solved sensibly', () => {
+test('The init problem is solved sensibly', async () => {
     const initProblem: Problem =
     {
         strategies: initStrategies.strategies,
@@ -14,7 +14,7 @@ test('The init problem is solved sensibly', () => {
         utilityFunction: initUtility.utilityFunction
     }
 
-    const solution: Solution = solve(initProblem);
+    const solution: Solution = await solveCPU(initProblem);
 
     saveDebugPage(initProblem, solution, "initProblem_debug.html");
     expect(solution).toMatchSnapshot();
@@ -53,9 +53,7 @@ function DebugPage({ solution, problem }: DebugProps): JSX.Element {
               y: wealthValues,
               z: solution.optimalStrategies,
               type: 'heatmap',
-              showscale: false,
-              xgap: 0.5,
-              ygap: 0.5,
+              showscale: false
             }],
                {margin: {t: 0 } } 
               );
@@ -66,9 +64,7 @@ function DebugPage({ solution, problem }: DebugProps): JSX.Element {
                y: wealthValues,
                z: solution.expectedUtilities,
                type: 'heatmap',
-               showscale: false,
-               xgap: 0.5,
-               ygap: 0.5,
+               showscale: false
              }],
                 {margin: {t: 0 } } 
                );            

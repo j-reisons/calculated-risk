@@ -1,8 +1,9 @@
 import { range } from "mathjs";
 import Plotly from "plotly.js-cartesian-dist";
+import { useEffect, useState } from "react";
 import createPlotlyComponent from 'react-plotly.js/factory';
 import { CashflowsState, StrategiesState, UtilityState } from "../input/state";
-import { Problem, solve } from "../solver/main";
+import { Problem, Solution, solve } from "../solver/main";
 import { GridState } from "./state";
 
 const Plot = createPlotlyComponent(Plotly);
@@ -16,14 +17,22 @@ export interface GridPlotProps {
 
 export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilityState }: GridPlotProps) => {
 
-    const problem: Problem = {
-        strategies: strategiesState.strategies,
-        wealthBoundaries: gridState.wealthBoundaries,
-        periods: gridState.periods,
-        cashflows: cashflowsState.cashflows,
-        utilityFunction: utilityState.utilityFunction,
-    }
-    const solution = solve(problem);
+    const [solution, setSolution] = useState<Solution>({ optimalStrategies: [], expectedUtilities: [] });
+
+    useEffect(() => {
+        const problem: Problem = {
+            strategies: strategiesState.strategies,
+            wealthBoundaries: gridState.wealthBoundaries,
+            periods: gridState.periods,
+            cashflows: cashflowsState.cashflows,
+            utilityFunction: utilityState.utilityFunction,
+        }
+        async function solveProblem() {
+            const solution = await solve(problem);
+            setSolution(solution);
+        }
+        solveProblem();
+    }, [gridState, strategiesState, cashflowsState, utilityState])
 
 
     // Offset everything by a half interval to get the heatmap cells to align with the axes;

@@ -18,6 +18,11 @@
     "jsx": "react-jsx",
     /* Linting */
     "strict": true,
+    "types": [
+      "@webgpu/types",
+      "node",
+      "jest"
+    ],
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true

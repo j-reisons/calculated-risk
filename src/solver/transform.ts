@@ -26,7 +26,7 @@ export function extendWealthBins(problem: Problem): WealthBins {
     return { boundaries, values, finalUtilities, originalRange };
 }
 
-function computeCoarseGrid(problem: Problem): number[] {
+export function computeCoarseGrid(problem: Problem): number[] {
     const minStrategySize = problem.strategies.reduce(
         (minSize, strategy) => {
             return Math.min(minSize, (Math.abs(strategy.mean) + strategy.vola));
