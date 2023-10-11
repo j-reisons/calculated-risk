@@ -1,4 +1,4 @@
-import { Matrix, flatten, index, matrix, multiply, range, reshape, size, squeeze, zeros } from "mathjs";
+import { Matrix, flatten, index, matrix, range, reshape, size, zeros } from "mathjs";
 
 export interface CoreProblem {
     // A tensor of dimensions (periods, starting_wealth, strategy, next_wealth)
@@ -19,7 +19,7 @@ export interface CoreSolution {
 }
 
 
-export async function coreSolveCPU({ transitionTensor, finalUtilities }: CoreProblem): Promise<CoreSolution> {
+export function coreSolveCPU({ transitionTensor, finalUtilities }: CoreProblem): CoreSolution {
     const periods = transitionTensor.length;
     const [wealth_size, ,] = size(transitionTensor[0]).valueOf() as number[];
 
@@ -27,12 +27,14 @@ export async function coreSolveCPU({ transitionTensor, finalUtilities }: CorePro
 
     const optimalStrategies = zeros([periods, wealth_size], 'dense') as Matrix;
     const expectedUtilities = zeros([periods + 1, wealth_size], 'dense') as Matrix;
+
     expectedUtilities.subset(index(periods, allWealths), finalUtilities);
+    expectedUtilities.valueOf() as number[][];
 
     for (let p = periods - 1; p >= 0; p--) {
-        const nextUtility = squeeze(expectedUtilities.subset(index(p + 1, allWealths)));
+        const nextUtility = matrix((expectedUtilities.valueOf() as number[][])[p + 1]);
         const periodTransition = transitionTensor[p];
-        const strategyUtilities = await contractCPU(periodTransition, nextUtility);
+        const strategyUtilities = contractCPU(periodTransition, nextUtility);
         const periodStrategies = (strategyUtilities.valueOf() as number[][]).map(max);
 
         optimalStrategies.subset(index(p, allWealths), periodStrategies.map(item => item.argmax));
@@ -53,7 +55,7 @@ export async function coreSolveGPU({ transitionTensor, finalUtilities }: CorePro
     expectedUtilities.subset(index(periods, allWealths), finalUtilities);
 
     for (let p = periods - 1; p >= 0; p--) {
-        const nextUtility = squeeze(expectedUtilities.subset(index(p + 1, allWealths)));
+        const nextUtility = matrix((expectedUtilities.valueOf() as number[][])[p + 1]);
         const periodTransition = transitionTensor[p];
         const strategyUtilities = await contractGPU(periodTransition, nextUtility);
         const periodStrategies = (strategyUtilities.valueOf() as number[][]).map(max);
@@ -65,16 +67,23 @@ export async function coreSolveGPU({ transitionTensor, finalUtilities }: CorePro
     return { optimalStrategies, expectedUtilities };
 }
 
-// Wrapper around reshape-multiply to contract 3+ dimensional tensors.
-// Contraction occurs between the last dimension of tensor1 with the first dimension of tensor2
-async function contractCPU(tensor1: Matrix, tensor2: Matrix): Promise<Matrix> {
-    const reshaped1 = reshape(tensor1, [-1, tensor1.size()[tensor1.size().length - 1]]);
-    const reshaped2 = reshape(tensor2, [tensor2.size()[0], -1]);
+function contractCPU(transition: Matrix, nextUtility: Matrix): Matrix {
+    const size = transition.size();
+    const result = zeros(size.slice(0, 2), 'dense') as Matrix;
 
-    const resultSize = [...tensor1.size().slice(0, -1), ...tensor2.size().slice(1)];
-    const resultMatrix = multiply(reshaped1, reshaped2);
+    const transitionValues = (transition.valueOf() as unknown) as number[][][];
+    const nextUtilityValues = nextUtility.valueOf() as number[];
+    const resultValues = result.valueOf() as number[][];
 
-    return reshape(resultMatrix, resultSize);
+    for (let i = 0; i < size[0]; i++) {
+        for (let j = 0; j < size[1]; j++) {
+            for (let k = 0; k < size[2]; k++) {
+                resultValues[i][j] += transitionValues[i][j][k] * nextUtilityValues[k];
+            }
+        }
+    }
+
+    return result;
 }
 
 // Wrapper around reshape-multiply to contract 3+ dimensional tensors.

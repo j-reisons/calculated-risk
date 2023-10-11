@@ -20,11 +20,11 @@ export async function solve(problem: Problem): Promise<Solution> {
     return solveCPU(problem);
 }
 
-export async function solveCPU(problem: Problem): Promise<Solution> {
+export function solveCPU(problem: Problem): Solution {
     const { boundaries, values, finalUtilities, originalRange } = extendWealthBins(problem);
     const transitionTensor = computeTransitionTensor(problem.periods, boundaries, values, problem.strategies.map(s => s.CDF), problem.cashflows);
 
-    let { optimalStrategies, expectedUtilities } = await coreSolveCPU({ transitionTensor, finalUtilities });
+    let { optimalStrategies, expectedUtilities } = coreSolveCPU({ transitionTensor, finalUtilities });
 
     // Recover original bins from the extended ones
     optimalStrategies = optimalStrategies.subset(index(range(0, problem.periods), originalRange));

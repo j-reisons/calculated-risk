@@ -20,7 +20,7 @@ test('The init problem is solved sensibly', async () => {
         utilityFunction: initUtility.utilityFunction
     }
 
-    const solutionCPU: Solution = await solveCPU(initProblem);
+    const solutionCPU: Solution = solveCPU(initProblem);
     const solutionGPU: Solution = await solveGPU(initProblem);
 
     saveDebugPage(initProblem, solutionCPU, "initProblem_debug_CPU.html");
