@@ -86,7 +86,7 @@ export function computeTransitionTensor(
     values: number[],
     strategyCDFs: ((r: number) => number)[],
     cashflows: number[],
-): Matrix {
+): Matrix[] {
     const uniqueCashflowIndices = new Map<number, number>()
     const periodsToCashflowIndices = new Map<number, number>()
     let u = 0;
@@ -98,10 +98,11 @@ export function computeTransitionTensor(
         periodsToCashflowIndices.set(i, uniqueCashflowIndices.get(cashflow)!);
     }
 
-    const cashflowTransitionTensorMatrix = zeros([uniqueCashflowIndices.size, values.length, strategyCDFs.length, values.length], 'dense');
-    const cashflowTransitionTensor = cashflowTransitionTensorMatrix.valueOf() as number[][][][];
+    const cashflowTransitionMatrices = new Array<Matrix>(uniqueCashflowIndices.size);
 
     for (const [cashflow, c] of uniqueCashflowIndices) {
+        cashflowTransitionMatrices[c] = zeros([values.length, strategyCDFs.length, values.length], 'dense') as Matrix;
+        const array = (cashflowTransitionMatrices[c].valueOf() as unknown) as number[][][];
         for (let i = 0; i < values.length; i++) {
             for (let s = 0; s < strategyCDFs.length; s++) {
                 const CDF = strategyCDFs[s];
@@ -110,19 +111,19 @@ export function computeTransitionTensor(
                     const ijtop = ((boundaries[j + 1] - (cashflow || 0)) / values[i]) - 1;
                     const ijbottom = ((boundaries[j] - (cashflow || 0)) / values[i]) - 1;
                     const value = CDF(ijtop) - CDF(ijbottom);
-                    cashflowTransitionTensor[c][i][s][j] = value;
+                    array[i][s][j] = value;
                 }
             }
         }
     }
 
-    const transitionTensorMatrix = zeros([periods, values.length, strategyCDFs.length, values.length], 'dense');
-    const transitionTensor = transitionTensorMatrix.valueOf() as number[][][][];
+    const transitionMatrices = new Array<Matrix>(periods);
+
     for (let p = 0; p < periods; p++) {
-        transitionTensor[p] = cashflowTransitionTensor[periodsToCashflowIndices.get(p)!];
+        transitionMatrices[p] = cashflowTransitionMatrices[periodsToCashflowIndices.get(p)!];
     }
 
-    return transitionTensorMatrix as Matrix;
+    return transitionMatrices;
 }
 
 // -1 indices are output by the solver when multiple maxima are found.

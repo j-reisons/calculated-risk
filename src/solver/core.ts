@@ -4,7 +4,7 @@ export interface CoreProblem {
     // A tensor of dimensions (periods, starting_wealth, strategy, next_wealth)
     // Contains transition probabilities from starting_wealth to next_wealth 
     // for a given period and strategy
-    transitionTensor: Matrix;
+    transitionTensor: Matrix[];
     // An array of dimension (next_wealth) containing the value of the utility
     // function for each wealth value.
     finalUtilities: number[];
@@ -20,10 +20,9 @@ export interface CoreSolution {
 
 
 export async function coreSolveCPU({ transitionTensor, finalUtilities }: CoreProblem): Promise<CoreSolution> {
+    const periods = transitionTensor.length;
+    const [wealth_size, ,] = size(transitionTensor[0]).valueOf() as number[];
 
-    const [periods, wealth_size, strategies_size,] = size(transitionTensor).valueOf() as number[];
-
-    const allStrategies = range(0, strategies_size);
     const allWealths = range(0, wealth_size);
 
     const optimalStrategies = zeros([periods, wealth_size], 'dense') as Matrix;
@@ -32,7 +31,7 @@ export async function coreSolveCPU({ transitionTensor, finalUtilities }: CorePro
 
     for (let p = periods - 1; p >= 0; p--) {
         const nextUtility = squeeze(expectedUtilities.subset(index(p + 1, allWealths)));
-        const periodTransition = squeeze(transitionTensor.subset(index(p, allWealths, allStrategies, allWealths)));
+        const periodTransition = transitionTensor[p];
         const strategyUtilities = await contractCPU(periodTransition, nextUtility);
         const periodStrategies = (strategyUtilities.valueOf() as number[][]).map(max);
 
@@ -44,10 +43,9 @@ export async function coreSolveCPU({ transitionTensor, finalUtilities }: CorePro
 }
 
 export async function coreSolveGPU({ transitionTensor, finalUtilities }: CoreProblem): Promise<CoreSolution> {
+    const periods = transitionTensor.length;
+    const [wealth_size, ,] = size(transitionTensor[0]).valueOf() as number[];
 
-    const [periods, wealth_size, strategies_size,] = size(transitionTensor).valueOf() as number[];
-
-    const allStrategies = range(0, strategies_size);
     const allWealths = range(0, wealth_size);
 
     const optimalStrategies = zeros([periods, wealth_size], 'dense') as Matrix;
@@ -56,7 +54,7 @@ export async function coreSolveGPU({ transitionTensor, finalUtilities }: CorePro
 
     for (let p = periods - 1; p >= 0; p--) {
         const nextUtility = squeeze(expectedUtilities.subset(index(p + 1, allWealths)));
-        const periodTransition = squeeze(transitionTensor.subset(index(p, allWealths, allStrategies, allWealths)));
+        const periodTransition = transitionTensor[p];
         const strategyUtilities = await contractGPU(periodTransition, nextUtility);
         const periodStrategies = (strategyUtilities.valueOf() as number[][]).map(max);
 
