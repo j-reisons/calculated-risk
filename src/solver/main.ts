@@ -38,7 +38,7 @@ export async function solveCPU(problem: Problem): Promise<Solution> {
     }
 }
 
-export async function solveGPU(problem: Problem): Promise<Solution> {
+export async function solveGPU(problem: Problem, ): Promise<Solution> {
     const { boundaries, values, finalUtilities, originalRange } = extendWealthBins(problem);
     const transitionTensor = computeTransitionTensor(problem.periods, boundaries, values, problem.strategies.map(s => s.CDF), problem.cashflows);
 
