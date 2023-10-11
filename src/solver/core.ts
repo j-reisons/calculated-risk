@@ -212,10 +212,11 @@ async function multiplyGPU(matrix1: Matrix, matrix2: Matrix): Promise<Matrix> {
     return matrix(Array.from(output.subarray(2, output.length))).resize(Array.from(output.subarray(0, 1)));
 }
 
+const EPSILON = 1E-6;
 function max(array: number[]): { max: number, argmax: number } {
     return array.reduce(
         (value, x, i) => {
-            return x > value.max ?
+            return x > value.max + EPSILON ?
                 { max: x, argmax: i }
                 : x === value.max
                     ? { max: x, argmax: -1 } // -1 indicates multiple maxima

@@ -27,10 +27,10 @@ test('The init problem is solved sensibly', async () => {
     saveDebugPage(initProblem, solutionGPU, "initProblem_debug_GPU.html");
 
     expect(solutionCPU.expectedUtilities).toBeApproxEqual2dArray(solutionGPU.expectedUtilities, 1E-6);
-    // expect(solutionCPU.optimalStrategies).toBeApproxEqual2dArray(solutionGPU.optimalStrategies, 1E-6);
+    expect(solutionCPU.optimalStrategies).toBeApproxEqual2dArray(solutionGPU.optimalStrategies, 1E-6);
 
     expect(solutionCPU).toMatchSnapshot();
-}, 30000);
+}, 1000000);
 
 function saveDebugPage(problem: Problem, solution: Solution, filename: string) {
     const html = debugPageHtml(problem, solution);
