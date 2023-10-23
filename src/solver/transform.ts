@@ -90,8 +90,8 @@ export function computeTransitionTensor(
     const uniqueCashflowIndices = new Map<number, number>()
     const periodsToCashflowIndices = new Map<number, number>()
     let u = 0;
-    for (let i = 0; i < cashflows.length; i++) {
-        const cashflow = cashflows[i];
+    for (let i = 0; i < periods; i++) {
+        const cashflow = cashflows[i] || 0;
         if (!uniqueCashflowIndices.has(cashflow)) {
             uniqueCashflowIndices.set(cashflow, u++);
         }
@@ -108,8 +108,8 @@ export function computeTransitionTensor(
                 const CDF = strategyCDFs[s];
                 for (let j = 0; j < values.length; j++) {
                     // 0-centered returns
-                    const ijtop = ((boundaries[j + 1] - (cashflow || 0)) / values[i]) - 1;
-                    const ijbottom = ((boundaries[j] - (cashflow || 0)) / values[i]) - 1;
+                    const ijtop = ((boundaries[j + 1] - cashflow) / values[i]) - 1;
+                    const ijbottom = ((boundaries[j] - cashflow) / values[i]) - 1;
                     const value = CDF(ijtop) - CDF(ijbottom);
                     array[i][s][j] = value;
                 }
