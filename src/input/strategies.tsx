@@ -150,6 +150,7 @@ const PLOT_POINTS = (100 * 2) + 1;
 const RANGE_SIGMAS = 5;
 
 // TODO: Cash looks weird plotted on its own
+// TODO: Reflect chosen log-resolution in these plots
 function plotX(s: Strategy_): number[] {
     if (s.sigma === 0) {
         return [(1 - Number.EPSILON) * s.mu, s.mu, (1 + Number.EPSILON) * s.mu]

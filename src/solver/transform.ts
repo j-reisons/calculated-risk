@@ -14,19 +14,23 @@ export interface WealthBins {
     originalRange: Matrix
 }
 export function extendWealthBins(problem: Problem): WealthBins {
-    const boundaries = [-Number.MAX_VALUE, ...problem.wealthBoundaries, Number.MAX_VALUE];
+    const coarseGrid = computeCoarseGrid(problem);
+    const boundaries = [-Number.MAX_VALUE, ...problem.wealthBoundaries, ...coarseGrid, Number.MAX_VALUE];
     const values = [...boundaries.keys()].slice(0, -1).map(i => (boundaries[i] + boundaries[i + 1]) / 2);
 
     const finalUtilities = values.map(problem.utilityFunction);
     finalUtilities[0] = finalUtilities[1];
     finalUtilities[finalUtilities.length - 1] = finalUtilities[finalUtilities.length - 2];
 
-    const originalRange = range(1, values.length - 1)
+    const originalRange = range(1, problem.wealthBoundaries.length + 1)
 
     return { boundaries, values, finalUtilities, originalRange };
 }
 
-export function computeCoarseGrid(problem: Problem): number[] {
+// TODO: clean up grid input and extension
+// Don't need this linear-log code here if we're doing log everywhere.
+// But I might want to have linear-log anyway
+function computeCoarseGrid(problem: Problem): number[] {
     const minStrategySize = problem.strategies.reduce(
         (minSize, strategy) => {
             return Math.min(minSize, (Math.abs(strategy.mean) + strategy.vola));

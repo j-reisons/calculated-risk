@@ -21,9 +21,9 @@ test('The init problem is solved sensibly', async () => {
     }
 
     const solutionCPU: Solution = solveCPU(initProblem);
-    
 
-    saveDebugPage(initProblem, solutionCPU, "initProblem_debug_CPU.html");
+
+    saveDebugPage(initProblem, solutionCPU, "initProblem_CPU.html");
 
     // TODO: debug intermittent test crashes when calling into GPU code
     // const solutionGPU: Solution = await solveGPU(initProblem);
@@ -46,7 +46,7 @@ test('Init with periods shorter than cashflows', async () => {
 
     const solutionCPU: Solution = solveCPU(initProblem);
 
-    saveDebugPage(initProblem, solutionCPU, "shorter_debug_CPU.html");
+    saveDebugPage(initProblem, solutionCPU, "shorter_CPU.html");
 
     expect(solutionCPU).toMatchSnapshot();
 });
@@ -63,7 +63,24 @@ test('Init with periods longer than cashflows', async () => {
 
     const solutionCPU: Solution = solveCPU(initProblem);
 
-    saveDebugPage(initProblem, solutionCPU, "longer_debug_CPU.html");
+    saveDebugPage(initProblem, solutionCPU, "longer_CPU.html");
+
+    expect(solutionCPU).toMatchSnapshot();
+});
+
+test('Log no cashflows', async () => {
+    const initProblem: Problem =
+    {
+        strategies: initStrategies.strategies,
+        wealthBoundaries: initGridState.wealthBoundaries,
+        periods: initGridState.periods,
+        cashflows: [0],
+        utilityFunction: Math.log
+    }
+
+    const solutionCPU: Solution = solveCPU(initProblem);
+
+    saveDebugPage(initProblem, solutionCPU, "log_CPU.html");
 
     expect(solutionCPU).toMatchSnapshot();
 });
