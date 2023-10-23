@@ -4,7 +4,7 @@ import { initCashflows, initGridState, initStrategies, initUtility } from "../In
 import { debugPageHtml } from "../testutils/debugpage";
 import { setupGPU } from '../testutils/gpu';
 import { toBeApproxEqual2dArray } from '../testutils/toBeApproxEqual2dArray';
-import { Problem, Solution, solveCPU } from "./main";
+import { Problem, Solution, solve } from "./main";
 
 beforeAll(setupGPU)
 
@@ -20,8 +20,8 @@ test('The init problem is solved sensibly', async () => {
         utilityFunction: initUtility.utilityFunction
     }
 
-    const solutionCPU: Solution = solveCPU(initProblem);
-
+    const solutionCPU: Solution = await solve(initProblem);
+    solutionCPU.extendedSolution = null;
 
     saveDebugPage(initProblem, solutionCPU, "initProblem_CPU.html");
 
@@ -44,7 +44,8 @@ test('Init with periods shorter than cashflows', async () => {
         utilityFunction: initUtility.utilityFunction
     }
 
-    const solutionCPU: Solution = solveCPU(initProblem);
+    const solutionCPU: Solution = await solve(initProblem);
+    solutionCPU.extendedSolution = null;
 
     saveDebugPage(initProblem, solutionCPU, "shorter_CPU.html");
 
@@ -61,7 +62,8 @@ test('Init with periods longer than cashflows', async () => {
         utilityFunction: initUtility.utilityFunction
     }
 
-    const solutionCPU: Solution = solveCPU(initProblem);
+    const solutionCPU: Solution = await solve(initProblem);
+    solutionCPU.extendedSolution = null;
 
     saveDebugPage(initProblem, solutionCPU, "longer_CPU.html");
 
@@ -78,7 +80,8 @@ test('Log no cashflows', async () => {
         utilityFunction: Math.log
     }
 
-    const solutionCPU: Solution = solveCPU(initProblem);
+    const solutionCPU: Solution = await solve(initProblem);
+    solutionCPU.extendedSolution = null;
 
     saveDebugPage(initProblem, solutionCPU, "log_CPU.html");
 
@@ -86,7 +89,7 @@ test('Log no cashflows', async () => {
 });
 
 function saveDebugPage(problem: Problem, solution: Solution, filename: string) {
-    const html = debugPageHtml(problem, solution);
+    const html = debugPageHtml(problem, solution.optimalStrategies, solution.expectedUtilities);
     const tempPath = join(__dirname, "__snapshots__", "__newsnap__." + filename);
     const path = join(__dirname, "__snapshots__", filename);
 

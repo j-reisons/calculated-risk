@@ -17,7 +17,7 @@ export interface GridPlotProps {
 
 export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilityState }: GridPlotProps) => {
 
-    const [solution, setSolution] = useState<Solution>({ optimalStrategies: [], expectedUtilities: [] });
+    const [solution, setSolution] = useState<Solution>({ optimalStrategies: [], expectedUtilities: [], extendedSolution: null });
 
     useEffect(() => {
         const problem: Problem = {
@@ -40,12 +40,10 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
     const wealthBoundaries = gridState.wealthBoundaries;
     const wealthValues = [...wealthBoundaries.keys()].slice(0, -1).map(i => (wealthBoundaries[i] + wealthBoundaries[i + 1]) / 2);
 
-    const z: number[][] = solution.optimalStrategies;
-
     const traces: Plotly.Data[] = [{
         x: timeRange,
         y: wealthValues,
-        z: z,
+        z: solution.optimalStrategies,
         type: 'heatmap',
         showscale: false,
     }];

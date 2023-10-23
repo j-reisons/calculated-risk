@@ -1,20 +1,26 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { Problem, Solution } from "../solver/main";
+import { Problem } from "../solver/main";
 
-export function debugPageHtml(problem: Problem, solution: Solution): string {
-    return renderToStaticMarkup(<DebugPage problem={problem} solution={solution} />);
+export function debugPageHtml(problem: Problem,
+    optimalStrategies: number[][],
+    expectedUtilities: number[][]): string {
+    return renderToStaticMarkup(<DebugPage problem={problem}
+        optimalStrategies={optimalStrategies}
+        expectedUtilities={expectedUtilities} />);
 }
 
 interface DebugProps {
     problem: Problem
-    solution: Solution
+    optimalStrategies: number[][]
+    expectedUtilities: number[][]
 }
 
-export function DebugPage({ solution, problem }: DebugProps): JSX.Element {
+export function DebugPage({ problem, optimalStrategies, expectedUtilities }: DebugProps): JSX.Element {
 
     const scriptContent = `
       problem = ${JSON.stringify(problem)};
-      solution = ${JSON.stringify(solution)};
+      optimalStrategies = ${JSON.stringify(optimalStrategies)};
+      expectedUtilities = ${JSON.stringify(expectedUtilities)};
   
       wealthBoundaries = problem.wealthBoundaries;
       wealthValues = [...wealthBoundaries.keys()].slice(0, -1).map(i => (wealthBoundaries[i] + wealthBoundaries[i + 1]) / 2);
@@ -23,7 +29,7 @@ export function DebugPage({ solution, problem }: DebugProps): JSX.Element {
       Plotly.newPlot(document.getElementById('strategies'),[{
               x: timeRange,
               y: wealthValues,
-              z: solution.optimalStrategies,
+              z: optimalStrategies,
               type: 'heatmap',
               showscale: false
             }],
@@ -34,7 +40,7 @@ export function DebugPage({ solution, problem }: DebugProps): JSX.Element {
       Plotly.newPlot(document.getElementById('utilities'),[{
                x: timeRange_utilities,
                y: wealthValues,
-               z: solution.expectedUtilities,
+               z: expectedUtilities,
                type: 'heatmap',
                showscale: false
              }],

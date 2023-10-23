@@ -9049,6 +9049,7 @@ exports[`Init with periods longer than cashflows 1`] = `
       1,
     ],
   ],
+  "extendedSolution": null,
   "optimalStrategies": [
     [
       0,
@@ -24736,6 +24737,7 @@ exports[`Init with periods shorter than cashflows 1`] = `
       1,
     ],
   ],
+  "extendedSolution": null,
   "optimalStrategies": [
     [
       0,
@@ -39217,6 +39219,7 @@ exports[`Log no cashflows 1`] = `
       12.902841994100674,
     ],
   ],
+  "extendedSolution": null,
   "optimalStrategies": [
     [
       0,
@@ -54301,6 +54304,7 @@ exports[`The init problem is solved sensibly 1`] = `
       1,
     ],
   ],
+  "extendedSolution": null,
   "optimalStrategies": [
     [
       0,
