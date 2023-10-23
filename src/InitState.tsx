@@ -3,15 +3,15 @@ import { CashflowsFormState, CashflowsState, StrategiesFormState, StrategiesStat
 
 
 export const initGridFormState: GridFormState = {
-    wealthMin: "40000",
+    wealthMin: "10000",
     wealthMax: "400000",
     wealthStep: "1%",
     periods: "10",
 }
 
 export const initGridState: GridState = {
-    wealthBoundaries: logRange(40000, 400000, 0.01),
-    wealthMin: 40000,
+    wealthBoundaries: logRange(10000, 400000, 0.01),
+    wealthMin: 10000,
     wealthMax: 400000,
     wealthStep: 0.01,
     periods: 10,
