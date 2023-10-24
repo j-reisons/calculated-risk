@@ -44,24 +44,34 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
     }
 
 
-    // Offset everything by a half interval to get the heatmap cells to align with the axes;
-    const timeRange: number[] = (range(0.5, gridState.periods + 0.5).valueOf() as number[]);
+    const timeRange: number[] = (range(0, gridState.periods).valueOf() as number[]);
     const wealthBoundaries = gridState.wealthBoundaries;
     const wealthValues = [...wealthBoundaries.keys()].slice(0, -1).map(i => (wealthBoundaries[i] + wealthBoundaries[i + 1]) / 2);
 
     const traces: Plotly.Data[] = [
         ...quantiles.flatMap(quantile => toPlotlyData(quantile, solution.extendedSolution!.extendedBoundaries)),
         {
-            x: timeRange,
+            name:"",
+            x0: 0.5,
+            dx: timeRange,
             y: wealthValues,
             z: solution.optimalStrategies,
+            customdata: solution.expectedUtilities,
+            hovertemplate: "Period: %{x}<br>Wealth: %{y}<br>Strategy: %{z}<br>Utility: %{customdata}",
+            xhoverformat:".0f",
             type: 'heatmap',
             showscale: false,
-        }];
+        } as Plotly.Data];
 
     const layout: Partial<Plotly.Layout> = {
         width: 1100,
         height: 500,
+        xaxis: {
+            range: [0, gridState.periods]
+        },
+        yaxis: {
+            range: [0, gridState.wealthMax]
+        },
         margin: { t: 0, l: 40, r: 0, b: 30 },
     }
     const config: Partial<Plotly.Config> = {
