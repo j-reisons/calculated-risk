@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import createPlotlyComponent from 'react-plotly.js/factory';
 import { CashflowsState, StrategiesState, UtilityState } from "../input/state";
 import { Problem, Solution, solve } from "../solver/main";
+import { QuantileTraces, computeTrajectories, findQuantiles } from "../solver/trajectories";
 import { GridState } from "./state";
 
 const Plot = createPlotlyComponent(Plotly);
@@ -18,6 +19,7 @@ export interface GridPlotProps {
 export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilityState }: GridPlotProps) => {
 
     const [solution, setSolution] = useState<Solution>({ optimalStrategies: [], expectedUtilities: [], extendedSolution: null });
+    const [quantiles, setQuantiles] = useState<QuantileTraces[]>([]);
 
     useEffect(() => {
         const problem: Problem = {
@@ -34,6 +36,13 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
         solveProblem();
     }, [gridState, strategiesState, cashflowsState, utilityState])
 
+    const clickHandler = (data: any) => {
+        const index = data.points[0].pointIndex;
+        const trajectories = computeTrajectories(solution.extendedSolution!, index[1], index[0]);
+        const quantiles = findQuantiles(trajectories, [0.68, 0.95, 0.99], index[1]);
+        setQuantiles(quantiles);
+    }
+
 
     // Offset everything by a half interval to get the heatmap cells to align with the axes;
     const timeRange: number[] = (range(0.5, gridState.periods + 0.5).valueOf() as number[]);
@@ -46,7 +55,7 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
         z: solution.optimalStrategies,
         type: 'heatmap',
         showscale: false,
-    }];
+    }, ...quantiles.flatMap(quantile => toPlotlyData(quantile, solution.extendedSolution!.extendedBoundaries))];
 
     const layout: Partial<Plotly.Layout> = {
         width: 1100,
@@ -61,8 +70,32 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
             data={traces}
             layout={layout}
             config={config}
+            onClick={clickHandler}
         />
     )
+}
+
+function toPlotlyData(quantileTraces: QuantileTraces, wealthBoundaries: number[]): Plotly.Data[] {
+    return [
+        {
+            x: quantileTraces.x,
+            y: quantileTraces.y_bottom.map(y => wealthBoundaries[y]),
+            line: { color: "transparent" },
+            name: "p=" + quantileTraces.probability,
+            showlegend: false,
+            type: "scatter"
+        },
+        {
+            x: quantileTraces.x,
+            y: quantileTraces.y_top.map(y => wealthBoundaries[y]),
+            fill: "tonexty",
+            fillcolor: "rgba(100,100,100,0.3)",
+            line: { color: "transparent" },
+            name: "p=" + quantileTraces.probability,
+            showlegend: false,
+            type: "scatter"
+        }
+    ]
 }
 
 
