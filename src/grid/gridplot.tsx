@@ -49,13 +49,15 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
     const wealthBoundaries = gridState.wealthBoundaries;
     const wealthValues = [...wealthBoundaries.keys()].slice(0, -1).map(i => (wealthBoundaries[i] + wealthBoundaries[i + 1]) / 2);
 
-    const traces: Plotly.Data[] = [{
-        x: timeRange,
-        y: wealthValues,
-        z: solution.optimalStrategies,
-        type: 'heatmap',
-        showscale: false,
-    }, ...quantiles.flatMap(quantile => toPlotlyData(quantile, solution.extendedSolution!.extendedBoundaries))];
+    const traces: Plotly.Data[] = [
+        ...quantiles.flatMap(quantile => toPlotlyData(quantile, solution.extendedSolution!.extendedBoundaries)),
+        {
+            x: timeRange,
+            y: wealthValues,
+            z: solution.optimalStrategies,
+            type: 'heatmap',
+            showscale: false,
+        }];
 
     const layout: Partial<Plotly.Layout> = {
         width: 1100,
