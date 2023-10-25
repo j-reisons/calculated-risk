@@ -3,32 +3,11 @@ import { ExtendedSolution } from "./main";
 
 
 export function computeTrajectories(extendedSolution: ExtendedSolution, periodIndex: number, wealthIndex: number): Matrix {
-    // Index the needed periods of the optimal transition tensor
-    // (periods, final_wealth, starting_wealth)
-    const periods = extendedSolution.extendedTransitionTensor.length;
-    const wealthIndexSize = extendedSolution.extendedTransitionTensor[0].size()[0];
-    const optimalStrategiesArray = extendedSolution.extendedOptimalStrategies.valueOf() as number[][];
-
-    const optimalTransitionTensor = new Array<Matrix>(periods);
-    for (let p = periodIndex; p < periods; p++) {
-        const transitionTensorArray = (extendedSolution.extendedTransitionTensor[p].valueOf() as unknown) as number[][][];
-
-        const optimalTransitionMatrix = zeros([wealthIndexSize, wealthIndexSize]) as Matrix;
-        const optimalTransitionMatrixArray = optimalTransitionMatrix.valueOf() as number[][];
-
-        for (let i = 0; i < wealthIndexSize; i++) {
-            for (let j = 0; j < wealthIndexSize; j++) {
-                optimalTransitionMatrixArray[j][i] = transitionTensorArray[i][optimalStrategiesArray[p][i] || 0][j];
-            }
-        }
-
-        optimalTransitionTensor[p] = optimalTransitionMatrix;
-    }
-
+    const optimalTransitionTensor = extendedSolution.extendedOptimalTransitionTensor;
+    const periods = optimalTransitionTensor.length;
+    const wealthIndexSize = optimalTransitionTensor[0].size()[0];
     // Set-up the distribution and propagate it forward
-    const trajectoriesSize = extendedSolution.extendedOptimalStrategies.size();
-    trajectoriesSize[0]++;
-    const trajectories = zeros(trajectoriesSize, 'dense') as Matrix;
+    const trajectories = zeros([periods + 1, wealthIndexSize], 'dense') as Matrix;
     const shiftedWealthindex = extendedSolution.originalRange.get([0]) + wealthIndex;
     const trajectoriesArray = trajectories.valueOf() as number[][];
     trajectoriesArray[periodIndex][shiftedWealthindex] = 1.0;
@@ -52,39 +31,45 @@ export interface QuantileTraces {
 }
 
 export function findQuantiles(trajectories: Matrix, probabilities: number[], startPeriod: number): QuantileTraces[] {
-    return probabilities.map(probability => findQuantile(trajectories, probability, startPeriod));
-}
-
-export function findQuantile(trajectories: Matrix, probability: number, startPeriod: number): QuantileTraces {
+    const sortedProbabilities = probabilities.slice().sort().reverse();
+    const sortedTails = sortedProbabilities.map(p => (1 - p) / 2.0);
     const trajectoriesArray = trajectories.toArray() as number[][];
-    const tail = (1.0 - probability) / 2.0;
-    const x = new Array<number>(trajectoriesArray.length - startPeriod);
-    const y_bottom = new Array<number>(trajectoriesArray.length - startPeriod);
-    const y_top = new Array<number>(trajectoriesArray.length - startPeriod);
 
-    for (let i = 0; i < trajectoriesArray.length - startPeriod; i++) {
-        x[i] = startPeriod + i;
-        const periodDistribution = trajectoriesArray[startPeriod + i];
+    const x = new Array<number>(trajectoriesArray.length - startPeriod);
+    const y_bottom = zeros([probabilities.length, trajectoriesArray.length - startPeriod]).valueOf() as number[][];
+    const y_top = zeros([probabilities.length, trajectoriesArray.length - startPeriod]).valueOf() as number[][];
+
+    for (let p = 0; p < trajectoriesArray.length - startPeriod; p++) {
+        x[p] = startPeriod + p;
+        const periodDistribution = trajectoriesArray[startPeriod + p];
 
         let sum = 0;
-        let j = 0;
-        while (sum < tail && j < periodDistribution.length) {
-            sum += periodDistribution[j++];
+        let w = 0;
+        for (let i = 0; i < probabilities.length; i++) {
+            while (sum < sortedTails[i] && w < periodDistribution.length) {
+                sum += periodDistribution[w++];
+            }
+            y_bottom[i][p] = w;
         }
-        y_bottom[i] = j;
 
         sum = 0;
-        j = periodDistribution.length - 1;
-        while (sum < tail && j > - 1) {
-            sum += periodDistribution[j--];
+        w = periodDistribution.length - 1;
+        for (let i = 0; i < probabilities.length; i++) {
+            while (sum < sortedTails[i] && w > 0) {
+                sum += periodDistribution[w--];
+            }
+            y_top[i][p] = w;
         }
-        y_top[i] = j;
     }
 
-    return {
-        probability: probability,
-        x: x,
-        y_bottom: y_bottom,
-        y_top: y_top
+    const result = new Array<QuantileTraces>();
+    for (let i = 0; i < probabilities.length; i++) {
+        result.push({
+            probability: sortedProbabilities[i],
+            x: x,
+            y_bottom: y_bottom[i],
+            y_top: y_top[i]
+        })
     }
+    return result;
 }

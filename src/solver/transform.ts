@@ -107,7 +107,11 @@ export function computeTransitionTensor(
     for (const [cashflow, c] of uniqueCashflowIndices) {
         cashflowTransitionMatrices[c] = zeros([values.length, strategyCDFs.length, values.length], 'dense') as Matrix;
         const array = (cashflowTransitionMatrices[c].valueOf() as unknown) as number[][][];
-        for (let i = 0; i < values.length; i++) {
+        // Bankruptcy treatment, i.e. i=0
+        for (let s = 0; s < strategyCDFs.length; s++) {
+            array[0][s][0] = 1;
+        }
+        for (let i = 1; i < values.length; i++) {
             for (let s = 0; s < strategyCDFs.length; s++) {
                 const CDF = strategyCDFs[s];
                 for (let j = 0; j < values.length; j++) {

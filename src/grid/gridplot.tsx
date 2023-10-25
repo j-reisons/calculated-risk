@@ -36,8 +36,8 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
         solveProblem();
     }, [gridState, strategiesState, cashflowsState, utilityState])
 
-    const clickHandler = (data: any) => {
-        const index = data.points[0].pointIndex;
+    const clickHandler = (data: Plotly.PlotMouseEvent) => {
+        const index = data.points[0].pointIndex as unknown as number[];
         const trajectories = computeTrajectories(solution.extendedSolution!, index[1], index[0]);
         const quantiles = findQuantiles(trajectories, [0.68, 0.95, 0.99], index[1]);
         setQuantiles(quantiles);
