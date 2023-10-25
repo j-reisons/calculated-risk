@@ -2,7 +2,7 @@ import { Matrix, zeros } from "mathjs";
 import { ExtendedSolution } from "./main";
 
 
-export function computeTrajectories(extendedSolution: ExtendedSolution, periodIndex: number, wealthIndex: number): Matrix {
+export function computeTrajectories(extendedSolution: ExtendedSolution, periodIndex: number, wealthIndex: number): number[][] {
     const optimalTransitionTensor = extendedSolution.extendedOptimalTransitionTensor;
     const periods = optimalTransitionTensor.length;
     const wealthIndexSize = optimalTransitionTensor[0].size()[0];
@@ -20,7 +20,7 @@ export function computeTrajectories(extendedSolution: ExtendedSolution, periodIn
             }
         }
     }
-    return trajectories;
+    return trajectories.valueOf() as number[][];
 }
 
 export interface QuantileTraces {
@@ -30,18 +30,17 @@ export interface QuantileTraces {
     readonly y_top: number[]
 }
 
-export function findQuantiles(trajectories: Matrix, probabilities: number[], startPeriod: number): QuantileTraces[] {
+export function findQuantiles(trajectories: number[][], probabilities: number[], startPeriod: number): QuantileTraces[] {
     const sortedProbabilities = probabilities.slice().sort().reverse();
     const sortedTails = sortedProbabilities.map(p => (1 - p) / 2.0);
-    const trajectoriesArray = trajectories.toArray() as number[][];
 
-    const x = new Array<number>(trajectoriesArray.length - startPeriod);
-    const y_bottom = zeros([probabilities.length, trajectoriesArray.length - startPeriod]).valueOf() as number[][];
-    const y_top = zeros([probabilities.length, trajectoriesArray.length - startPeriod]).valueOf() as number[][];
+    const x = new Array<number>(trajectories.length - startPeriod);
+    const y_bottom = zeros([probabilities.length, trajectories.length - startPeriod]).valueOf() as number[][];
+    const y_top = zeros([probabilities.length, trajectories.length - startPeriod]).valueOf() as number[][];
 
-    for (let p = 0; p < trajectoriesArray.length - startPeriod; p++) {
+    for (let p = 0; p < trajectories.length - startPeriod; p++) {
         x[p] = startPeriod + p;
-        const periodDistribution = trajectoriesArray[startPeriod + p];
+        const periodDistribution = trajectories[startPeriod + p];
 
         let sum = 0;
         let w = 0;

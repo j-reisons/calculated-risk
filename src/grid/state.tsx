@@ -15,6 +15,12 @@ export interface GridState {
     readonly periods: number;
 }
 
+export interface TrajectoriesState {
+    readonly startPeriod: number;
+    readonly startWealthIndex: number;
+    readonly trajectories: number[][];
+}
+
 export function logRange(min: number, max: number, step: number): number[] {
     return (range(Math.log(min), Math.log(max), Math.log(1 + step), true).valueOf() as number[]).map(Math.exp)
 }
