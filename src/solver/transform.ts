@@ -19,7 +19,7 @@ export function extendWealthBins(problem: Problem): WealthBins {
     const values = [...boundaries.keys()].slice(0, -1).map(i => (boundaries[i] + boundaries[i + 1]) / 2);
 
     const finalUtilities = values.map(problem.utilityFunction);
-    finalUtilities[0] = finalUtilities[1];
+    finalUtilities[0] = 0;
     finalUtilities[finalUtilities.length - 1] = finalUtilities[finalUtilities.length - 2];
 
     const originalRange = range(1, problem.wealthBoundaries.length + 1)

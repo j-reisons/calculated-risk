@@ -64,7 +64,8 @@ function indexOptimalTransitionTensor(transitionTensor: Matrix[], optimalStrateg
         const optimalTransitionMatrixArray = optimalTransitionMatrix.valueOf() as number[][];
         for (let i = 0; i < wealthIndexSize; i++) {
             for (let j = 0; j < wealthIndexSize; j++) {
-                optimalTransitionMatrixArray[j][i] = transitionTensorArray[i][optimalStrategiesArray[p][i] || 0][j];
+                const index = optimalStrategiesArray[p][i] > 0 ? optimalStrategiesArray[p][i] : 0;
+                optimalTransitionMatrixArray[j][i] = transitionTensorArray[i][index][j];
             }
         }
         optimalTransitionTensor[p] = optimalTransitionMatrix;
