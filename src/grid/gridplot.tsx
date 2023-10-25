@@ -1,4 +1,4 @@
-import { range } from "mathjs";
+import { range, zeros } from "mathjs";
 import Plotly from "plotly.js-cartesian-dist";
 import { useEffect, useState } from "react";
 import createPlotlyComponent from 'react-plotly.js/factory';
@@ -43,7 +43,6 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
         setQuantiles(quantiles);
     }
 
-
     const timeRange: number[] = (range(0, gridState.periods).valueOf() as number[]);
     const wealthBoundaries = gridState.wealthBoundaries;
     const wealthValues = [...wealthBoundaries.keys()].slice(0, -1).map(i => (wealthBoundaries[i] + wealthBoundaries[i + 1]) / 2);
@@ -51,14 +50,14 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
     const traces: Plotly.Data[] = [
         ...quantiles.flatMap(quantile => toPlotlyData(quantile, solution.extendedSolution!.extendedBoundaries)),
         {
-            name:"",
+            name: "",
             x0: 0.5,
             dx: timeRange,
             y: wealthValues,
             z: solution.optimalStrategies,
-            customdata: solution.expectedUtilities,
-            hovertemplate: "Period: %{x}<br>Wealth: %{y}<br>Strategy: %{z}<br>Utility: %{customdata}",
-            xhoverformat:".0f",
+            customdata: customData(solution.expectedUtilities, solution.optimalStrategies, strategiesState.strategies.map(s => s.name)) as unknown as Plotly.Datum[][],
+            hovertemplate: "Period: %{x}<br>Wealth: %{y}<br>Strategy: %{customdata[0]}<br>Utility: %{customdata[1]}",
+            xhoverformat: ".0f",
             type: 'heatmap',
             showscale: false,
         } as Plotly.Data];
@@ -110,5 +109,17 @@ function toPlotlyData(quantileTraces: QuantileTraces, wealthBoundaries: number[]
     ]
 }
 
-
+function customData(expectedUtilities: number[][], optimalStrategies: number[][], strategyNames: string[]) {
+    if(expectedUtilities.length == 0) return [];
+    strategyNames = ["Unknown", ...strategyNames]
+    const customData = zeros(expectedUtilities.length, expectedUtilities[0].length).valueOf() as (number | string)[][][];
+    for (let i = 0; i < expectedUtilities.length; i++) {
+        for (let j = 0; j < expectedUtilities[0].length; j++) {
+            customData[i][j] = new Array<number | string>(2);
+            customData[i][j][0] = strategyNames[optimalStrategies[i][j] + 1];
+            customData[i][j][1] = expectedUtilities[i][j];
+        }
+    }
+    return customData;
+}
 
