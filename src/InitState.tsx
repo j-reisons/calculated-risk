@@ -41,14 +41,14 @@ export const initCashflows: CashflowsState = {
 
 export const initStrategiesForm: StrategiesFormState = {
     strategiesString:
-        'cash = Normal(0.01, 0)\n' +
+        'cash = Normal(0.01, 0.01)\n' +
         'e_25 = Normal(0.02, 0.05)\n' +
         'e_50 = Normal(0.03, 0.1)\n' +
         'e_75 = Normal(0.04, 0.15)\n' +
         'e_100 = Normal(0.05, 0.2)',
     strategiesStringValid: true,
     strategies: [
-        { name: 'cash', mu: 0.01, sigma: 0 },
+        { name: 'cash', mu: 0.01, sigma: 0.01 },
         { name: 'e_25', mu: 0.02, sigma: 0.05 },
         { name: 'e_50', mu: 0.03, sigma: 0.1 },
         { name: 'e_75', mu: 0.04, sigma: 0.15 },
@@ -58,7 +58,7 @@ export const initStrategiesForm: StrategiesFormState = {
 
 export const initStrategies: StrategiesState = {
     strategies: [
-        { name: 'cash', CDF: normalCdf(0.01, 0), mean: 0.01, vola: 0 },
+        { name: 'cash', CDF: normalCdf(0.01, 0.01), mean: 0.01, vola: 0.01 },
         { name: 'e_25', CDF: normalCdf(0.02, 0.05), mean: 0.02, vola: 0.05 },
         { name: 'e_50', CDF: normalCdf(0.03, 0.1), mean: 0.03, vola: 0.1 },
         { name: 'e_75', CDF: normalCdf(0.04, 0.15), mean: 0.04, vola: 0.15 },
