@@ -5,3 +5,7 @@
     padding: 30px;
     grid-gap: 10px;
   }
+
+  input{
+    margin: 3px 0px ;
+  }

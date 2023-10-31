@@ -2,15 +2,16 @@ import { Matrix, zeros } from "mathjs";
 import { ExtendedSolution } from "./main";
 
 
-export function computeTrajectories(extendedSolution: ExtendedSolution, periodIndex: number, wealthIndex: number): number[][] {
+export function computeTrajectories(extendedSolution: ExtendedSolution, periodIndex: number, startingWealth: number): number[][] {
     const optimalTransitionTensor = extendedSolution.extendedOptimalTransitionTensor;
     const periods = optimalTransitionTensor.length;
     const wealthIndexSize = optimalTransitionTensor[0].size()[0];
     // Set-up the distribution and propagate it forward
+    
     const trajectories = zeros([periods + 1, wealthIndexSize], 'dense') as Matrix;
-    const shiftedWealthindex = extendedSolution.originalRange.get([0]) + wealthIndex;
+    const wealthIndex = extendedSolution.extendedValues.findIndex((num) => num >= startingWealth);
     const trajectoriesArray = trajectories.valueOf() as number[][];
-    trajectoriesArray[periodIndex][shiftedWealthindex] = 1.0;
+    trajectoriesArray[periodIndex][wealthIndex] = 1.0;
 
     for (let p = periodIndex; p < periods; p++) {
         const transitionMatrixArray = optimalTransitionTensor[p].valueOf() as number[][];

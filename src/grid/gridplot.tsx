@@ -5,7 +5,7 @@ import createPlotlyComponent from 'react-plotly.js/factory';
 import { CashflowsState, StrategiesState, UtilityState } from "../input/state";
 import { Problem, Solution, solve } from "../solver/main";
 import { QuantileTraces, computeTrajectories, findQuantiles } from "../solver/trajectories";
-import { GridState, TrajectoriesState } from "./state";
+import { GridState, TrajectoriesInputFormState, TrajectoriesInputState, TrajectoriesState } from "./state";
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -14,13 +14,16 @@ export interface GridPlotProps {
     readonly strategiesState: StrategiesState,
     readonly cashflowsState: CashflowsState,
     readonly utilityState: UtilityState,
+    readonly trajectoriesInputState: TrajectoriesInputState;
     readonly trajectoriesState: TrajectoriesState | null;
+    readonly setTrajectoriesInputFormState: React.Dispatch<React.SetStateAction<TrajectoriesInputFormState>>;
+    readonly setTrajectoriesInputState: React.Dispatch<React.SetStateAction<TrajectoriesInputState>>;
     readonly setTrajectoriesState: React.Dispatch<React.SetStateAction<TrajectoriesState | null>>;
 }
 
-export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilityState, trajectoriesState, setTrajectoriesState }: GridPlotProps) => {
+export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilityState, trajectoriesInputState, trajectoriesState, setTrajectoriesInputFormState, setTrajectoriesInputState, setTrajectoriesState }: GridPlotProps) => {
 
-    const [solution, setSolution] = useState<Solution>({ optimalStrategies: [], expectedUtilities: [], extendedSolution: null });
+    const [solution, setSolution] = useState<Solution | null>(null);
 
     useEffect(() => {
         const problem: Problem = {
@@ -40,39 +43,80 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
 
     const clickHandler = (data: Plotly.PlotMouseEvent) => {
         const index = data.points[0].pointIndex as unknown as number[];
-        setTrajectoriesState(
-            {
-                startPeriod: index[1],
-                extendedValues: solution.extendedSolution!.extendedValues,
-                extendedBoundaries: solution.extendedSolution!.extendedBoundaries,
-                extendedTrajectories: computeTrajectories(solution.extendedSolution!, index[1], index[0]),
-            }
-        )
+        const wealth = Math.floor(gridState.wealthBoundaries[index[0]]);
+        const period = index[1] + 1;
+
+        setTrajectoriesInputFormState(
+            state => {
+                if (state.pickOnClick) {
+                    return {
+                        ...state,
+                        startingWealth: wealth.toString(),
+                        startingPeriod: period.toString(),
+                    }
+                } else {
+                    return state;
+                }
+            });
+        setTrajectoriesInputState(
+            state => {
+                if (state.pickOnClick) {
+                    return {
+                        ...state,
+                        startingWealth: wealth,
+                        startingPeriod: period,
+                    }
+                } else {
+                    return state;
+                }
+            });
     }
+
+    useEffect(() => {
+        if (trajectoriesInputState.startingPeriod && trajectoriesInputState.startingWealth && solution) {
+            setTrajectoriesState(
+                {
+                    startPeriod: trajectoriesInputState.startingPeriod - 1,
+                    extendedValues: solution.extendedSolution!.extendedValues,
+                    extendedBoundaries: solution.extendedSolution!.extendedBoundaries,
+                    extendedTrajectories: computeTrajectories(solution.extendedSolution!, trajectoriesInputState.startingPeriod - 1, trajectoriesInputState.startingWealth),
+                }
+            )
+        }else{
+            setTrajectoriesState(null);
+        }
+    }, [solution, trajectoriesInputState, setTrajectoriesState])
 
     const timeRange: number[] = (range(0, gridState.periods).valueOf() as number[]);
     const wealthBoundaries = gridState.wealthBoundaries;
     const wealthValues = [...wealthBoundaries.keys()].slice(0, -1).map(i => (wealthBoundaries[i] + wealthBoundaries[i + 1]) / 2);
 
+    let heatmapData: Plotly.Data[] = [];
     let quantilesData: Plotly.Data[] = [];
-    if (trajectoriesState) {
-        const quantiles = findQuantiles(trajectoriesState.extendedTrajectories, [0.68, 0.95, 0.99], trajectoriesState.startPeriod);
-        quantilesData = quantiles.flatMap(quantile => toPlotlyData(quantile, solution.extendedSolution!.extendedBoundaries))
+
+    if (solution) {
+        heatmapData = [
+            {
+                name: "",
+                x0: 0.5,
+                dx: timeRange,
+                y: wealthValues,
+                z: solution.optimalStrategies,
+                customdata: customData(solution.expectedUtilities, solution.optimalStrategies, strategiesState.strategies.map(s => s.name)) as unknown as Plotly.Datum[][],
+                hovertemplate: "Period: %{x:.0f}<br>Wealth: %{y:.4s}<br>Strategy: %{customdata[0]}<br>Utility: %{customdata[1]:.4g}",
+                type: 'heatmap',
+                showscale: false,
+            } as Plotly.Data];
+
+        if (trajectoriesState) {
+            const quantiles = findQuantiles(trajectoriesState.extendedTrajectories, trajectoriesInputState.quantiles, trajectoriesState.startPeriod);
+            quantilesData = quantiles.flatMap(quantile => toPlotlyData(quantile, solution.extendedSolution!.extendedBoundaries))
+        }
     }
 
     const traces: Plotly.Data[] = [
         ...quantilesData,
-        {
-            name: "",
-            x0: 0.5,
-            dx: timeRange,
-            y: wealthValues,
-            z: solution.optimalStrategies,
-            customdata: customData(solution.expectedUtilities, solution.optimalStrategies, strategiesState.strategies.map(s => s.name)) as unknown as Plotly.Datum[][],
-            hovertemplate: "Period: %{x:.0f}<br>Wealth: %{y:.4s}<br>Strategy: %{customdata[0]}<br>Utility: %{customdata[1]:.4g}",
-            type: 'heatmap',
-            showscale: false,
-        } as Plotly.Data];
+        ...heatmapData];
 
     const layout: Partial<Plotly.Layout> = {
         width: 1100,

@@ -1,6 +1,5 @@
-import { GridFormState, GridState, logRange } from "./grid/state";
+import { GridFormState, GridState, TrajectoriesInputFormState, TrajectoriesInputState, logRange } from "./grid/state";
 import { CashflowsFormState, CashflowsState, StrategiesFormState, StrategiesState, UtilityFormState, UtilityState, normalCdf, step } from "./input/state";
-
 
 export const initGridFormState: GridFormState = {
     wealthMin: "1000",
@@ -15,6 +14,20 @@ export const initGridState: GridState = {
     wealthMax: 400000,
     wealthStep: 0.01,
     periods: 10,
+};
+
+export const initTrajectoriesInputFormState: TrajectoriesInputFormState = {
+    startingWealth: "70000",
+    startingPeriod: "1",
+    quantiles: "68%, 95%, 99%",
+    pickOnClick: true,
+};
+
+export const initTrajectoriesInputState: TrajectoriesInputState = {
+    startingWealth: 70000,
+    startingPeriod: 1,
+    quantiles: [0.68, 0.95, 0.99],
+    pickOnClick: true,
 };
 
 export const initCashflowsForm: CashflowsFormState = {
