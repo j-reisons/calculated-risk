@@ -43,8 +43,9 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
         setTrajectoriesState(
             {
                 startPeriod: index[1],
-                startWealthIndex: index[0],
-                trajectories: computeTrajectories(solution.extendedSolution!, index[1], index[0]),
+                extendedValues: solution.extendedSolution!.extendedValues,
+                extendedBoundaries: solution.extendedSolution!.extendedBoundaries,
+                extendedTrajectories: computeTrajectories(solution.extendedSolution!, index[1], index[0]),
             }
         )
     }
@@ -55,7 +56,7 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
 
     let quantilesData: Plotly.Data[] = [];
     if (trajectoriesState) {
-        const quantiles = findQuantiles(trajectoriesState.trajectories, [0.68, 0.95, 0.99], trajectoriesState.startPeriod);
+        const quantiles = findQuantiles(trajectoriesState.extendedTrajectories, [0.68, 0.95, 0.99], trajectoriesState.startPeriod);
         quantilesData = quantiles.flatMap(quantile => toPlotlyData(quantile, solution.extendedSolution!.extendedBoundaries))
     }
 
@@ -68,8 +69,7 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
             y: wealthValues,
             z: solution.optimalStrategies,
             customdata: customData(solution.expectedUtilities, solution.optimalStrategies, strategiesState.strategies.map(s => s.name)) as unknown as Plotly.Datum[][],
-            hovertemplate: "Period: %{x}<br>Wealth: %{y}<br>Strategy: %{customdata[0]}<br>Utility: %{customdata[1]}",
-            xhoverformat: ".0f",
+            hovertemplate: "Period: %{x:.0f}<br>Wealth: %{y:.4s}<br>Strategy: %{customdata[0]}<br>Utility: %{customdata[1]:.4g}",
             type: 'heatmap',
             showscale: false,
         } as Plotly.Data];

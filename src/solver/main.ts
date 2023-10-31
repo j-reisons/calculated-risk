@@ -19,6 +19,7 @@ export interface Solution {
 
 export interface ExtendedSolution {
     readonly extendedBoundaries: number[];
+    readonly extendedValues: number[];
     readonly originalRange: Matrix;
     // (periods, final_wealth, starting_wealth)
     readonly extendedOptimalTransitionTensor: Matrix[];
@@ -48,6 +49,7 @@ export async function solve(problem: Problem, useGPU = false): Promise<Solution>
         extendedSolution:
         {
             extendedBoundaries: boundaries,
+            extendedValues: values,
             originalRange: originalRange,
             extendedOptimalTransitionTensor: indexOptimalTransitionTensor(transitionTensor, optimalStrategies)
         },

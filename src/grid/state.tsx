@@ -17,8 +17,9 @@ export interface GridState {
 
 export interface TrajectoriesState {
     readonly startPeriod: number;
-    readonly startWealthIndex: number;
-    readonly trajectories: number[][];
+    readonly extendedBoundaries: number[]
+    readonly extendedValues: number[]
+    readonly extendedTrajectories: number[][];
 }
 
 export function logRange(min: number, max: number, step: number): number[] {

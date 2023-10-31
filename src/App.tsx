@@ -28,6 +28,7 @@ const App = () => {
 
       <MainForm gridState={gridState} setStrategiesState={setStrategiesState}
         cashflowsState={cashflowsState}
+        trajectoriesState={trajectoriesState}
         setCashflowsState={setCashflowsState}
         utilityState={utilityState}
         setUtilityState={setUtilityState}
