@@ -59,6 +59,8 @@ function cachedErf(x: number): number {
 
 export interface UtilityFormState {
     readonly utilityString: string;
+    readonly textAreaFocused: boolean;
+    readonly utilityStringParses: boolean;
 }
 
 export interface UtilityState {

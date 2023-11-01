@@ -26,15 +26,21 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
         })
     }
 
+    const onFocus = () => { setState({ ...state, textAreaFocused: true }); }
+
     const onBlur = () => {
-        setUtilityState({
-            utilityFunction: parseUtilityFunction(state.utilityString)
-        });
+        const utilityOrNull = parseUtilityFunction(state.utilityString, gridState.wealthValues);
+        if (utilityOrNull !== null) {
+            setUtilityState({ utilityFunction: utilityOrNull });
+        }
+        setState({ ...state, textAreaFocused: false, utilityStringParses: utilityOrNull !== null });
     }
+
     const wealthValues = gridState.wealthValues;
     const utility = gridState.wealthValues.map(utilityState.utilityFunction);
     // No complex numbers or other shenanigans
-    const valid = utility.every(item => typeof item === 'number' && isFinite(item) && !isNaN(item))
+    const valid = utility.every(isFiniteNumber)
+    const redBorder = !state.textAreaFocused && (!state.utilityStringParses || !valid);
 
     let terminalDistributionTraces: Plotly.Data[] = [];
     if (trajectoriesState) {
@@ -92,9 +98,10 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
                 <div className="title">Utility</div>
                 Lorem ipsum dolor sic amet</div>
             <textarea className={"input-box"}
-                style={!valid ? { borderColor: "red" } : {}}
+                style={redBorder ? { borderColor: "red" } : {}}
                 placeholder="Type some math here"
                 onChange={handleInput}
+                onFocus={onFocus}
                 onBlur={onBlur}
                 value={state.utilityString}>
             </textarea>
@@ -105,8 +112,21 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
     )
 }
 
-// TODO: validation of some kind
-function parseUtilityFunction(utilityString: string): (i: number) => number {
-    const parsed = evaluate(utilityString, { step: step });
-    return (i: number) => { return parsed(i) };
+function parseUtilityFunction(utilityString: string, wealthValues: number[]): ((i: number) => number) | null {
+    try {
+        const parsed = evaluate(utilityString, { step: step });
+        const min = parsed(wealthValues[0]);
+        const max = parsed(wealthValues[wealthValues.length - 1]);
+        
+        if (!isFiniteNumber(min) || !isFiniteNumber(max)) return null;
+        if (min < 0 || max < 0) return null;
+        
+        return (i: number) => { return parsed(i) };
+    } catch (e) {
+        return null
+    }
+}
+
+function isFiniteNumber(x: unknown) {
+    return typeof x === 'number' && isFinite(x)
 }
