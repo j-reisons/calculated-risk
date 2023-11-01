@@ -52,20 +52,13 @@ export const CashflowsForm = ({ gridState, cashflowsState, setCashflowsState }: 
         }
     }
 
-    const wealthStep = gridState.wealthBoundaries[1] - gridState.wealthBoundaries[0];
     const traces: Plotly.Data[] = [{
         // Match plotted vector length to periods
         y: cashflowsState.cashflows.length >= gridState.periods
             ? cashflowsState.cashflows.slice(0, gridState.periods)
             : [...cashflowsState.cashflows, ...Array(gridState.periods - cashflowsState.cashflows.length).fill(0)],
         type: 'bar'
-    },
-    {
-        x: [-1, gridState.periods + 1, gridState.periods + 1, -1],
-        y: [wealthStep, wealthStep, -wealthStep, -wealthStep],
-        mode: "lines",
-        type: "scatter"
-    },];
+    }];
     const margin = 30;
     const layout: Partial<Plotly.Layout> = {
         showlegend: false,

@@ -29,6 +29,8 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
         const problem: Problem = {
             strategies: strategiesState.strategies,
             wealthBoundaries: gridState.wealthBoundaries,
+            wealthValues: gridState.wealthValues,
+            wealthStep: gridState.wealthStep,
             periods: gridState.periods,
             cashflows: cashflowsState.cashflows,
             utilityFunction: utilityState.utilityFunction,
@@ -43,7 +45,7 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
 
     const clickHandler = (data: Plotly.PlotMouseEvent) => {
         const index = data.points[0].pointIndex as unknown as number[];
-        const wealth = Math.floor(gridState.wealthBoundaries[index[0]]);
+        const wealth = Math.floor(gridState.wealthValues[index[0]]);
         const period = index[1] + 1;
 
         setTrajectoriesInputFormState(
@@ -82,14 +84,10 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
                     extendedTrajectories: computeTrajectories(solution.extendedSolution!, trajectoriesInputState.startingPeriod - 1, trajectoriesInputState.startingWealth),
                 }
             )
-        }else{
+        } else {
             setTrajectoriesState(null);
         }
     }, [solution, trajectoriesInputState, setTrajectoriesState])
-
-    const timeRange: number[] = (range(0, gridState.periods).valueOf() as number[]);
-    const wealthBoundaries = gridState.wealthBoundaries;
-    const wealthValues = [...wealthBoundaries.keys()].slice(0, -1).map(i => (wealthBoundaries[i] + wealthBoundaries[i + 1]) / 2);
 
     let heatmapData: Plotly.Data[] = [];
     let quantilesData: Plotly.Data[] = [];
@@ -99,8 +97,8 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
             {
                 name: "",
                 x0: 0.5,
-                dx: timeRange,
-                y: wealthValues,
+                dx: range(0, gridState.periods).valueOf(),
+                y: gridState.wealthValues,
                 z: solution.optimalStrategies,
                 customdata: customData(solution.expectedUtilities, solution.optimalStrategies, strategiesState.strategies.map(s => s.name)) as unknown as Plotly.Datum[][],
                 hovertemplate: "Period: %{x:.0f}<br>Wealth: %{y:.4s}<br>Strategy: %{customdata[0]}<br>Utility: %{customdata[1]:.4g}",

@@ -15,6 +15,8 @@ test('The init problem is solved sensibly', async () => {
     {
         strategies: initStrategies.strategies,
         wealthBoundaries: initGridState.wealthBoundaries,
+        wealthValues: initGridState.wealthValues,
+        wealthStep: initGridState.wealthStep,
         periods: initGridState.periods,
         cashflows: initCashflows.cashflows,
         utilityFunction: initUtility.utilityFunction
@@ -39,6 +41,8 @@ test('Init with periods shorter than cashflows', async () => {
     {
         strategies: initStrategies.strategies,
         wealthBoundaries: initGridState.wealthBoundaries,
+        wealthValues: initGridState.wealthValues,
+        wealthStep: initGridState.wealthStep,
         periods: 9,
         cashflows: initCashflows.cashflows,
         utilityFunction: initUtility.utilityFunction
@@ -57,6 +61,8 @@ test('Init with periods longer than cashflows', async () => {
     {
         strategies: initStrategies.strategies,
         wealthBoundaries: initGridState.wealthBoundaries,
+        wealthValues: initGridState.wealthValues,
+        wealthStep: initGridState.wealthStep,
         periods: 12,
         cashflows: initCashflows.cashflows,
         utilityFunction: initUtility.utilityFunction
@@ -75,6 +81,8 @@ test('Log no cashflows', async () => {
     {
         strategies: initStrategies.strategies,
         wealthBoundaries: initGridState.wealthBoundaries,
+        wealthValues: initGridState.wealthValues,
+        wealthStep: initGridState.wealthStep,
         periods: initGridState.periods,
         cashflows: [0],
         utilityFunction: Math.log

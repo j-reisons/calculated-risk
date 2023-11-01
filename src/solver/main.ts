@@ -4,9 +4,11 @@ import { CoreSolution, coreSolveCPU, coreSolveGPU } from "./core";
 import { computeTransitionTensor, extendWealthBins, replaceUnknownStrategies } from "./transform";
 
 export interface Problem {
-    readonly strategies: Strategy[]
     readonly wealthBoundaries: number[],
+    readonly wealthValues: number[],
+    readonly wealthStep: number,
     readonly periods: number,
+    readonly strategies: Strategy[]
     readonly cashflows: number[],
     readonly utilityFunction: (w: number) => number,
 }
@@ -26,7 +28,10 @@ export interface ExtendedSolution {
 }
 
 export async function solve(problem: Problem, useGPU = false): Promise<Solution> {
-    const { boundaries, values, finalUtilities, originalRange } = extendWealthBins(problem);
+    const { boundaries, values, originalRange } = extendWealthBins(problem);
+
+    const finalUtilities = values.map(problem.utilityFunction);
+
     const transitionTensor = computeTransitionTensor(problem.periods, boundaries, values, problem.strategies.map(s => s.CDF), problem.cashflows);
 
     let coreSolution: CoreSolution;

@@ -31,11 +31,8 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
             utilityFunction: parseUtilityFunction(state.utilityString)
         });
     }
-
-    // Evaluate on center of bins
-    const wealthBoundaries = gridState.wealthBoundaries;
-    const wealthValues = [...wealthBoundaries.keys()].slice(0, -1).map(i => (wealthBoundaries[i] + wealthBoundaries[i + 1]) / 2)
-    const utility = wealthValues.map(utilityState.utilityFunction);
+    const wealthValues = gridState.wealthValues;
+    const utility = gridState.wealthValues.map(utilityState.utilityFunction);
     // No complex numbers or other shenanigans
     const valid = utility.every(item => typeof item === 'number' && isFinite(item) && !isNaN(item))
 
@@ -45,13 +42,10 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
         const boundaries = trajectoriesState.extendedBoundaries;
         const values = trajectoriesState.extendedValues;
 
+        const widths = trajectoriesState.extendedBoundaries.map((_, i) => boundaries[i] - (boundaries[i - 1] || 0)).slice(1);
         // The +/- inf boundaries at the edges are funky
-        const widths = trajectoriesState.extendedBoundaries.map((_, i) => boundaries[i] - (boundaries[i - 1] || 0));
-        widths[0] = widths[2];
-        widths[1] = widths[2];
+        widths[0] = widths[1];
         widths[widths.length - 1] = widths[widths.length - 2];
-        values[0] = 0
-        values[values.length - 1] = values[values.length] + widths[widths.length - 1];
 
         const terminalProbabilities = trajectories[trajectories.length - 1];
         const terminalCDF = cumsum(terminalProbabilities) as number[];
@@ -68,7 +62,7 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
             customdata: terminalCDF,
             type: 'scatter',
             hovertemplate: "Wealth: %{x:.4s}<br>CDF: %{customdata:.2%}",
-            showlegend:false
+            showlegend: false
         }]
     }
 
@@ -78,7 +72,7 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
             y: utility,
             type: 'scatter',
             hovertemplate: "Wealth: %{x:.4s}<br>Utility: %{y:.4g}",
-            showlegend:false,
+            showlegend: false,
         },
         ...terminalDistributionTraces,
     ];
@@ -87,7 +81,7 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
         height: 250,
         width: 400,
         xaxis: {
-            range: [- 0.05 * gridState.wealthBoundaries[gridState.wealthBoundaries.length - 1], gridState.wealthBoundaries[gridState.wealthBoundaries.length - 1] * 1.05],
+            range: [- 0.05 * gridState.wealthMax, gridState.wealthMax * 1.05],
         },
         margin: { t: margin, l: margin, r: margin, b: margin }
     }

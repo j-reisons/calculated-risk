@@ -8,11 +8,13 @@ export interface GridFormState {
 }
 
 export interface GridState {
-    readonly wealthBoundaries: number[];
     readonly wealthMin: number;
-    readonly wealthStep: number;
     readonly wealthMax: number;
+    readonly wealthStep: number;
     readonly periods: number;
+
+    readonly wealthBoundaries: number[];
+    readonly wealthValues: number[];
 }
 
 export interface TrajectoriesInputFormState {
@@ -36,7 +38,9 @@ export interface TrajectoriesState {
     readonly extendedTrajectories: number[][];
 }
 
-export function logRange(min: number, max: number, step: number): number[] {
-    return (range(Math.log(min), Math.log(max), Math.log(1 + step), true).valueOf() as number[]).map(Math.exp)
+export function logGrid(wealthMin: number, wealthMax: number, wealthStep: number, periods: number): GridState {
+    const wealthBoundaries = (range(Math.log(wealthMin), Math.log(wealthMax), Math.log(1 + wealthStep), true).valueOf() as number[]).map(Math.exp);
+    const wealthValues = [...wealthBoundaries.keys()].slice(0, -1).map(i => (wealthBoundaries[i] + wealthBoundaries[i + 1]) / 2);
+    return { wealthMin, wealthMax, wealthStep, wealthBoundaries, wealthValues, periods }
 }
 

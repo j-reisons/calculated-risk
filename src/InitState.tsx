@@ -1,4 +1,4 @@
-import { GridFormState, GridState, TrajectoriesInputFormState, TrajectoriesInputState, logRange } from "./grid/state";
+import { GridFormState, GridState, TrajectoriesInputFormState, TrajectoriesInputState, logGrid } from "./grid/state";
 import { CashflowsFormState, CashflowsState, StrategiesFormState, StrategiesState, UtilityFormState, UtilityState, normalCdf, step } from "./input/state";
 
 export const initGridFormState: GridFormState = {
@@ -8,13 +8,7 @@ export const initGridFormState: GridFormState = {
     periods: "10",
 }
 
-export const initGridState: GridState = {
-    wealthBoundaries: logRange(1000, 400000, 0.01),
-    wealthMin: 10000,
-    wealthMax: 400000,
-    wealthStep: 0.01,
-    periods: 10,
-};
+export const initGridState: GridState = logGrid(1000, 400000, 0.01, 10)
 
 export const initTrajectoriesInputFormState: TrajectoriesInputFormState = {
     startingWealth: "70000",

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { initGridFormState } from '../InitState';
-import { GridFormState, GridState, TrajectoriesInputFormState, TrajectoriesInputState, logRange } from './state';
+import { GridFormState, GridState, TrajectoriesInputFormState, TrajectoriesInputState, logGrid } from './state';
 
 export interface SideFormProps {
     trajectoriesInputFormState: TrajectoriesInputFormState;
@@ -115,14 +115,12 @@ export const SideForm = ({ trajectoriesInputFormState, setGridState, setTrajecto
 
 function gridIfValid(gridFormState: GridFormState): GridState | null {
     let wealthMin, wealthStep, wealthMax, periods: number;
-    let wealthBoundaries: number[];
 
     try {
         wealthMin = parseInt(gridFormState.wealthMin);
         wealthStep = parseFloat(gridFormState.wealthStep.replace('%', '')) / 100;
         wealthMax = parseInt(gridFormState.wealthMax);
         periods = parseInt(gridFormState.periods);
-        wealthBoundaries = logRange(wealthMin, wealthMax, wealthStep);
     }
     catch (e) {
         return null;
@@ -134,7 +132,7 @@ function gridIfValid(gridFormState: GridFormState): GridState | null {
     if (wealthStep <= 0) return null;
     if (periods <= 0) return null;
 
-    return { wealthBoundaries, wealthMin, wealthStep, wealthMax, periods }
+    return logGrid(wealthMin, wealthMax, wealthStep, periods);
 }
 
 function trajectoriesInputStateIfValid(trajectoriesInputFormState: TrajectoriesInputFormState, gridFormState: GridFormState): TrajectoriesInputState | null {
