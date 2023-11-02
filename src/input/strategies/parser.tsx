@@ -38,9 +38,11 @@ export function parseStrategiesArray(strategiesString: string): (Strategy[] | nu
 }
 
 export function parseStrategyAssignment(assignment: AssignmentNode): (Strategy | null) {
-    const name = assignment.object.name;
     if (assignment.object.type !== 'SymbolNode') return null;
-    if (assignment.value.type == 'FunctionNode') {
+
+    const name = assignment.object.name;
+    const value = assignment.value;
+    if (value.type == 'FunctionNode') {
         const functionNode = (assignment.value as FunctionNode);
         const functionName = functionNode.fn.name.toLowerCase();
 
@@ -50,15 +52,24 @@ export function parseStrategyAssignment(assignment: AssignmentNode): (Strategy |
         const args = parseArgs(functionNode.args)
         if (args === null) return null;
 
-        return factory(name, args);
+        const distribution = factory(args);
+        if (distribution !== null) return { name, ...distribution };
     }
-    else if (assignment.value.type == 'OperatorNode') {
-        return null
-    } // Do the compound thing
-    else return null;
+    else if (value.type == 'OperatorNode') {
+        // Do the compound thing
+        return null;
+    }
+    return null;
 }
 
-const factoryMap: { [key: string]: (name: string, args: number[]) => Strategy | null } =
+export interface Distribution {
+    readonly sketchPDF: (r: number) => number;
+    readonly CDF: (r: number) => number;
+    readonly location: number;
+    readonly scale: number;
+}
+
+const factoryMap: { [key: string]: (args: number[]) => Distribution | null } =
     { 'normal': Normal.create };
 
 function parseArgs(args: MathNode[]): number[] | null {

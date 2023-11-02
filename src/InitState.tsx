@@ -46,11 +46,11 @@ export const initStrategiesForm: StrategiesFormState = {
 
 export const initStrategies: StrategiesState = {
     strategies: [
-        new Normal('cash', 0.01, 0.01),
-        new Normal('e_25', 0.02, 0.05),
-        new Normal('e_50', 0.03, 0.1),
-        new Normal('e_75', 0.04, 0.15),
-        new Normal('e_100', 0.05, 0.2)
+        {name: 'cash', ...new Normal(0.01, 0.01)},
+        {name: 'e_25', ...new Normal(0.02, 0.05)},
+        {name: 'e_50', ...new Normal(0.03, 0.1)},
+        {name: 'e_75', ...new Normal(0.04, 0.15)},
+        {name: 'e_100', ...new Normal(0.05, 0.2)}
     ]
 }
 

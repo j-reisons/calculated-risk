@@ -1,26 +1,23 @@
 import { erf } from "mathjs";
-import { Strategy } from "../state";
+import { Distribution } from "./parser";
 
-export class Normal implements Strategy {
+export class Normal implements Distribution {
 
-    name: string;
-    location: number;
-    scale: number;
     sketchPDF: (r: number) => number;
     CDF: (r: number) => number;
+    location: number;
+    scale: number;
 
-    constructor(name: string, mean: number, vola: number) {
-        this.name = name;
+    constructor(mean: number, vola: number) {
         this.location = mean;
         this.scale = vola;
         this.sketchPDF = normalSketch(mean, vola);
         this.CDF = normalCdf(mean, vola);
     }
 
-
-    static create(name: string, args: number[]): Normal | null {
+    static create(args: number[]): Normal | null {
         if (args.length != 2) return null;
-        return new Normal(name, args[0], args[1]);
+        return new Normal(args[0], args[1]);
     }
 
 }
