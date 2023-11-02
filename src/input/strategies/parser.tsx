@@ -1,4 +1,4 @@
-import { AssignmentNode, BlockNode, ConstantNode, FunctionNode, parse } from "mathjs";
+import { AssignmentNode, BlockNode, ConstantNode, FunctionNode, MathNode, parse } from "mathjs";
 import { Strategy } from "../state";
 import { Normal } from "./normal";
 
@@ -38,18 +38,37 @@ export function parseStrategiesArray(strategiesString: string): (Strategy[] | nu
 }
 
 export function parseStrategyAssignment(assignment: AssignmentNode): (Strategy | null) {
+    const name = assignment.object.name;
     if (assignment.object.type !== 'SymbolNode') return null;
-    if (assignment.value.type !== 'FunctionNode') return null;
-    const functionNode = (assignment.value as FunctionNode);
-    if (functionNode.fn.name.toLowerCase() !== 'normal') return null;
-    if (functionNode.args.length !== 2) return null;
-    // TODO: Support percentages here. Requires parsing an OperatorNode rather than a ConstantNode.
-    // TODO: Support comments
-    // TODO: Support combinations of gaussians.
-    if (functionNode.args[0].type !== 'ConstantNode') return null;
-    if (functionNode.args[1].type !== 'ConstantNode') return null;
+    if (assignment.value.type == 'FunctionNode') {
+        const functionNode = (assignment.value as FunctionNode);
+        const functionName = functionNode.fn.name.toLowerCase();
 
-    const mean = (functionNode.args[0] as ConstantNode).value;
-    const vola = (functionNode.args[1] as ConstantNode).value;
-    return new Normal(assignment.object.name, mean, vola);
+        const factory = factoryMap[functionName];
+        if (factory === undefined) return null;
+
+        const args = parseArgs(functionNode.args)
+        if (args === null) return null;
+
+        return factory(name, args);
+    }
+    else if (assignment.value.type == 'OperatorNode') {
+        return null
+    } // Do the compound thing
+    else return null;
 }
+
+const factoryMap: { [key: string]: (name: string, args: number[]) => Strategy | null } =
+    { 'normal': Normal.create };
+
+function parseArgs(args: MathNode[]): number[] | null {
+    const out = new Array<number>(args.length);
+    for (let i = 0; i < args.length; i++) {
+        const arg = args[i];
+        // TODO: Support percentages here. Requires parsing an OperatorNode rather than a ConstantNode.
+        if (arg.type !== 'ConstantNode') return null;
+        out[i] = (arg as ConstantNode).value;
+    }
+    return out;
+}
+

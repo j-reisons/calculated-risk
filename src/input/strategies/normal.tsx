@@ -15,6 +15,11 @@ export class Normal implements Strategy {
         this.CDF = normalCdf(mean, vola);
     }
 
+    static create(name: string, args: number[]): Normal | null {
+        if (args.length != 2) return null;
+        return new Normal(name, args[0], args[1]);
+    }
+
     // TODO: 0-vola looks weird plotted on its own
     // TODO: Reflect chosen log-resolution in these plots
     static readonly PLOT_POINTS = (100 * 2) + 1;
