@@ -30,7 +30,7 @@ export function extendWealthBins(problem: Problem): ExtendedBins {
 function computeCoarseStep(problem: Problem): number {
     const minStrategySize = problem.strategies.reduce(
         (minSize, strategy) => {
-            return Math.min(minSize, (Math.abs(strategy.mean) + strategy.vola));
+            return Math.min(minSize, (Math.abs(strategy.location) + strategy.scale));
         }
         , Infinity);
     return Math.max(minStrategySize, problem.wealthStep);
@@ -47,7 +47,7 @@ function computeCoarseMax(problem: Problem): number {
 
     const maxStrategySize = problem.strategies.reduce(
         (maxSize, strategy) => {
-            return Math.max(maxSize, (strategy.mean + strategy.vola));
+            return Math.max(maxSize, (strategy.location + strategy.scale));
         }
         , 0
     );
