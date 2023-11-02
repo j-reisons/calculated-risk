@@ -18,18 +18,20 @@ const App = () => {
     <>
       <Grid
         gridState={gridState}
+        setGridState={setGridState}
         strategiesState={strategiesState}
         cashflowsState={cashflowsState}
         utilityState={utilityState}
         trajectoriesState={trajectoriesState}
-        setGridState={setGridState}
         setTrajectoriesState={setTrajectoriesState}
       />
 
-      <MainForm gridState={gridState} setStrategiesState={setStrategiesState}
+      <MainForm gridState={gridState}
+        strategiesState={strategiesState}
+        setStrategiesState={setStrategiesState}
         cashflowsState={cashflowsState}
-        trajectoriesState={trajectoriesState}
         setCashflowsState={setCashflowsState}
+        trajectoriesState={trajectoriesState}
         utilityState={utilityState}
         setUtilityState={setUtilityState}
       />

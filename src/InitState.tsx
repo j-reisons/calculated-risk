@@ -1,5 +1,6 @@
 import { GridFormState, GridState, TrajectoriesInputFormState, TrajectoriesInputState, logGrid } from "./grid/state";
-import { CashflowsFormState, CashflowsState, StrategiesFormState, StrategiesState, UtilityFormState, UtilityState, normalCdf, step } from "./input/state";
+import { CashflowsFormState, CashflowsState, StrategiesFormState, StrategiesState, UtilityFormState, UtilityState, step } from "./input/state";
+import { Normal } from "./input/strategies/normal";
 
 export const initGridFormState: GridFormState = {
     wealthMin: "1000",
@@ -41,22 +42,15 @@ export const initStrategiesForm: StrategiesFormState = {
         'e_75 = Normal(0.04, 0.15)\n' +
         'e_100 = Normal(0.05, 0.2)',
     strategiesStringValid: true,
-    strategies: [
-        { name: 'cash', mu: 0.01, sigma: 0.01 },
-        { name: 'e_25', mu: 0.02, sigma: 0.05 },
-        { name: 'e_50', mu: 0.03, sigma: 0.1 },
-        { name: 'e_75', mu: 0.04, sigma: 0.15 },
-        { name: 'e_100', mu: 0.05, sigma: 0.2 }
-    ],
 }
 
 export const initStrategies: StrategiesState = {
     strategies: [
-        { name: 'cash', CDF: normalCdf(0.01, 0.01), mean: 0.01, vola: 0.01 },
-        { name: 'e_25', CDF: normalCdf(0.02, 0.05), mean: 0.02, vola: 0.05 },
-        { name: 'e_50', CDF: normalCdf(0.03, 0.1), mean: 0.03, vola: 0.1 },
-        { name: 'e_75', CDF: normalCdf(0.04, 0.15), mean: 0.04, vola: 0.15 },
-        { name: 'e_100', CDF: normalCdf(0.05, 0.2), mean: 0.05, vola: 0.2 }
+        new Normal('cash', 0.01, 0.01),
+        new Normal('e_25', 0.02, 0.05),
+        new Normal('e_50', 0.03, 0.1),
+        new Normal('e_75', 0.04, 0.15),
+        new Normal('e_100', 0.05, 0.2)
     ]
 }
 
