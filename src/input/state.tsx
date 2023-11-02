@@ -15,13 +15,12 @@ export interface StrategiesState {
 
 export interface Strategy {
     readonly name: string,
+    // PDF rescaled to [0,1] for plotting.
+    readonly sketchPDF: (r: number) => number;
     readonly CDF: (r: number) => number;
     // Mean / std when available
     readonly location: number;
     readonly scale: number;
-    // For plotting within the component
-    plotX(): number[];
-    plotY(): number[];
 }
 
 export interface StrategiesFormState {

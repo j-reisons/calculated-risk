@@ -2,7 +2,7 @@ import Plotly from "plotly.js-cartesian-dist";
 import React, { useState } from "react";
 import createPlotlyComponent from 'react-plotly.js/factory';
 import { initStrategiesForm } from "../../InitState";
-import { StrategiesFormState, StrategiesState } from "../state";
+import { StrategiesFormState, StrategiesState, Strategy } from "../state";
 import { parseStrategiesArray } from "./parser";
 
 const Plot = createPlotlyComponent(Plotly);
@@ -28,17 +28,7 @@ export const StrategiesForm = ({ strategiesState, setStrategiesState }: Strategi
         setState({ ...state, strategiesStringValid: arrayOrNull !== null })
     }
 
-    const traces = [];
-    for (let i = 0; i < strategiesState.strategies.length; i++) {
-        const strategy = strategiesState.strategies[i];
-        const data: Plotly.Data = {
-            name: strategy.name,
-            x: strategy.plotX(),
-            y: strategy.plotY(),
-            type: 'scatter',
-        };
-        traces.push(data)
-    }
+    const traces = strategiesState.strategies.map(toPlotlyData);
     const margin = 30;
     const layout: Partial<Plotly.Layout> = {
         height: 250,
@@ -64,4 +54,33 @@ export const StrategiesForm = ({ strategiesState, setStrategiesState }: Strategi
                 layout={layout} />
         </div>
     )
+}
+
+const PLOT_POINTS = (100 * 2) + 1;
+const RANGE_SCALES = 5;
+
+function toPlotlyData(strategy: Strategy): Plotly.Data {
+    const x = xValues(strategy);
+    const y = x.map(strategy.sketchPDF);
+    return {
+        name: strategy.name,
+        x: x,
+        y: y,
+        type: 'scatter',
+    };
+}
+
+function xValues(strategy: Strategy): number[] {
+    const { location, scale } = strategy;
+    if (scale === 0) {
+        return [(1 - Number.EPSILON) * location, location, (1 + Number.EPSILON) * location]
+    }
+
+    const out = new Array(PLOT_POINTS);
+    const start = location - scale * RANGE_SCALES;
+    const step = scale * (2 * RANGE_SCALES) / (PLOT_POINTS - 1);
+    for (let i = 0; i < PLOT_POINTS; i++) {
+        out[i] = start + i * step;
+    }
+    return out;
 }
