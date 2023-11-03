@@ -1,4 +1,4 @@
-import { AssignmentNode, BlockNode, ConstantNode, FunctionNode, MathNode, OperatorNode, parse } from "mathjs";
+import { AssignmentNode, BlockNode, FunctionNode, MathNode, OperatorNode, parse } from "mathjs";
 import { Strategy } from "../state";
 import { Compound } from "./compound";
 import { Normal } from "./normal";
@@ -98,13 +98,13 @@ function parseWeightedDistributions(node: OperatorNode): WeightedDistribution[] 
 }
 
 function parseArgs(args: MathNode[]): number[] | null {
-    // Support percentages
-    // Support negatives
     const out = new Array<number>(args.length);
     for (let i = 0; i < args.length; i++) {
-        const arg = args[i];
-        if (arg.type !== 'ConstantNode') return null;
-        out[i] = (arg as ConstantNode).value;
+        try {
+            out[i] = args[i].compile().evaluate();
+        } catch (e) {
+            return null;
+        }
     }
     return out;
 }
@@ -119,11 +119,17 @@ function parsePlus(plusNode: OperatorNode): WeightedDistribution[] | null {
 function parseTimes(timesNode: OperatorNode): WeightedDistribution[] | null {
     const types = timesNode.args.map(a => a.type);
     // Support percentages here
-    const constIndex = types.findIndex(s => s === "ConstantNode");
+    const weightIndex = types.findIndex(s => s !== "FunctionNode");
     const functionIndex = types.findIndex(s => s === "FunctionNode");
-    if (constIndex === -1 || functionIndex === -1) return null;
+    if (weightIndex === -1 || functionIndex === -1) return null;
 
-    const weight = (timesNode.args[constIndex] as ConstantNode).value;
+    let weight;
+    try {
+        weight = timesNode.args[weightIndex].compile().evaluate();
+    } catch (e) {
+        return null;
+    }
+
     const distribution = parseDistribution(timesNode.args[functionIndex] as FunctionNode)
     if (distribution === null) return null;
 
