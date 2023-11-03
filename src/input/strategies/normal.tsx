@@ -1,5 +1,5 @@
 import { erf } from "mathjs";
-import { Distribution } from "./parser";
+import { Distribution } from "./compiler";
 
 export class Normal implements Distribution {
 

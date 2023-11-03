@@ -4,7 +4,7 @@ import createPlotlyComponent from 'react-plotly.js/factory';
 import { initStrategiesForm } from "../../InitState";
 import { GridState } from "../../grid/state";
 import { StrategiesFormState, StrategiesState, Strategy } from "../state";
-import { parseStrategiesArray } from "./parser";
+import { compileStrategiesArray } from "./compiler";
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -25,7 +25,7 @@ export const StrategiesForm = ({ gridState, strategiesState, setStrategiesState 
     const onFocus = () => { setState({ ...state, strategiesStringValid: true }) }
 
     const onBlur = () => {
-        const arrayOrNull = parseStrategiesArray(state.strategiesString);
+        const arrayOrNull = compileStrategiesArray(state.strategiesString);
         if (arrayOrNull !== null) setStrategiesState({ strategies: arrayOrNull });
         setState({ ...state, strategiesStringValid: arrayOrNull !== null })
     }

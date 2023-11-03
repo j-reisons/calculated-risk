@@ -1,4 +1,4 @@
-import { Distribution, WeightedDistribution } from "./parser";
+import { Distribution, WeightedDistribution } from "./compiler";
 
 export class Compound implements Distribution {
 

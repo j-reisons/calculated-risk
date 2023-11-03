@@ -3,7 +3,7 @@ import { Strategy } from "../state";
 import { Compound } from "./compound";
 import { Normal } from "./normal";
 
-export function parseStrategiesArray(strategiesString: string): (Strategy[] | null) {
+export function compileStrategiesArray(strategiesString: string): (Strategy[] | null) {
     const assignments: AssignmentNode[] = [];
     let root;
     try {
@@ -33,25 +33,25 @@ export function parseStrategiesArray(strategiesString: string): (Strategy[] | nu
             return null;
     }
 
-    const out: Strategy[] = assignments.map(parseStrategyAssignment)
+    const out: Strategy[] = assignments.map(compileStrategy)
         .filter((item): item is Strategy => item !== null);
     return out.length === assignments.length ? out : null;
 }
 
-export function parseStrategyAssignment(assignment: AssignmentNode): (Strategy | null) {
+function compileStrategy(assignment: AssignmentNode): (Strategy | null) {
     if (assignment.object.type !== 'SymbolNode') return null;
 
     const name = assignment.object.name;
 
-    const distribution = parseDistribution(assignment.value);
+    const distribution = compileDistribution(assignment.value);
     if (distribution === null) return null;
     return { name, ...distribution };
 }
 
-function parseDistribution(node: MathNode): Distribution | null {
-    if (node.type == 'FunctionNode') return parseFunctionNode((node as FunctionNode));
+function compileDistribution(node: MathNode): Distribution | null {
+    if (node.type == 'FunctionNode') return compileSimpleDistribution((node as FunctionNode));
     if (node.type == 'OperatorNode') {
-        const weightedDistributions = parseWeightedDistributions(node as OperatorNode);
+        const weightedDistributions = compileWeightedDistributions(node as OperatorNode);
 
         if (weightedDistributions === null) return null;
 
@@ -73,13 +73,13 @@ export interface Distribution {
 const factoryMap: { [key: string]: (args: number[]) => Distribution | null } =
     { 'normal': Normal.create };
 
-function parseFunctionNode(node: FunctionNode): Distribution | null {
+function compileSimpleDistribution(node: FunctionNode): Distribution | null {
     const functionName = node.fn.name.toLowerCase();
 
     const factory = factoryMap[functionName];
     if (factory === undefined) return null;
 
-    const args = parseArgs(node.args)
+    const args = compileArgs(node.args)
     if (args === null) return null;
 
     return factory(args);
@@ -91,13 +91,13 @@ export interface WeightedDistribution {
     readonly distribution: Distribution;
 }
 
-function parseWeightedDistributions(node: OperatorNode): WeightedDistribution[] | null {
-    if (node.op === "+") return parsePlus(node);
-    if (node.op === "*") return parseTimes(node);
+function compileWeightedDistributions(node: OperatorNode): WeightedDistribution[] | null {
+    if (node.op === "+") return compilePlus(node);
+    if (node.op === "*") return compileTimes(node);
     return null;
 }
 
-function parseArgs(args: MathNode[]): number[] | null {
+function compileArgs(args: MathNode[]): number[] | null {
     const out = new Array<number>(args.length);
     for (let i = 0; i < args.length; i++) {
         try {
@@ -109,18 +109,19 @@ function parseArgs(args: MathNode[]): number[] | null {
     return out;
 }
 
-function parsePlus(plusNode: OperatorNode): WeightedDistribution[] | null {
-    const left = parseWeightedDistributions(plusNode.args[0] as OperatorNode)
-    const right = parseWeightedDistributions(plusNode.args[1] as OperatorNode)
+function compilePlus(plusNode: OperatorNode): WeightedDistribution[] | null {
+    const left = compileWeightedDistributions(plusNode.args[0] as OperatorNode)
+    const right = compileWeightedDistributions(plusNode.args[1] as OperatorNode)
     if (left !== null && right !== null) return [...left, ...right];
     return null;
 }
 
-function parseTimes(timesNode: OperatorNode): WeightedDistribution[] | null {
+function compileTimes(timesNode: OperatorNode): WeightedDistribution[] | null {
     const types = timesNode.args.map(a => a.type);
-    // Support percentages here
+
     const weightIndex = types.findIndex(s => s !== "FunctionNode");
     const functionIndex = types.findIndex(s => s === "FunctionNode");
+    
     if (weightIndex === -1 || functionIndex === -1) return null;
 
     let weight;
@@ -130,7 +131,7 @@ function parseTimes(timesNode: OperatorNode): WeightedDistribution[] | null {
         return null;
     }
 
-    const distribution = parseDistribution(timesNode.args[functionIndex] as FunctionNode)
+    const distribution = compileSimpleDistribution(timesNode.args[functionIndex] as FunctionNode)
     if (distribution === null) return null;
 
     return [{ weight, distribution }];
