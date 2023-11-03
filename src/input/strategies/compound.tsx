@@ -2,13 +2,13 @@ import { Distribution, WeightedDistribution } from "./parser";
 
 export class Compound implements Distribution {
 
-    sketchPDF: (r: number) => number;
+    PDF: (r: number) => number;
     CDF: (r: number) => number;
     location: number;
     scale: number;
 
     constructor(components: WeightedDistribution[]) {
-        this.sketchPDF = compoundSketch(components);
+        this.PDF = compoundPdf(components);
         this.CDF = compoundCdf(components);
         this.location = compoundLocation(components);
         this.scale = compoundScale(components);
@@ -26,9 +26,9 @@ function compoundScale(components: WeightedDistribution[]): number {
     return Math.sqrt(secondMoment - compoundLocation(components) ** 2);
 }
 
-function compoundSketch(components: WeightedDistribution[]): (r: number) => number {
+function compoundPdf(components: WeightedDistribution[]): (r: number) => number {
     return (r: number) => {
-        return components.reduce((acc, c) => c.weight * c.distribution.sketchPDF(r) + acc, 0);
+        return components.reduce((acc, c) => c.weight * c.distribution.PDF(r) + acc, 0);
     }
 }
 

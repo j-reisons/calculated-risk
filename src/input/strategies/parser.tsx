@@ -64,7 +64,7 @@ function parseDistribution(node: MathNode): Distribution | null {
 }
 
 export interface Distribution {
-    readonly sketchPDF: (r: number) => number;
+    readonly PDF: (r: number) => number;
     readonly CDF: (r: number) => number;
     readonly location: number;
     readonly scale: number;

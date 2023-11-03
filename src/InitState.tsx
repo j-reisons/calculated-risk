@@ -36,11 +36,11 @@ export const initCashflows: CashflowsState = {
 
 export const initStrategiesForm: StrategiesFormState = {
     strategiesString:
-        'cash = Normal(0.01, 0.01)\n' +
-        'e_25 = Normal(0.02, 0.05)\n' +
-        'e_50 = Normal(0.03, 0.1)\n' +
-        'e_75 = Normal(0.04, 0.15)\n' +
-        'e_100 = Normal(0.05, 0.2)',
+        'cash = Normal(1%, 1%)\n' +
+        'e_25 = Normal(2%, 5%)\n' +
+        'e_50 = Normal(3%, 10%)\n' +
+        'e_75 = Normal(4%, 15%)\n' +
+        'e_100 = Normal(5%, 20%)',
     strategiesStringValid: true,
 }
 

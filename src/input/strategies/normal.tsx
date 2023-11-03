@@ -3,7 +3,7 @@ import { Distribution } from "./parser";
 
 export class Normal implements Distribution {
 
-    sketchPDF: (r: number) => number;
+    PDF: (r: number) => number;
     CDF: (r: number) => number;
     location: number;
     scale: number;
@@ -11,8 +11,8 @@ export class Normal implements Distribution {
     constructor(mean: number, vola: number) {
         this.location = mean;
         this.scale = vola;
-        this.sketchPDF = normalSketch(mean, vola);
-        this.CDF = normalCdf(mean, vola);
+        this.PDF = normalPDF(mean, vola);
+        this.CDF = normalCDF(mean, vola);
     }
 
     static create(args: number[]): Normal | null {
@@ -22,17 +22,20 @@ export class Normal implements Distribution {
 
 }
 
-function normalCdf(mean: number, vola: number): (r: number) => number {
-    return (r: number) => { return 0.5 * (1 + cachedErf((r - mean) / (1.41421356237 * vola))) }
+function normalCDF(mean: number, vola: number): (r: number) => number {
+    return (r: number) => { return 0.5 * (1 + cachedErf((r - mean) / (SQRT_2 * vola))) }
 }
 
-function normalSketch(mean: number, vola: number): (r: number) => number {
+function normalPDF(mean: number, vola: number): (r: number) => number {
     return (r: number) => {
-        if (vola === 0) { return r === mean ? 1 : 0 }
+        if (vola === 0) { return r === mean ? Number.MAX_VALUE : 0 }
         const exponent = - (((r - mean) / vola) ** 2) / 2;
-        return Math.exp(exponent);
+        return Math.exp(exponent) / (vola * SQRT_2_PI);
     }
 }
+
+const SQRT_2 = 1.4142135623730951;
+const SQRT_2_PI = 2.5066282746310002;
 
 const CACHE = Array<number>(20001);
 const START = -5;

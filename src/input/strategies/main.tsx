@@ -61,11 +61,12 @@ const RANGE_SCALES = 5;
 
 function toPlotlyData(strategy: Strategy): Plotly.Data {
     const x = xValues(strategy);
-    const y = x.map(strategy.sketchPDF);
+    const PDF = x.map(strategy.PDF);
+    const max = Math.max(...PDF);
     return {
         name: strategy.name,
         x: x,
-        y: y,
+        y: PDF.map(e => e / max),
         type: 'scatter',
     };
 }
