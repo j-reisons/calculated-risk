@@ -1,5 +1,5 @@
-import { Delta } from "../state";
-import { Distribution } from "./compiler";
+import { Delta } from "../../state";
+import { Distribution } from "./distribution";
 
 export class DeltaDist implements Distribution {
     CDF: (r: number) => number;
@@ -13,9 +13,14 @@ export class DeltaDist implements Distribution {
         this.CDF = (r => r >= location ? 1 : 0)
         this.location = location;
         this.scale = 0;
-        this.PDF = (r => 0);
+        this.PDF = ((_) => 0);
         this.pointsOfInterest = [];
         this.deltas = [{ location, weight: 1 }]
+    }
+
+    static createArgs(args: number[]): Distribution | null {
+        if (args.length != 1) return null;
+        return new DeltaDist(args[0]);
     }
 
 }

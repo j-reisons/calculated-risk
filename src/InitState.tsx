@@ -1,6 +1,6 @@
 import { GridFormState, GridState, TrajectoriesInputFormState, TrajectoriesInputState, logGrid } from "./grid/state";
 import { CashflowsFormState, CashflowsState, StrategiesFormState, StrategiesState, UtilityFormState, UtilityState, step } from "./input/state";
-import { Normal } from "./input/strategies/normal";
+import { Normal } from "./input/strategies/distributions/normal";
 
 export const initGridFormState: GridFormState = {
     wealthMin: "1000",

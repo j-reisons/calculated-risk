@@ -1,7 +1,7 @@
 import { erf } from "mathjs";
-import { Delta } from "../state";
-import { Distribution } from "./compiler";
+import { Delta } from "../../state";
 import { DeltaDist } from "./delta";
+import { Distribution } from "./distribution";
 
 export class Normal implements Distribution {
 

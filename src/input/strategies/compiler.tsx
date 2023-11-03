@@ -1,7 +1,7 @@
 import { AssignmentNode, BlockNode, FunctionNode, MathNode, OperatorNode, parse } from "mathjs";
-import { Delta, Strategy } from "../state";
-import { Compound } from "./compound";
-import { Normal } from "./normal";
+import { Strategy } from "../state";
+import { Compound } from "./distributions/compound";
+import { Distribution, WeightedDistribution, createDistribution } from "./distributions/distribution";
 
 export function compileStrategiesArray(strategiesString: string): (Strategy[] | null) {
     const assignments: AssignmentNode[] = [];
@@ -52,7 +52,6 @@ function compileDistribution(node: MathNode): Distribution | null {
     if (node.type == 'FunctionNode') return compileSimpleDistribution((node as FunctionNode));
     if (node.type == 'OperatorNode') {
         const weightedDistributions = compileWeightedDistributions(node as OperatorNode);
-
         if (weightedDistributions === null) return null;
 
         const total = weightedDistributions.reduce((acc, c) => c.weight + acc, 0);
@@ -63,35 +62,11 @@ function compileDistribution(node: MathNode): Distribution | null {
     return null;
 }
 
-export interface Distribution {
-    readonly CDF: (r: number) => number;
-    readonly location: number;
-    readonly scale: number;
-
-    readonly PDF: (r: number) => number;
-    readonly pointsOfInterest: number[];
-    readonly deltas: Delta[];
-}
-
-const factoryMap: { [key: string]: (args: number[]) => Distribution | null } =
-    { 'normal': Normal.createArgs };
-
 function compileSimpleDistribution(node: FunctionNode): Distribution | null {
-    const functionName = node.fn.name.toLowerCase();
-
-    const factory = factoryMap[functionName];
-    if (factory === undefined) return null;
-
+    const name = node.fn.name.toLowerCase();
     const args = compileArgs(node.args)
     if (args === null) return null;
-
-    return factory(args);
-}
-
-
-export interface WeightedDistribution {
-    readonly weight: number;
-    readonly distribution: Distribution;
+    return createDistribution(name, args);
 }
 
 function compileWeightedDistributions(node: OperatorNode): WeightedDistribution[] | null {

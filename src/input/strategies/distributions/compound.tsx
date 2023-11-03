@@ -1,5 +1,5 @@
-import { Delta } from "../state";
-import { Distribution, WeightedDistribution } from "./compiler";
+import { Delta } from "../../state";
+import { Distribution, WeightedDistribution } from "./distribution";
 
 export class Compound implements Distribution {
 
