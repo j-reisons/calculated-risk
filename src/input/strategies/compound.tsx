@@ -6,12 +6,14 @@ export class Compound implements Distribution {
     CDF: (r: number) => number;
     location: number;
     scale: number;
+    pointsOfInterest: number[];
 
     constructor(components: WeightedDistribution[]) {
         this.PDF = compoundPdf(components);
         this.CDF = compoundCdf(components);
         this.location = compoundLocation(components);
         this.scale = compoundScale(components);
+        this.pointsOfInterest = compoundPointsOfInterest(components);
     }
 
 }
@@ -36,4 +38,7 @@ function compoundCdf(components: WeightedDistribution[]): (r: number) => number 
     return (r: number) => {
         return components.reduce((acc, c) => c.weight * c.distribution.CDF(r) + acc, 0);
     }
+}
+function compoundPointsOfInterest(components: WeightedDistribution[]): number[] {
+    return components.reduce((acc, c) => acc.concat(c.distribution.pointsOfInterest), [] as number[])
 }

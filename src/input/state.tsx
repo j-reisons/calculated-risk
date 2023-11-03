@@ -20,6 +20,8 @@ export interface Strategy {
     // Mean / std when available
     readonly location: number;
     readonly scale: number;
+    // Points you shouldn't miss when plotting the PDF
+    readonly pointsOfInterest: number[];
 }
 
 export interface StrategiesFormState {

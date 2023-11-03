@@ -72,20 +72,32 @@ function toPlotlyData(strategy: Strategy, step: number): Plotly.Data {
 }
 
 const RANGE_SCALES = 5;
+const POINTS_PER_SIDE_POI = 5;
 
 function xValues(strategy: Strategy, step: number): number[] {
     const { location, scale } = strategy;
 
-    if (scale === 0) {
-        return [(1 - Number.EPSILON) * location, location, (1 + Number.EPSILON) * location]
-    }
-
+    const allPoints = [];
+    
     const pointsPerSide = Math.ceil((scale * RANGE_SCALES) / step);
-    const out = new Array<number>(2 * pointsPerSide + 1);
-
     const start = location - step * pointsPerSide;
-    for (let i = 0; i < out.length; i++) {
-        out[i] = start + i * step;
+    for (let i = 0; i < pointsPerSide * 2 + 1; i++) {
+        allPoints.push(start + i * step);
     }
-    return out;
+
+    for (const poi of strategy.pointsOfInterest) {
+        const start = poi - step * POINTS_PER_SIDE_POI;
+        for (let i = 0; i < POINTS_PER_SIDE_POI * 2 + 1; i++) {
+            allPoints.push(start + i * step);
+        }
+    }
+
+    allPoints.sort((a, b) => a - b)
+    const deduped = [];
+    for (let i = 0; i < allPoints.length; i++) {
+        if (i === 0 || allPoints[i] !== allPoints[i - 1]) {
+            deduped.push(allPoints[i]);
+        }
+    }
+    return deduped;
 }

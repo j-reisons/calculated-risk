@@ -68,6 +68,7 @@ export interface Distribution {
     readonly CDF: (r: number) => number;
     readonly location: number;
     readonly scale: number;
+    readonly pointsOfInterest: number[];
 }
 
 const factoryMap: { [key: string]: (args: number[]) => Distribution | null } =
@@ -121,7 +122,7 @@ function compileTimes(timesNode: OperatorNode): WeightedDistribution[] | null {
 
     const weightIndex = types.findIndex(s => s !== "FunctionNode");
     const functionIndex = types.findIndex(s => s === "FunctionNode");
-    
+
     if (weightIndex === -1 || functionIndex === -1) return null;
 
     let weight;

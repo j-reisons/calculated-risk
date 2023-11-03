@@ -7,12 +7,14 @@ export class Normal implements Distribution {
     CDF: (r: number) => number;
     location: number;
     scale: number;
+    pointsOfInterest: number[];
 
     constructor(mean: number, vola: number) {
         this.location = mean;
         this.scale = vola;
         this.PDF = normalPDF(mean, vola);
         this.CDF = normalCDF(mean, vola);
+        this.pointsOfInterest = [mean];
     }
 
     static create(args: number[]): Normal | null {
