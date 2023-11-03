@@ -1,5 +1,5 @@
 import { AssignmentNode, BlockNode, FunctionNode, MathNode, OperatorNode, parse } from "mathjs";
-import { Strategy } from "../state";
+import { Delta, Strategy } from "../state";
 import { Compound } from "./compound";
 import { Normal } from "./normal";
 
@@ -57,22 +57,24 @@ function compileDistribution(node: MathNode): Distribution | null {
 
         const total = weightedDistributions.reduce((acc, c) => c.weight + acc, 0);
         if (Math.abs(total - 1) > 1E-6) return null;
-
         return new Compound(weightedDistributions);
+
     }
     return null;
 }
 
 export interface Distribution {
-    readonly PDF: (r: number) => number;
     readonly CDF: (r: number) => number;
     readonly location: number;
     readonly scale: number;
+
+    readonly PDF: (r: number) => number;
     readonly pointsOfInterest: number[];
+    readonly deltas: Delta[];
 }
 
 const factoryMap: { [key: string]: (args: number[]) => Distribution | null } =
-    { 'normal': Normal.create };
+    { 'normal': Normal.createArgs };
 
 function compileSimpleDistribution(node: FunctionNode): Distribution | null {
     const functionName = node.fn.name.toLowerCase();

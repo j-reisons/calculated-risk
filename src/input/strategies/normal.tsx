@@ -1,5 +1,7 @@
 import { erf } from "mathjs";
+import { Delta } from "../state";
 import { Distribution } from "./compiler";
+import { DeltaDist } from "./delta";
 
 export class Normal implements Distribution {
 
@@ -8,20 +10,27 @@ export class Normal implements Distribution {
     location: number;
     scale: number;
     pointsOfInterest: number[];
+    deltas: Delta[]
 
-    constructor(mean: number, vola: number) {
+    private constructor(mean: number, vola: number) {
         this.location = mean;
         this.scale = vola;
         this.PDF = normalPDF(mean, vola);
         this.CDF = normalCDF(mean, vola);
         this.pointsOfInterest = [mean];
+        this.deltas = []
     }
 
-    static create(args: number[]): Normal | null {
+    static createArgs(args: number[]): Distribution | null {
         if (args.length != 2) return null;
-        return new Normal(args[0], args[1]);
+        const [mean, vola] = args;
+        return Normal.create(mean, vola);
     }
 
+    static create(mean: number, vola: number): Distribution {
+        if (vola == 0) return new DeltaDist(mean);
+        return new Normal(mean, vola);
+    }
 }
 
 function normalCDF(mean: number, vola: number): (r: number) => number {
@@ -30,7 +39,6 @@ function normalCDF(mean: number, vola: number): (r: number) => number {
 
 function normalPDF(mean: number, vola: number): (r: number) => number {
     return (r: number) => {
-        if (vola === 0) { return r === mean ? Number.MAX_VALUE : 0 }
         const exponent = - (((r - mean) / vola) ** 2) / 2;
         return Math.exp(exponent) / (vola * SQRT_2_PI);
     }

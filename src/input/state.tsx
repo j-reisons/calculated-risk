@@ -15,13 +15,18 @@ export interface StrategiesState {
 
 export interface Strategy {
     readonly name: string,
-    readonly PDF: (r: number) => number;
     readonly CDF: (r: number) => number;
-    // Mean / std when available
-    readonly location: number;
-    readonly scale: number;
-    // Points you shouldn't miss when plotting the PDF
+    readonly location: number; // mean when defined
+    readonly scale: number; // std when defined
+
+    // These fields used by strategies plot only
+    readonly PDF: (r: number) => number;
     readonly pointsOfInterest: number[];
+    readonly deltas: Delta[];
+}
+export interface Delta {
+    readonly location: number;
+    readonly weight: number
 }
 
 export interface StrategiesFormState {

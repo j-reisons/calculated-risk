@@ -1,3 +1,4 @@
+import { Delta } from "../state";
 import { Distribution, WeightedDistribution } from "./compiler";
 
 export class Compound implements Distribution {
@@ -7,6 +8,7 @@ export class Compound implements Distribution {
     location: number;
     scale: number;
     pointsOfInterest: number[];
+    deltas: Delta[];
 
     constructor(components: WeightedDistribution[]) {
         this.PDF = compoundPdf(components);
@@ -14,6 +16,7 @@ export class Compound implements Distribution {
         this.location = compoundLocation(components);
         this.scale = compoundScale(components);
         this.pointsOfInterest = compoundPointsOfInterest(components);
+        this.deltas = compoundDeltas(components);
     }
 
 }
@@ -39,6 +42,15 @@ function compoundCdf(components: WeightedDistribution[]): (r: number) => number 
         return components.reduce((acc, c) => c.weight * c.distribution.CDF(r) + acc, 0);
     }
 }
+
 function compoundPointsOfInterest(components: WeightedDistribution[]): number[] {
     return components.reduce((acc, c) => acc.concat(c.distribution.pointsOfInterest), [] as number[])
 }
+
+function compoundDeltas(components: WeightedDistribution[]): Delta[] {
+    return components.reduce((acc, c) => {
+        const weightedDeltas = c.distribution.deltas.map(d => { return { location: d.location, weight: d.weight * c.weight } });
+        return acc.concat(weightedDeltas);
+    }, [] as Delta[])
+}
+
