@@ -2,17 +2,19 @@ import Plotly from "plotly.js-cartesian-dist";
 import React, { useState } from "react";
 import createPlotlyComponent from 'react-plotly.js/factory';
 import { initStrategiesForm } from "../../InitState";
+import { GridState } from "../../grid/state";
 import { StrategiesFormState, StrategiesState, Strategy } from "../state";
 import { parseStrategiesArray } from "./parser";
 
 const Plot = createPlotlyComponent(Plotly);
 
 export interface StrategiesFormProps {
+    gridState: GridState,
     strategiesState: StrategiesState;
     setStrategiesState: React.Dispatch<React.SetStateAction<StrategiesState>>;
 }
 
-export const StrategiesForm = ({ strategiesState, setStrategiesState }: StrategiesFormProps) => {
+export const StrategiesForm = ({ gridState, strategiesState, setStrategiesState }: StrategiesFormProps) => {
 
     const [state, setState] = useState<StrategiesFormState>(initStrategiesForm);
 
@@ -28,7 +30,7 @@ export const StrategiesForm = ({ strategiesState, setStrategiesState }: Strategi
         setState({ ...state, strategiesStringValid: arrayOrNull !== null })
     }
 
-    const traces = strategiesState.strategies.map(toPlotlyData);
+    const traces = strategiesState.strategies.map(s => toPlotlyData(s, gridState.wealthStep));
     const margin = 30;
     const layout: Partial<Plotly.Layout> = {
         height: 250,
@@ -56,11 +58,8 @@ export const StrategiesForm = ({ strategiesState, setStrategiesState }: Strategi
     )
 }
 
-const PLOT_POINTS = (100 * 2) + 1;
-const RANGE_SCALES = 5;
-
-function toPlotlyData(strategy: Strategy): Plotly.Data {
-    const x = xValues(strategy);
+function toPlotlyData(strategy: Strategy, step: number): Plotly.Data {
+    const x = xValues(strategy, step);
     const PDF = x.map(strategy.PDF);
     const max = Math.max(...PDF);
     return {
@@ -68,19 +67,24 @@ function toPlotlyData(strategy: Strategy): Plotly.Data {
         x: x,
         y: PDF.map(e => e / max),
         type: 'scatter',
+        mode: 'lines',
     };
 }
 
-function xValues(strategy: Strategy): number[] {
+const RANGE_SCALES = 5;
+
+function xValues(strategy: Strategy, step: number): number[] {
     const { location, scale } = strategy;
+
     if (scale === 0) {
         return [(1 - Number.EPSILON) * location, location, (1 + Number.EPSILON) * location]
     }
 
-    const out = new Array(PLOT_POINTS);
-    const start = location - scale * RANGE_SCALES;
-    const step = scale * (2 * RANGE_SCALES) / (PLOT_POINTS - 1);
-    for (let i = 0; i < PLOT_POINTS; i++) {
+    const pointsPerSide = Math.ceil((scale * RANGE_SCALES) / step);
+    const out = new Array<number>(2 * pointsPerSide + 1);
+
+    const start = location - step * pointsPerSide;
+    for (let i = 0; i < out.length; i++) {
         out[i] = start + i * step;
     }
     return out;

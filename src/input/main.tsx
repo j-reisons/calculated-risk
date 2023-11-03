@@ -21,7 +21,7 @@ export const MainForm = ({ gridState, trajectoriesState, strategiesState, setStr
 
     return (
         <div className="top-container">
-            <StrategiesForm strategiesState={strategiesState} setStrategiesState={setStrategiesState} />
+            <StrategiesForm gridState={gridState} strategiesState={strategiesState} setStrategiesState={setStrategiesState} />
             <CashflowsForm gridState={gridState} cashflowsState={cashflowsState} setCashflowsState={setCashflowsState} />
             <UtilityForm gridState={gridState} utilityState={utilityState} trajectoriesState={trajectoriesState} setUtilityState={setUtilityState} />
         </div>
