@@ -30,7 +30,7 @@ export const StrategiesForm = ({ gridState, strategiesState, setStrategiesState 
         setState({ ...state, strategiesStringValid: arrayOrNull !== null })
     }
 
-    const traces = strategiesState.strategies.map(s => toPlotlyData(s, gridState.wealthStep));
+    const traces = strategiesState.strategies.flatMap(s => toPlotlyData(s, gridState.wealthStep));
     const margin = 30;
     const layout: Partial<Plotly.Layout> = {
         height: 250,
@@ -58,17 +58,43 @@ export const StrategiesForm = ({ gridState, strategiesState, setStrategiesState 
     )
 }
 
-function toPlotlyData(strategy: Strategy, step: number): Plotly.Data {
+function toPlotlyData(strategy: Strategy, step: number): Plotly.Data[] {
     const x = xValues(strategy, step);
     const PDF = x.map(strategy.PDF);
     const max = Math.max(...PDF);
-    return {
+    // TODO: Apply the same color to all the traces
+    // TODO: compute the CDF
+
+    const pdfTrace = {
         name: strategy.name,
         x: x,
         y: PDF.map(e => e / max),
         type: 'scatter',
         mode: 'lines',
-    };
+    } as Plotly.Data;
+
+    const deltaTraces: Plotly.Data[] = [];
+    for (const delta of strategy.deltas) {
+        deltaTraces.push(
+            {
+                name: strategy.name,
+                x: [delta.location, delta.location],
+                y: [0, delta.weight],
+                type: 'scatter',
+                mode: 'lines+markers',
+                hoverinfo: 'none',
+                line: { width: 3 },
+                marker: {
+                    size: [0, 20],
+                    symbol: ['triangle-up', 'triangle-up'],
+                    opacity: 1
+                },
+                showlegend:false
+            }
+        )
+    }
+
+    return [pdfTrace, ...deltaTraces];
 }
 
 const RANGE_SCALES = 5;
@@ -78,7 +104,7 @@ function xValues(strategy: Strategy, step: number): number[] {
     const { location, scale } = strategy;
 
     const allPoints = [];
-    
+
     const pointsPerSide = Math.ceil((scale * RANGE_SCALES) / step);
     const start = location - step * pointsPerSide;
     for (let i = 0; i < pointsPerSide * 2 + 1; i++) {
