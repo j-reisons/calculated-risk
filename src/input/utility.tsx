@@ -74,7 +74,7 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
                 Lorem ipsum dolor sic amet</div>
             <textarea className={"input-box"}
                 style={redBorder ? { borderColor: "red" } : {}}
-                placeholder="Type some math here"
+                placeholder={'# Assign Utility(w), e.g. \nUtility(w) = step(w - 100000)'}
                 onChange={handleInput}
                 onFocus={onFocus}
                 onBlur={onBlur}
@@ -88,8 +88,10 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
 }
 
 function parseUtilityFunction(utilityString: string, wealthValues: number[]): ((i: number) => number) | null {
+    const scope = { Utility: null, step: step };
     try {
-        const parsed = evaluate(utilityString, { step: step });
+        evaluate(utilityString, scope);
+        const parsed = scope.Utility as unknown as ((i: number) => number);
         const min = parsed(wealthValues[0]);
         const max = parsed(wealthValues[wealthValues.length - 1]);
 

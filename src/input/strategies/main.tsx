@@ -26,8 +26,9 @@ export const StrategiesForm = ({ gridState, strategiesState, setStrategiesState 
 
     const onBlur = () => {
         const arrayOrNull = compileStrategiesArray(state.strategiesString);
-        if (arrayOrNull !== null) setStrategiesState({ strategies: arrayOrNull });
-        setState({ ...state, strategiesStringValid: arrayOrNull !== null })
+        const valid = arrayOrNull !== null && arrayOrNull.length > 0;
+        if (valid) setStrategiesState({ strategies: arrayOrNull });
+        setState({ ...state, strategiesStringValid: valid })
     }
 
     const traces = strategiesState.strategies.flatMap(s => toPlotlyData(s, gridState.wealthStep));
@@ -48,7 +49,7 @@ export const StrategiesForm = ({ gridState, strategiesState, setStrategiesState 
                 Lorem ipsum dolor sit amet</div>
             <textarea className={"input-box"}
                 style={!state.strategiesStringValid ? { borderColor: "red" } : {}}
-                placeholder="Type some math here"
+                placeholder={'# Create some strategies, e.g. \ncash = Normal(1%,1%)\ncoinflip = 0.5*delta(1) + 0.5*delta(-1)'}
                 onChange={handleInput}
                 onFocus={onFocus}
                 onBlur={onBlur}
