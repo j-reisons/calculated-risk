@@ -35,7 +35,10 @@ export const StrategiesForm = ({ gridState, strategiesState, setStrategiesState 
     const layout: Partial<Plotly.Layout> = {
         height: 250,
         width: 400,
-        margin: { t: margin, l: margin, r: margin, b: margin }
+        margin: { t: margin, l: margin, r: margin, b: margin },
+        yaxis: {
+            showticklabels: false
+        }
     }
 
     return (
@@ -62,7 +65,10 @@ function toPlotlyData(strategy: Strategy, step: number): Plotly.Data[] {
     const x = xValues(strategy, step);
     const PDF = x.map(strategy.PDF);
     const PdfProbability = 1 - strategy.deltas.reduce((acc, d) => d.weight + acc, 0)
-    const max = Math.max(...PDF);
+    let max = Math.max(...PDF);
+    max = max == 0 ? 1 : max;
+    const CDF = x.map(strategy.CDF);
+
     const color = interpolateColor(strategy.colorIndex, RdBu);
 
     // TODO: compute the CDF
@@ -71,8 +77,10 @@ function toPlotlyData(strategy: Strategy, step: number): Plotly.Data[] {
         name: strategy.name,
         x: x,
         y: PDF.map(e => e * (PdfProbability / max)),
+        customdata: CDF,
         type: 'scatter',
         mode: 'lines',
+        hovertemplate: "Return: %{x:.2%}<br>CDF: %{customdata:.2%}",
         line: { color: color }
     } as Plotly.Data;
 
@@ -83,6 +91,8 @@ function toPlotlyData(strategy: Strategy, step: number): Plotly.Data[] {
                 name: strategy.name,
                 x: [delta.location, delta.location],
                 y: [0, delta.weight],
+                customdata: [strategy.CDF(delta.location), strategy.CDF(delta.location)],
+                hovertemplate: "Return: %{x:.2%}<br>CDF: %{customdata:.2%}",
                 type: 'scatter',
                 mode: 'lines+markers',
                 hoverinfo: 'none',
