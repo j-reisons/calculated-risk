@@ -26,7 +26,7 @@ export const initTrajectoriesInputState: TrajectoriesInputState = {
 };
 
 export const initCashflowsForm: CashflowsFormState = {
-    cashflowString: '40000 * concat(ones(5),zeros(5)) \n- 40000 * concat(zeros(5),ones(5))',
+    cashflowString: 'cashflows = 40000*concat(ones(5),zeros(5)) -40000*concat(zeros(5),ones(5))',
     cashflowStringValid: true
 }
 

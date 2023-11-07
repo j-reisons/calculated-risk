@@ -84,7 +84,7 @@ export const CashflowsForm = ({ gridState, cashflowsState, setCashflowsState }: 
                 Lorem ipsum dolor sit amet</div>
             <textarea className={"input-box"}
                 style={!state.cashflowStringValid ? { borderColor: "red" } : {}}
-                placeholder="Type some math here"
+                placeholder={'# Assign cashflows, e.g. \ncashflows = [1,2,3]'}
                 onChange={handleInput}
                 onFocus={onFocus}
                 onBlur={onBlur}
@@ -99,17 +99,14 @@ export const CashflowsForm = ({ gridState, cashflowsState, setCashflowsState }: 
 }
 
 function parseCashflowArray(cashflowString: string): (number[] | null) {
-    // Needed for multiline expressions
-    const stripped = cashflowString.replace(/\s/g, '');
-    let result;
+    const scope = {cashflows: null};
     try {
-        result = evaluate(stripped);
-        if (isMatrix(result) && result.size().length === 1) {
-            return (result as Matrix).valueOf() as number[];
-        }
-        return null;
+        evaluate(cashflowString, scope);
+    } catch (error) { return null; }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = scope.cashflows as any;
+    if (isMatrix(result) && result.size().length === 1) {
+        return (result as Matrix).valueOf() as number[];
     }
-    catch (error) {
-        return null;
-    }
+    return null;
 }
