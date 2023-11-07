@@ -109,7 +109,7 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
 
         if (trajectoriesState) {
             const quantiles = findQuantiles(trajectoriesState.extendedTrajectories, trajectoriesInputState.quantiles, trajectoriesState.startPeriod);
-            quantilesData = quantiles.flatMap(quantile => toPlotlyData(quantile, solution.extendedSolution!.extendedBoundaries))
+            quantilesData = quantiles.flatMap(quantile => toPlotlyData(quantile, solution.extendedSolution!.extendedBoundaries, quantiles.length))
         }
     }
 
@@ -141,7 +141,8 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
     )
 }
 
-function toPlotlyData(quantileTraces: QuantileTraces, wealthBoundaries: number[]): Plotly.Data[] {
+function toPlotlyData(quantileTraces: QuantileTraces, wealthBoundaries: number[], quantileCount: number): Plotly.Data[] {
+    const alpha = 1 - Math.exp(Math.log(1 - TOTAL_ALPHA) / quantileCount)
     return [
         {
             x: quantileTraces.x,
@@ -155,7 +156,7 @@ function toPlotlyData(quantileTraces: QuantileTraces, wealthBoundaries: number[]
             x: quantileTraces.x,
             y: quantileTraces.y_top.map(y => wealthBoundaries[y]),
             fill: "tonexty",
-            fillcolor: "rgba(100,100,100,0.3)",
+            fillcolor: `rgba(100,100,100,${alpha})`,
             line: { color: "transparent" },
             name: "p=" + quantileTraces.probability,
             showlegend: false,
@@ -163,6 +164,8 @@ function toPlotlyData(quantileTraces: QuantileTraces, wealthBoundaries: number[]
         }
     ]
 }
+
+const TOTAL_ALPHA = 0.7
 
 function customData(expectedUtilities: number[][], optimalStrategies: number[][], strategyNames: string[]) {
     if (expectedUtilities.length == 0) return [];
