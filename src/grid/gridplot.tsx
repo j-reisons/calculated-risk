@@ -166,18 +166,16 @@ function toPlotlyData(quantileTraces: QuantileTraces, wealthBoundaries: number[]
 
 function customData(expectedUtilities: number[][], optimalStrategies: number[][], strategyNames: string[]) {
     if (expectedUtilities.length == 0) return [];
-    strategyNames = ["Unknown", ...strategyNames]
     const customData = zeros(expectedUtilities.length, expectedUtilities[0].length).valueOf() as (number | string)[][][];
     for (let i = 0; i < expectedUtilities.length; i++) {
         for (let j = 0; j < expectedUtilities[0].length; j++) {
             customData[i][j] = new Array<number | string>(2);
-            customData[i][j][0] = strategyNames[optimalStrategies[i][j] + 1];
+            customData[i][j][0] = strategyNames[optimalStrategies[i][j]] || "Unknown";
             customData[i][j][1] = expectedUtilities[i][j];
         }
     }
     return customData;
 }
-
 
 // This keeps the heatmap colors constant on commenting / uncommenting of strategies without the need to update the indices.
 function computeColorScale(strategies: Strategy[]): [number, string][] {
