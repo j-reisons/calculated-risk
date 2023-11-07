@@ -55,7 +55,7 @@ export const initStrategies: StrategiesState = {
 }
 
 export const initUtilityForm: UtilityFormState = {
-    utilityString: "f(x)= step(x - 100000)",
+    utilityString: "f(x) = step(x - 100000)",
     utilityStringParses: true,
     textAreaFocused: false
 }

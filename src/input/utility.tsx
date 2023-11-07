@@ -43,41 +43,16 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
     const redBorder = !state.textAreaFocused && (!state.utilityStringParses || !valid);
 
     let terminalDistributionTraces: Plotly.Data[] = [];
-    if (trajectoriesState) {
-        const trajectories = trajectoriesState.extendedTrajectories;
-        const boundaries = trajectoriesState.extendedBoundaries;
-        const values = trajectoriesState.extendedValues;
-
-        const widths = trajectoriesState.extendedBoundaries.map((_, i) => boundaries[i] - (boundaries[i - 1] || 0)).slice(1);
-        // The +/- inf boundaries at the edges are funky
-        widths[0] = widths[1];
-        widths[widths.length - 1] = widths[widths.length - 2];
-
-        const terminalProbabilities = trajectories[trajectories.length - 1];
-        const terminalCDF = cumsum(terminalProbabilities) as number[];
-
-        const terminalDensitites = terminalProbabilities.map((p, i) => p / widths[i]);
-        const scaleFactor = Math.max(...utility) / Math.max(...terminalDensitites.slice(1, -1));
-        const scaledDensity = terminalDensitites.map(d => d * scaleFactor);
-        scaledDensity[0] = terminalProbabilities[0];
-        scaledDensity[scaledDensity.length - 1] = terminalProbabilities[terminalProbabilities.length - 1];
-
-        terminalDistributionTraces = [{
-            x: values,
-            y: scaledDensity,
-            customdata: terminalCDF,
-            type: 'scatter',
-            hovertemplate: "Wealth: %{x:.4s}<br>CDF: %{customdata:.2%}",
-            showlegend: false
-        }]
-    }
+    if (trajectoriesState) terminalDistributionTraces = toPlotlyData(trajectoriesState, utility);
 
     const traces: Plotly.Data[] = [
         {
+            name: "",
             x: wealthValues,
             y: utility,
             type: 'scatter',
             hovertemplate: "Wealth: %{x:.4s}<br>Utility: %{y:.4g}",
+            line: { color: 'rgb(5,10,172)' },
             showlegend: false,
         },
         ...terminalDistributionTraces,
@@ -117,10 +92,10 @@ function parseUtilityFunction(utilityString: string, wealthValues: number[]): ((
         const parsed = evaluate(utilityString, { step: step });
         const min = parsed(wealthValues[0]);
         const max = parsed(wealthValues[wealthValues.length - 1]);
-        
+
         if (!isFiniteNumber(min) || !isFiniteNumber(max)) return null;
         if (min < 0 || max < 0) return null;
-        
+
         return (i: number) => { return parsed(i) };
     } catch (e) {
         return null
@@ -129,4 +104,56 @@ function parseUtilityFunction(utilityString: string, wealthValues: number[]): ((
 
 function isFiniteNumber(x: unknown) {
     return typeof x === 'number' && isFinite(x)
+}
+
+function toPlotlyData(trajectoriesState: TrajectoriesState, utility: number[]): Plotly.Data[] {
+    const trajectories = trajectoriesState.extendedTrajectories;
+    const boundaries = trajectoriesState.extendedBoundaries;
+    const values = trajectoriesState.extendedValues;
+
+    const widths = trajectoriesState.extendedBoundaries.map((_, i) => boundaries[i] - (boundaries[i - 1] || 0)).slice(1);
+    // The +/- inf boundaries at the edges are funky
+    widths[0] = widths[1];
+    widths[widths.length - 1] = widths[widths.length - 2];
+
+    const terminalProbabilities = trajectories[trajectories.length - 1];
+    const terminalCDF = cumsum(terminalProbabilities) as number[];
+
+    const terminalDensitites = terminalProbabilities.map((p, i) => p / widths[i]);
+    const scaleFactor = (1 - terminalProbabilities[0]) * Math.max(...utility) / Math.max(...terminalDensitites.slice(1, -1));
+    const scaledDensity = terminalDensitites.map(d => d * scaleFactor);
+    scaledDensity[0] = terminalProbabilities[0];
+    scaledDensity[scaledDensity.length - 1] = terminalProbabilities[terminalProbabilities.length - 1];
+
+    return [{
+        name: "",
+        x: values,
+        y: scaledDensity,
+        customdata: terminalCDF,
+        type: 'scatter',
+        line: {
+            color: 'rgb(178,10,28)'
+        },
+        hovertemplate: "Wealth: %{x:.4s}<br>CDF: %{customdata:.2%}",
+        showlegend: false
+    },
+    {
+        name: "",
+        x: [0, 0],
+        y: [0, terminalProbabilities[0]],
+        hovertemplate: "Wealth: %{x:.4s}<br>CDF: %{y:.2%}",
+        type: 'scatter',
+        mode: 'lines+markers',
+        hoverinfo: 'none',
+        line: {
+            width: 3,
+            color: 'rgb(178,10,28)'
+        },
+        marker: {
+            size: [0, 20],
+            symbol: ['triangle-up', 'triangle-up'],
+            opacity: 1
+        },
+        showlegend: false
+    }]
 }

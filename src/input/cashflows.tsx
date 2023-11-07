@@ -4,7 +4,7 @@ import createPlotlyComponent from 'react-plotly.js/factory';
 
 const Plot = createPlotlyComponent(Plotly);
 
-import { Matrix, evaluate, isMatrix } from "mathjs";
+import { Matrix, evaluate, isMatrix, range } from "mathjs";
 import { initCashflowsForm } from "../InitState";
 import { GridState } from "../grid/state";
 import { CashflowsFormState, CashflowsState } from "./state";
@@ -52,12 +52,19 @@ export const CashflowsForm = ({ gridState, cashflowsState, setCashflowsState }: 
         }
     }
 
+    // Adjust cashflows to match periods
+    const adjustedCashflows = cashflowsState.cashflows.length >= gridState.periods
+        ? cashflowsState.cashflows.slice(0, gridState.periods)
+        : [...cashflowsState.cashflows, ...Array(gridState.periods - cashflowsState.cashflows.length).fill(0)];
+
     const traces: Plotly.Data[] = [{
-        // Match plotted vector length to periods
-        y: cashflowsState.cashflows.length >= gridState.periods
-            ? cashflowsState.cashflows.slice(0, gridState.periods)
-            : [...cashflowsState.cashflows, ...Array(gridState.periods - cashflowsState.cashflows.length).fill(0)],
-        type: 'bar'
+        x: range(1, adjustedCashflows.length + 1).valueOf() as number[],
+        y: adjustedCashflows,
+        type: 'bar',
+        marker: {
+            color: 'rgb(5,10,172)'
+        },
+        hovertemplate: "Period: %{x}<br>Cashflow: %{y}",
     }];
     const margin = 30;
     const layout: Partial<Plotly.Layout> = {
@@ -65,7 +72,7 @@ export const CashflowsForm = ({ gridState, cashflowsState, setCashflowsState }: 
         height: 250,
         width: 400,
         xaxis: {
-            range: [-0.5, gridState.periods - 0.5],
+            range: [0.5, gridState.periods + 0.5],
         },
         margin: { t: margin, l: margin, r: margin, b: margin }
     }
