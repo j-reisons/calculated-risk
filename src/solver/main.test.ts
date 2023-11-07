@@ -5,6 +5,7 @@ import { debugPageHtml } from "../testutils/debugpage";
 import { setupGPU } from '../testutils/gpu';
 import { toBeApproxEqual2dArray } from '../testutils/toBeApproxEqual2dArray';
 import { Problem, Solution, solve } from "./main";
+import { logGrid } from '../grid/state';
 
 beforeAll(setupGPU)
 
@@ -95,6 +96,26 @@ test('Log no cashflows', async () => {
 
     expect(solutionCPU).toMatchSnapshot();
 });
+
+test('Log cashflows', async () => {
+    const gridState = logGrid(1000,2400000, 0.01, 10);
+    const initProblem: Problem =
+    {
+        strategies: initStrategies.strategies,
+        wealthBoundaries: gridState.wealthBoundaries,
+        wealthValues: gridState.wealthValues,
+        wealthStep: gridState.wealthStep,
+        periods: gridState.periods,
+        cashflows: initCashflows.cashflows,
+        utilityFunction: Math.log
+    }
+
+    const solutionCPU: Solution = await solve(initProblem);
+    solutionCPU.extendedSolution = null;
+
+    saveDebugPage(initProblem, solutionCPU, "log_cashflows_CPU.html");
+    expect(solutionCPU).toMatchSnapshot();
+}, 1000000);
 
 function saveDebugPage(problem: Problem, solution: Solution, filename: string) {
     const html = debugPageHtml(problem, solution.optimalStrategies, solution.expectedUtilities);
