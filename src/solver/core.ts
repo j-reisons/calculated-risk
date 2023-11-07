@@ -226,7 +226,7 @@ function max(array: number[]): { max: number, argmax: number } {
             return x > value.max + EPSILON ?
                 { max: x, argmax: i }
                 : x === value.max
-                    ? { max: x, argmax: -1 } // -1 indicates multiple maxima
+                    ? { max: x, argmax: NaN } // NaN indicates multiple maxima
                     : value
         },
         { max: 0, argmax: 0 });

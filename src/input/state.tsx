@@ -19,10 +19,11 @@ export interface Strategy {
     readonly location: number; // mean when defined
     readonly scale: number; // std when defined
 
-    // These fields used by strategies plot only
+    // These fields used for plotting only
     readonly PDF: (r: number) => number;
     readonly pointsOfInterest: number[];
     readonly deltas: Delta[];
+    readonly colorIndex: number;
 }
 export interface Delta {
     readonly location: number;

@@ -2,10 +2,10 @@ import { range, zeros } from "mathjs";
 import Plotly from "plotly.js-cartesian-dist";
 import { useEffect, useState } from "react";
 import createPlotlyComponent from 'react-plotly.js/factory';
-import { CashflowsState, StrategiesState, UtilityState } from "../input/state";
+import { CashflowsState, StrategiesState, Strategy, UtilityState } from "../input/state";
 import { Problem, Solution, solve } from "../solver/main";
 import { QuantileTraces, computeTrajectories, findQuantiles } from "../solver/trajectories";
-import { GridState, TrajectoriesInputFormState, TrajectoriesInputState, TrajectoriesState } from "./state";
+import { GridState, RdBu, TrajectoriesInputFormState, TrajectoriesInputState, TrajectoriesState, interpolateColor } from "./state";
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -100,6 +100,7 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
                 dx: range(0, gridState.periods).valueOf(),
                 y: gridState.wealthValues,
                 z: solution.optimalStrategies,
+                colorscale: computeColorScale(strategiesState.strategies),
                 customdata: customData(solution.expectedUtilities, solution.optimalStrategies, strategiesState.strategies.map(s => s.name)) as unknown as Plotly.Datum[][],
                 hovertemplate: "Period: %{x:.0f}<br>Wealth: %{y:.4s}<br>Strategy: %{customdata[0]}<br>Utility: %{customdata[1]:.4g}",
                 type: 'heatmap',
@@ -177,3 +178,8 @@ function customData(expectedUtilities: number[][], optimalStrategies: number[][]
     return customData;
 }
 
+
+// This keeps the heatmap colors constant on commenting / uncommenting of strategies without the need to update the indices.
+function computeColorScale(strategies: Strategy[]): [number, string][] {
+    return strategies.map((s, i) => [i / (strategies.length - 1), interpolateColor(s.colorIndex, RdBu)])
+}

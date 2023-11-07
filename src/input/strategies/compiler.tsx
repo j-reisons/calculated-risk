@@ -1,51 +1,46 @@
-import { AssignmentNode, BlockNode, FunctionNode, MathNode, OperatorNode, parse } from "mathjs";
+import { AssignmentNode, FunctionNode, MathNode, OperatorNode, parse } from "mathjs";
 import { Strategy } from "../state";
 import { Compound } from "./distributions/compound";
 import { Distribution, WeightedDistribution, createDistribution } from "./distributions/distribution";
 
 export function compileStrategiesArray(strategiesString: string): (Strategy[] | null) {
-    const assignments: AssignmentNode[] = [];
-    let root;
-    try {
-        root = parse(strategiesString);
-    }
-    catch (error) {
-        return null;
-    }
-    // Should be either a single AssignmentNode or a BlockNode of AssignmentNodes
-    switch (root.type) {
-        case 'AssignmentNode':
-            assignments.push(root as AssignmentNode);
-            break;
-        case 'BlockNode':
-            {
-                const blocks = (root as BlockNode).blocks;
-                for (let i = 0; i < blocks.length; i++) {
-                    const node = blocks[i].node;
-                    if (node.type !== 'AssignmentNode') {
-                        return null;
-                    }
-                    assignments.push((node as AssignmentNode));
-                }
+    const lines = strategiesString.split("\n");
+    const strategies: Strategy[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        let root;
+        try {
+            root = parse(line);
+        }
+        catch (error) {
+            return null;
+        }
+
+        switch (root.type) {
+            case 'AssignmentNode': {
+                const strategyOrNull = compileStrategy((root as AssignmentNode), i / (lines.length - 1))
+                if (strategyOrNull === null) return null;
+                strategies.push(strategyOrNull);
                 break;
             }
-        default:
-            return null;
+            case 'ConstantNode': continue // Comment lines are parsed as ConstantNodes
+            default:
+                return null;
+        }
     }
 
-    const out: Strategy[] = assignments.map(compileStrategy)
-        .filter((item): item is Strategy => item !== null);
-    return out.length === assignments.length ? out : null;
+    return strategies;
 }
 
-function compileStrategy(assignment: AssignmentNode): (Strategy | null) {
+function compileStrategy(assignment: AssignmentNode, colorIndex: number): (Strategy | null) {
     if (assignment.object.type !== 'SymbolNode') return null;
 
     const name = assignment.object.name;
 
     const distribution = compileDistribution(assignment.value);
     if (distribution === null) return null;
-    return { name, ...distribution };
+    return { name, ...distribution, colorIndex };
 }
 
 function compileDistribution(node: MathNode): Distribution | null {

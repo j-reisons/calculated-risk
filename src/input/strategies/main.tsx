@@ -2,7 +2,7 @@ import Plotly from "plotly.js-cartesian-dist";
 import React, { useState } from "react";
 import createPlotlyComponent from 'react-plotly.js/factory';
 import { initStrategiesForm } from "../../InitState";
-import { GridState } from "../../grid/state";
+import { GridState, RdBu, interpolateColor } from "../../grid/state";
 import { StrategiesFormState, StrategiesState, Strategy } from "../state";
 import { compileStrategiesArray } from "./compiler";
 
@@ -61,16 +61,19 @@ export const StrategiesForm = ({ gridState, strategiesState, setStrategiesState 
 function toPlotlyData(strategy: Strategy, step: number): Plotly.Data[] {
     const x = xValues(strategy, step);
     const PDF = x.map(strategy.PDF);
+    const PdfProbability = 1 - strategy.deltas.reduce((acc, d) => d.weight + acc, 0)
     const max = Math.max(...PDF);
-    // TODO: Apply the same color to all the traces
+    const color = interpolateColor(strategy.colorIndex, RdBu);
+
     // TODO: compute the CDF
 
     const pdfTrace = {
         name: strategy.name,
         x: x,
-        y: PDF.map(e => e / max),
+        y: PDF.map(e => e * (PdfProbability / max)),
         type: 'scatter',
         mode: 'lines',
+        line: { color: color }
     } as Plotly.Data;
 
     const deltaTraces: Plotly.Data[] = [];
@@ -83,13 +86,16 @@ function toPlotlyData(strategy: Strategy, step: number): Plotly.Data[] {
                 type: 'scatter',
                 mode: 'lines+markers',
                 hoverinfo: 'none',
-                line: { width: 3 },
+                line: {
+                    width: 3,
+                    color: color
+                },
                 marker: {
                     size: [0, 20],
                     symbol: ['triangle-up', 'triangle-up'],
                     opacity: 1
                 },
-                showlegend:false
+                showlegend: false
             }
         )
     }
