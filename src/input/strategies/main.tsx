@@ -14,6 +14,8 @@ export interface StrategiesFormProps {
     setStrategiesState: React.Dispatch<React.SetStateAction<StrategiesState>>;
 }
 
+export const STRATEGIES_PARAM = "strategies";
+
 export const StrategiesForm = ({ gridState, strategiesState, setStrategiesState }: StrategiesFormProps) => {
 
     const [state, setState] = useState<StrategiesFormState>(initStrategiesForm);
@@ -27,7 +29,13 @@ export const StrategiesForm = ({ gridState, strategiesState, setStrategiesState 
     const onBlur = () => {
         const arrayOrNull = compileStrategiesArray(state.strategiesString);
         const valid = arrayOrNull !== null && arrayOrNull.length > 0;
-        if (valid) setStrategiesState({ strategies: arrayOrNull });
+        if (valid) {
+            const params = new URLSearchParams(window.location.search);
+            params.set(STRATEGIES_PARAM, state.strategiesString);
+            history.replaceState({}, "", '?' + params.toString())
+
+            setStrategiesState({ strategies: arrayOrNull })
+        }
         setState({ ...state, strategiesStringValid: valid })
     }
 
