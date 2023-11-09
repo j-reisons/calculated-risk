@@ -15,6 +15,8 @@ export interface UtilityFormProps {
     setUtilityState: React.Dispatch<React.SetStateAction<UtilityState>>;
 }
 
+export const UTILITY_PARAM = "utility";
+
 export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUtilityState }: UtilityFormProps) => {
 
     const [state, setState] = useState<UtilityFormState>(initUtilityForm);
@@ -29,8 +31,11 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
     const onFocus = () => { setState({ ...state, textAreaFocused: true }); }
 
     const onBlur = () => {
-        const utilityOrNull = parseUtilityFunction(state.utilityString, gridState.wealthValues);
+        const utilityOrNull = parseUtilityFunction(state.utilityString);
         if (utilityOrNull !== null) {
+            const params = new URLSearchParams(window.location.search);
+            params.set(UTILITY_PARAM, state.utilityString);
+            history.replaceState({}, "", '?' + params.toString())
             setUtilityState({ utilityFunction: utilityOrNull });
         }
         setState({ ...state, textAreaFocused: false, utilityStringParses: utilityOrNull !== null });
@@ -87,17 +92,13 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
     )
 }
 
-function parseUtilityFunction(utilityString: string, wealthValues: number[]): ((i: number) => number) | null {
+export function parseUtilityFunction(utilityString: string): ((i: number) => number) | null {
     const scope = { Utility: null, step: step };
     try {
         evaluate(utilityString, scope);
         const parsed = scope.Utility as unknown as ((i: number) => number);
-        const min = parsed(wealthValues[0]);
-        const max = parsed(wealthValues[wealthValues.length - 1]);
-
-        if (!isFiniteNumber(min) || !isFiniteNumber(max)) return null;
-        if (min < 0 || max < 0) return null;
-
+        const test = parsed(1000);
+        if (!isFiniteNumber(test)) return null;
         return (i: number) => { return parsed(i) };
     } catch (e) {
         return null

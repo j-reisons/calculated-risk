@@ -1,6 +1,9 @@
 import { GridFormState, GridState, TrajectoriesInputFormState, TrajectoriesInputState, logGrid } from "./grid/state";
-import { CashflowsFormState, CashflowsState, StrategiesFormState, StrategiesState, UtilityFormState, UtilityState, step } from "./input/state";
+import { CashflowsFormState, CashflowsState, StrategiesFormState, StrategiesState, step } from "./input/state";
 import { Normal } from "./input/strategies/distributions/normal";
+import { UTILITY_PARAM, parseUtilityFunction } from "./input/utility";
+
+const searchParams = new URLSearchParams(window.location.search);
 
 export const initGridFormState: GridFormState = {
     wealthMin: "1000",
@@ -54,12 +57,15 @@ export const initStrategies: StrategiesState = {
     ]
 }
 
-export const initUtilityForm: UtilityFormState = {
-    utilityString: "Utility(w) = step(w - 100000)",
+const utilityString = searchParams.get(UTILITY_PARAM);
+const parsedUtility = utilityString ? parseUtilityFunction(utilityString) : null;
+
+export const initUtilityForm = {
+    utilityString: parsedUtility ? utilityString! : "Utility(w) = step(w - 100000)",
     utilityStringParses: true,
     textAreaFocused: false
-}
+};
 
-export const initUtility: UtilityState = {
-    utilityFunction: (x: number) => { return step(x - 100000) }
-}
+export const initUtility = {
+    utilityFunction: parsedUtility ? parsedUtility : (x: number) => { return step(x - 100000) },
+};
