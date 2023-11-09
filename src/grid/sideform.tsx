@@ -9,6 +9,9 @@ export interface SideFormProps {
     setTrajectoriesInputState: React.Dispatch<React.SetStateAction<TrajectoriesInputState>>;
 }
 
+export const GRID_PARAM = "grid";
+export const TRAJECTORIES_PARAM = "trajectories";
+
 export const SideForm = ({ trajectoriesInputFormState, setGridState, setTrajectoriesInputFormState, setTrajectoriesInputState }: SideFormProps) => {
 
     const [gridFormState, setGridFormState] = useState<GridFormState>(initGridFormState);
@@ -25,6 +28,10 @@ export const SideForm = ({ trajectoriesInputFormState, setGridState, setTrajecto
     const syncGridState = () => {
         const gridOrNull = gridIfValid(gridFormState)
         if (gridOrNull !== null) {
+            const params = new URLSearchParams(window.location.search);
+            params.set(GRID_PARAM, JSON.stringify(gridFormState));
+            history.replaceState({}, "", '?' + params.toString())
+
             setGridState(gridOrNull);
         }
     }
@@ -39,18 +46,26 @@ export const SideForm = ({ trajectoriesInputFormState, setGridState, setTrajecto
     };
 
     const handleCheckbox = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setTrajectoriesInputFormState(
-            {
-                ...trajectoriesInputFormState,
-                [event.target.id]: event.target.checked,
-            }
-        )
+        const newState = {
+            ...trajectoriesInputFormState,
+            [event.target.id]: event.target.checked,
+        };
+
+        const params = new URLSearchParams(window.location.search);
+        params.set(TRAJECTORIES_PARAM, JSON.stringify(newState));
+        history.replaceState({}, "", '?' + params.toString())
+
+        setTrajectoriesInputFormState(newState);
         setTrajectoriesInputState(state => { return { ...state, pickOnClick: event.target.checked } });
     };
 
     const syncTrajectoriesInputState = () => {
         const stateOrNull = trajectoriesInputStateIfValid(trajectoriesInputFormState, gridFormState)
         if (stateOrNull !== null) {
+            const params = new URLSearchParams(window.location.search);
+            params.set(TRAJECTORIES_PARAM, JSON.stringify(trajectoriesInputFormState));
+            history.replaceState({}, "", '?' + params.toString())
+
             setTrajectoriesInputState(stateOrNull);
         }
     };
@@ -113,7 +128,7 @@ export const SideForm = ({ trajectoriesInputFormState, setGridState, setTrajecto
     )
 }
 
-function gridIfValid(gridFormState: GridFormState): GridState | null {
+export function gridIfValid(gridFormState: GridFormState): GridState | null {
     let wealthMin, wealthStep, wealthMax, periods: number;
 
     try {
@@ -135,7 +150,7 @@ function gridIfValid(gridFormState: GridFormState): GridState | null {
     return logGrid(wealthMin, wealthMax, wealthStep, periods);
 }
 
-function trajectoriesInputStateIfValid(trajectoriesInputFormState: TrajectoriesInputFormState, gridFormState: GridFormState): TrajectoriesInputState | null {
+export function trajectoriesInputStateIfValid(trajectoriesInputFormState: TrajectoriesInputFormState, gridFormState: GridFormState): TrajectoriesInputState | null {
     const gridState = gridIfValid(gridFormState);
     if (gridState == null) return null;
 

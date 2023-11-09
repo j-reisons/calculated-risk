@@ -1,3 +1,4 @@
+import { GRID_PARAM, TRAJECTORIES_PARAM, gridIfValid, trajectoriesInputStateIfValid } from "./grid/sideform";
 import { GridFormState, GridState, TrajectoriesInputFormState, TrajectoriesInputState, logGrid } from "./grid/state";
 import { CASHFLOWS_PARAM, parseCashflows } from "./input/cashflows";
 import { CashflowsFormState, CashflowsState, StrategiesFormState, StrategiesState, step } from "./input/state";
@@ -8,23 +9,31 @@ import { UTILITY_PARAM, parseUtility } from "./input/utility";
 
 const searchParams = new URLSearchParams(window.location.search);
 
-export const initGridFormState: GridFormState = {
+const gridString = searchParams.get(GRID_PARAM);
+const parsedGrid = gridString ? JSON.parse(gridString) : null;
+const validGrid = parsedGrid ? gridIfValid(parsedGrid) : null;
+
+export const initGridFormState: GridFormState = validGrid ? parsedGrid : {
     wealthMin: "1000",
     wealthMax: "400000",
     wealthStep: "1%",
     periods: "10",
 }
 
-export const initGridState: GridState = logGrid(1000, 400000, 0.01, 10)
+export const initGridState: GridState = validGrid ? validGrid : logGrid(1000, 400000, 0.01, 10)
 
-export const initTrajectoriesInputFormState: TrajectoriesInputFormState = {
+const trajectoriesString = searchParams.get(TRAJECTORIES_PARAM);
+const parsedTrajectories = trajectoriesString ? JSON.parse(trajectoriesString) : null;
+const validTrajectories = parsedTrajectories ? trajectoriesInputStateIfValid(parsedTrajectories, initGridFormState) : null;
+
+export const initTrajectoriesInputFormState: TrajectoriesInputFormState = validTrajectories ? parsedTrajectories : {
     startingWealth: "70000",
     startingPeriod: "1",
     quantiles: "68%, 95%, 99%",
     pickOnClick: true,
 };
 
-export const initTrajectoriesInputState: TrajectoriesInputState = {
+export const initTrajectoriesInputState: TrajectoriesInputState = validTrajectories ? validTrajectories : {
     startingWealth: 70000,
     startingPeriod: 1,
     quantiles: [0.68, 0.95, 0.99],
