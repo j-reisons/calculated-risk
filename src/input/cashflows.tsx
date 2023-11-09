@@ -16,6 +16,8 @@ export interface CashflowsFormProps {
     setCashflowsState: React.Dispatch<React.SetStateAction<CashflowsState>>;
 }
 
+export const CASHFLOWS_PARAM = "cashflows";
+
 export const CashflowsForm = ({ gridState, cashflowsState, setCashflowsState }: CashflowsFormProps) => {
 
     const [state, setState] = useState<CashflowsFormState>(initCashflowsForm);
@@ -35,7 +37,7 @@ export const CashflowsForm = ({ gridState, cashflowsState, setCashflowsState }: 
     }
 
     const onBlur = () => {
-        const arrayOrNull = parseCashflowArray(state.cashflowString);
+        const arrayOrNull = parseCashflows(state.cashflowString);
         if (arrayOrNull == null) {
             setState({
                 ...state,
@@ -46,6 +48,11 @@ export const CashflowsForm = ({ gridState, cashflowsState, setCashflowsState }: 
                 ...state,
                 cashflowStringValid: true,
             });
+
+            const params = new URLSearchParams(window.location.search);
+            params.set(CASHFLOWS_PARAM, state.cashflowString);
+            history.replaceState({}, "", '?' + params.toString())
+            
             setCashflowsState({
                 cashflows: arrayOrNull
             });
@@ -98,8 +105,8 @@ export const CashflowsForm = ({ gridState, cashflowsState, setCashflowsState }: 
 
 }
 
-function parseCashflowArray(cashflowString: string): (number[] | null) {
-    const scope = {cashflows: null};
+export function parseCashflows(cashflowString: string): (number[] | null) {
+    const scope = { cashflows: null };
     try {
         evaluate(cashflowString, scope);
     } catch (error) { return null; }

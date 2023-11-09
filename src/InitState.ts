@@ -1,7 +1,8 @@
 import { GridFormState, GridState, TrajectoriesInputFormState, TrajectoriesInputState, logGrid } from "./grid/state";
+import { CASHFLOWS_PARAM, parseCashflows } from "./input/cashflows";
 import { CashflowsFormState, CashflowsState, StrategiesFormState, StrategiesState, step } from "./input/state";
 import { Normal } from "./input/strategies/distributions/normal";
-import { UTILITY_PARAM, parseUtilityFunction } from "./input/utility";
+import { UTILITY_PARAM, parseUtility } from "./input/utility";
 
 const searchParams = new URLSearchParams(window.location.search);
 
@@ -28,13 +29,16 @@ export const initTrajectoriesInputState: TrajectoriesInputState = {
     pickOnClick: true,
 };
 
+const cashflowsString = searchParams.get(CASHFLOWS_PARAM);
+const parsedCashflows = cashflowsString ? parseCashflows(cashflowsString) : null;
+
 export const initCashflowsForm: CashflowsFormState = {
-    cashflowString: 'cashflows = 40000*concat(ones(5),zeros(5)) -40000*concat(zeros(5),ones(5))',
+    cashflowString: parsedCashflows ? cashflowsString! : 'cashflows = 40000*concat(ones(5),zeros(5)) -40000*concat(zeros(5),ones(5))',
     cashflowStringValid: true
 }
 
 export const initCashflows: CashflowsState = {
-    cashflows: [40000, 40000, 40000, 40000, 40000, -40000, -40000, -40000, -40000, -40000],
+    cashflows: parsedCashflows ? parsedCashflows : [40000, 40000, 40000, 40000, 40000, -40000, -40000, -40000, -40000, -40000],
 }
 
 export const initStrategiesForm: StrategiesFormState = {
@@ -58,7 +62,7 @@ export const initStrategies: StrategiesState = {
 }
 
 const utilityString = searchParams.get(UTILITY_PARAM);
-const parsedUtility = utilityString ? parseUtilityFunction(utilityString) : null;
+const parsedUtility = utilityString ? parseUtility(utilityString) : null;
 
 export const initUtilityForm = {
     utilityString: parsedUtility ? utilityString! : "Utility(w) = step(w - 100000)",

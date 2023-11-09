@@ -31,11 +31,12 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
     const onFocus = () => { setState({ ...state, textAreaFocused: true }); }
 
     const onBlur = () => {
-        const utilityOrNull = parseUtilityFunction(state.utilityString);
+        const utilityOrNull = parseUtility(state.utilityString);
         if (utilityOrNull !== null) {
             const params = new URLSearchParams(window.location.search);
             params.set(UTILITY_PARAM, state.utilityString);
             history.replaceState({}, "", '?' + params.toString())
+
             setUtilityState({ utilityFunction: utilityOrNull });
         }
         setState({ ...state, textAreaFocused: false, utilityStringParses: utilityOrNull !== null });
@@ -92,7 +93,7 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
     )
 }
 
-export function parseUtilityFunction(utilityString: string): ((i: number) => number) | null {
+export function parseUtility(utilityString: string): ((i: number) => number) | null {
     const scope = { Utility: null, step: step };
     try {
         evaluate(utilityString, scope);
