@@ -1,10 +1,10 @@
-import { cumsum, evaluate } from "mathjs";
+import { cumsum } from "mathjs";
 import Plotly from "plotly.js-cartesian-dist";
 import React, { useState } from 'react';
 import createPlotlyComponent from 'react-plotly.js/factory';
 import { initUtilityForm } from "../InitState";
 import { GridState, TrajectoriesState } from "../grid/state";
-import { UtilityFormState, UtilityState, step } from "./state";
+import { UTILITY_PARAM, UtilityFormState, UtilityState, isFiniteNumber, parseUtility } from "./state";
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -14,8 +14,6 @@ export interface UtilityFormProps {
     trajectoriesState: TrajectoriesState | null;
     setUtilityState: React.Dispatch<React.SetStateAction<UtilityState>>;
 }
-
-export const UTILITY_PARAM = "utility";
 
 export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUtilityState }: UtilityFormProps) => {
 
@@ -91,23 +89,6 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
                 layout={layout} />
         </div>
     )
-}
-
-export function parseUtility(utilityString: string): ((i: number) => number) | null {
-    const scope = { Utility: null, step: step };
-    try {
-        evaluate(utilityString, scope);
-        const parsed = scope.Utility as unknown as ((i: number) => number);
-        const test = parsed(1000);
-        if (!isFiniteNumber(test)) return null;
-        return (i: number) => { return parsed(i) };
-    } catch (e) {
-        return null
-    }
-}
-
-function isFiniteNumber(x: unknown) {
-    return typeof x === 'number' && isFinite(x)
 }
 
 function toPlotlyData(trajectoriesState: TrajectoriesState, utility: number[]): Plotly.Data[] {

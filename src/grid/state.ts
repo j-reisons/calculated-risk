@@ -1,12 +1,12 @@
 import { range } from "mathjs";
 
+export const GRID_PARAM = "grid";
 export interface GridFormState {
     readonly wealthMin: string;
     readonly wealthMax: string;
     readonly wealthStep: string;
     readonly periods: string;
 }
-
 export interface GridState {
     readonly wealthMin: number;
     readonly wealthMax: number;
@@ -17,13 +17,13 @@ export interface GridState {
     readonly wealthValues: number[];
 }
 
+export const TRAJECTORIES_PARAM = "trajectories";
 export interface TrajectoriesInputFormState {
     readonly startingWealth: string;
     readonly startingPeriod: string;
     readonly quantiles: string;
     readonly pickOnClick: boolean;
 }
-
 export interface TrajectoriesInputState {
     readonly startingWealth: number | null,
     readonly startingPeriod: number | null,

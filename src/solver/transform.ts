@@ -60,6 +60,7 @@ export function computeTransitionTensor(
     boundaries: number[],
     values: number[],
     strategyCDFs: ((r: number) => number)[],
+    supports: [number, number][],
     cashflows: number[],
 ): Matrix[] {
     const uniqueCashflowIndices = new Map<number, number>()
@@ -85,12 +86,20 @@ export function computeTransitionTensor(
         for (let i = 1; i < values.length; i++) {
             for (let s = 0; s < strategyCDFs.length; s++) {
                 const CDF = strategyCDFs[s];
-                for (let j = 0; j < values.length; j++) {
-                    // 0-centered returns
-                    const ijtop = ((boundaries[j + 1] - cashflow) / values[i]) - 1;
-                    const ijbottom = ((boundaries[j] - cashflow) / values[i]) - 1;
-                    const value = CDF(ijtop) - CDF(ijbottom);
-                    array[i][s][j] = value;
+
+                const support = supports[s];
+                const wealthBottom = ((support[0] + 1) * values[i]) + cashflow;
+                const wealthTop = ((support[1] + 1) * values[i]) + cashflow;
+                const indexBottom = Math.max(binarySearch(boundaries, v => v > wealthBottom) - 2, 0); // I don't trust myself with the off-by-ones
+                const indexTop = Math.min(binarySearch(boundaries, v => v > wealthTop) + 1, values.length);
+
+                let CDFbottom;
+                let CDFtop = CDF(((boundaries[indexBottom] - cashflow) / values[i]) - 1);
+
+                for (let j = indexBottom; j < indexTop; j++) {
+                    CDFbottom = CDFtop;
+                    CDFtop = CDF(((boundaries[j + 1] - cashflow) / values[i]) - 1);
+                    array[i][s][j] = CDFtop - CDFbottom;
                 }
             }
         }
@@ -142,4 +151,21 @@ export function replaceUnknownStrategies(optimalStrategies: Matrix): void {
             }
         }
     }
+}
+
+function binarySearch(arr: number[], predicate: (v: number) => boolean): number {
+    let low = 0;
+    let high = arr.length - 1;
+
+    while (low <= high) {
+        const mid = Math.floor((low + high) / 2);
+
+        if (predicate(arr[mid])) {
+            high = mid - 1;
+        } else {
+            low = mid + 1;
+        }
+    }
+
+    return low < arr.length ? low : -1;
 }

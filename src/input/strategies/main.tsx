@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import createPlotlyComponent from 'react-plotly.js/factory';
 import { initStrategiesForm } from "../../InitState";
 import { GridState, RdBu, interpolateColor } from "../../grid/state";
-import { StrategiesFormState, StrategiesState, Strategy } from "../state";
+import { STRATEGIES_PARAM, StrategiesFormState, StrategiesState, Strategy } from "../state";
 import { compileStrategiesArray } from "./compiler";
 
 const Plot = createPlotlyComponent(Plotly);
@@ -13,8 +13,6 @@ export interface StrategiesFormProps {
     strategiesState: StrategiesState;
     setStrategiesState: React.Dispatch<React.SetStateAction<StrategiesState>>;
 }
-
-export const STRATEGIES_PARAM = "strategies";
 
 export const StrategiesForm = ({ gridState, strategiesState, setStrategiesState }: StrategiesFormProps) => {
 

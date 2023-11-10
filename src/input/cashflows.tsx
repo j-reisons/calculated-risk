@@ -1,13 +1,12 @@
+import { range } from "mathjs";
 import Plotly from "plotly.js-cartesian-dist";
 import React, { useState } from 'react';
 import createPlotlyComponent from 'react-plotly.js/factory';
-
-const Plot = createPlotlyComponent(Plotly);
-
-import { Matrix, evaluate, isMatrix, range } from "mathjs";
 import { initCashflowsForm } from "../InitState";
 import { GridState } from "../grid/state";
-import { CashflowsFormState, CashflowsState } from "./state";
+import { CASHFLOWS_PARAM, CashflowsFormState, CashflowsState, parseCashflows } from "./state";
+
+const Plot = createPlotlyComponent(Plotly);
 
 
 export interface CashflowsFormProps {
@@ -15,8 +14,6 @@ export interface CashflowsFormProps {
     cashflowsState: CashflowsState;
     setCashflowsState: React.Dispatch<React.SetStateAction<CashflowsState>>;
 }
-
-export const CASHFLOWS_PARAM = "cashflows";
 
 export const CashflowsForm = ({ gridState, cashflowsState, setCashflowsState }: CashflowsFormProps) => {
 
@@ -52,7 +49,7 @@ export const CashflowsForm = ({ gridState, cashflowsState, setCashflowsState }: 
             const params = new URLSearchParams(window.location.search);
             params.set(CASHFLOWS_PARAM, state.cashflowString);
             history.replaceState({}, "", '?' + params.toString())
-            
+
             setCashflowsState({
                 cashflows: arrayOrNull
             });
@@ -103,17 +100,4 @@ export const CashflowsForm = ({ gridState, cashflowsState, setCashflowsState }: 
         </div>
     )
 
-}
-
-export function parseCashflows(cashflowString: string): (number[] | null) {
-    const scope = { cashflows: null };
-    try {
-        evaluate(cashflowString, scope);
-    } catch (error) { return null; }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = scope.cashflows as any;
-    if (isMatrix(result) && result.size().length === 1) {
-        return (result as Matrix).valueOf() as number[];
-    }
-    return null;
 }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { initGridFormState } from '../InitState';
-import { GridFormState, GridState, TrajectoriesInputFormState, TrajectoriesInputState, logGrid } from './state';
+import { GRID_PARAM, GridFormState, GridState, TRAJECTORIES_PARAM, TrajectoriesInputFormState, TrajectoriesInputState, logGrid } from './state';
 
 export interface SideFormProps {
     trajectoriesInputFormState: TrajectoriesInputFormState;
@@ -8,9 +8,6 @@ export interface SideFormProps {
     setTrajectoriesInputFormState: React.Dispatch<React.SetStateAction<TrajectoriesInputFormState>>;
     setTrajectoriesInputState: React.Dispatch<React.SetStateAction<TrajectoriesInputState>>;
 }
-
-export const GRID_PARAM = "grid";
-export const TRAJECTORIES_PARAM = "trajectories";
 
 export const SideForm = ({ trajectoriesInputFormState, setGridState, setTrajectoriesInputFormState, setTrajectoriesInputState }: SideFormProps) => {
 

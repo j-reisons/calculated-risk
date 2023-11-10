@@ -28,8 +28,8 @@ export function coreSolveCPU({ transitionTensor, finalUtilities }: CoreProblem):
     const optimalStrategies = zeros([periods, wealth_size], 'dense') as Matrix;
     const expectedUtilities = zeros([periods + 1, wealth_size], 'dense') as Matrix;
 
-    expectedUtilities.subset(index(periods, allWealths), finalUtilities);
     expectedUtilities.valueOf() as number[][];
+    expectedUtilities.subset(index(periods, allWealths), finalUtilities);
 
     for (let p = periods - 1; p >= 0; p--) {
         const nextUtility = matrix((expectedUtilities.valueOf() as number[][])[p + 1]);

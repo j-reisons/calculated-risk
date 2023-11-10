@@ -33,7 +33,7 @@ export async function solve(problem: Problem, useGPU = false): Promise<Solution>
     const finalUtilities = values.map(problem.utilityFunction);
     finalUtilities[0] = 0;
 
-    const transitionTensor = computeTransitionTensor(problem.periods, boundaries, values, problem.strategies.map(s => s.CDF), problem.cashflows);
+    const transitionTensor = computeTransitionTensor(problem.periods, boundaries, values, problem.strategies.map(s => s.CDF), problem.strategies.map(s => s.support), problem.cashflows);
 
     let coreSolution: CoreSolution;
     if (useGPU) {
