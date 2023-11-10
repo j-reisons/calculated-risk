@@ -15,9 +15,13 @@ export interface StrategiesState {
 
 export interface Strategy {
     readonly name: string,
-    readonly CDF: (r: number) => number;
     readonly location: number; // mean when defined
     readonly scale: number; // std when defined
+
+    readonly CDF: (r: number) => number;
+     // A range of input values which accounts for at least 99.9999% of the ditribution.
+     // The CDF should be normalized to 0/1 at the extremities (< 1E-6 tails are cut off).
+    readonly support: [number, number];
 
     // These fields used for plotting only
     readonly PDF: (r: number) => number;

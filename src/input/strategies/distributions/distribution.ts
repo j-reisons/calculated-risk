@@ -6,6 +6,7 @@ export interface Distribution {
     readonly CDF: (r: number) => number;
     readonly location: number;
     readonly scale: number;
+    readonly support: [number, number];
 
     readonly PDF: (r: number) => number;
     readonly pointsOfInterest: number[];

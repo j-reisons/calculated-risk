@@ -9,12 +9,14 @@ export class Normal implements Distribution {
     CDF: (r: number) => number;
     location: number;
     scale: number;
+    support: [number, number];
     pointsOfInterest: number[];
     deltas: Delta[]
 
     private constructor(mean: number, vola: number) {
         this.location = mean;
         this.scale = vola;
+        this.support = [mean - 5 * vola, mean + 5 * vola];
         this.PDF = normalPDF(mean, vola);
         this.CDF = normalCDF(mean, vola);
         this.pointsOfInterest = [mean];
