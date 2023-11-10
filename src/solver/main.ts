@@ -57,7 +57,7 @@ export async function solve(problem: Problem, useGPU = false): Promise<Solution>
             extendedBoundaries: boundaries,
             extendedValues: values,
             originalRange: originalRange,
-            extendedOptimalTransitionTensor: indexOptimalTransitionTensor(transitionTensor, optimalStrategies)
+            extendedOptimalTransitionTensor: indexOptimalTransitionTensor(transitionTensor.values, optimalStrategies)
         },
     }
 }

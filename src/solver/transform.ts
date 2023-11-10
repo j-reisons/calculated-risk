@@ -1,4 +1,5 @@
 import { Matrix, range, zeros } from "mathjs";
+import { TransitionTensor } from "./core";
 import { Problem } from "./main";
 
 // Pre and post-processing steps around the core solver.
@@ -62,7 +63,7 @@ export function computeTransitionTensor(
     strategyCDFs: ((r: number) => number)[],
     supports: [number, number][],
     cashflows: number[],
-): Matrix[] {
+): TransitionTensor {
     const uniqueCashflowIndices = new Map<number, number>()
     const periodsToCashflowIndices = new Map<number, number>()
     let u = 0;
@@ -75,13 +76,18 @@ export function computeTransitionTensor(
     }
 
     const cashflowTransitionMatrices = new Array<Matrix>(uniqueCashflowIndices.size);
+    const cashflowBandIndexMatrices = new Array<Matrix>(uniqueCashflowIndices.size);
 
     for (const [cashflow, c] of uniqueCashflowIndices) {
         cashflowTransitionMatrices[c] = zeros([values.length, strategyCDFs.length, values.length], 'dense') as Matrix;
-        const array = (cashflowTransitionMatrices[c].valueOf() as unknown) as number[][][];
+        cashflowBandIndexMatrices[c] = zeros([values.length, strategyCDFs.length, 2], 'dense') as Matrix;
+        const valuesArray = (cashflowTransitionMatrices[c].valueOf() as unknown) as number[][][];
+        const bandIndicesArray = (cashflowBandIndexMatrices[c].valueOf() as unknown) as number[][][];
         // Bankruptcy treatment, i.e. i=0
         for (let s = 0; s < strategyCDFs.length; s++) {
-            array[0][s][0] = 1;
+            valuesArray[0][s][0] = 1;
+            bandIndicesArray[0][s][0] = 0;
+            bandIndicesArray[0][s][1] = 1;
         }
         for (let i = 1; i < values.length; i++) {
             for (let s = 0; s < strategyCDFs.length; s++) {
@@ -92,6 +98,8 @@ export function computeTransitionTensor(
                 const wealthTop = ((support[1] + 1) * values[i]) + cashflow;
                 const indexBottom = Math.max(binarySearch(boundaries, v => v > wealthBottom) - 2, 0); // I don't trust myself with the off-by-ones
                 const indexTop = Math.min(binarySearch(boundaries, v => v > wealthTop) + 1, values.length);
+                bandIndicesArray[i][s][0] = indexBottom;
+                bandIndicesArray[i][s][1] = indexTop;
 
                 let CDFbottom;
                 let CDFtop = CDF(((boundaries[indexBottom] - cashflow) / values[i]) - 1);
@@ -99,19 +107,22 @@ export function computeTransitionTensor(
                 for (let j = indexBottom; j < indexTop; j++) {
                     CDFbottom = CDFtop;
                     CDFtop = CDF(((boundaries[j + 1] - cashflow) / values[i]) - 1);
-                    array[i][s][j] = CDFtop - CDFbottom;
+                    valuesArray[i][s][j] = CDFtop - CDFbottom;
                 }
             }
         }
     }
 
-    const transitionMatrices = new Array<Matrix>(periods);
+    const valueMatrices = new Array<Matrix>(periods);
+    const bandIndexMatrices = new Array<Matrix>(periods);
 
     for (let p = 0; p < periods; p++) {
-        transitionMatrices[p] = cashflowTransitionMatrices[periodsToCashflowIndices.get(p)!];
+        const cashflowIndex = periodsToCashflowIndices.get(p)!
+        valueMatrices[p] = cashflowTransitionMatrices[cashflowIndex];
+        bandIndexMatrices[p] = cashflowBandIndexMatrices[cashflowIndex];
     }
 
-    return transitionMatrices;
+    return { values: valueMatrices, supportBandIndices: bandIndexMatrices };
 }
 
 // NaN indices are output by the solver when multiple maxima are found.

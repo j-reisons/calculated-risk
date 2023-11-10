@@ -1,10 +1,20 @@
 import { Matrix, flatten, index, matrix, range, reshape, size, zeros } from "mathjs";
 
-export interface CoreProblem {
+// A tensor of dimensions (periods, starting_wealth, strategy, next_wealth)
+// Contains transition probabilities from starting_wealth to next_wealth 
+// for a given period and strategy
+// The (starting_wealth, next_wealth) slices of the tensor are band matrices.
+// Band information is stored 
+export interface TransitionTensor {
     // A tensor of dimensions (periods, starting_wealth, strategy, next_wealth)
-    // Contains transition probabilities from starting_wealth to next_wealth 
-    // for a given period and strategy
-    transitionTensor: Matrix[];
+    values: Matrix[];
+    // A tensor of dimensions (periods, starting_wealth, strategy, 2)
+    // Contains next_wealth indices between which the values are non-zero
+    supportBandIndices: Matrix[];
+}
+
+export interface CoreProblem {
+    transitionTensor: TransitionTensor;
     // An array of dimension (next_wealth) containing the value of the utility
     // function for each wealth value.
     finalUtilities: number[];
@@ -20,8 +30,8 @@ export interface CoreSolution {
 
 
 export function coreSolveCPU({ transitionTensor, finalUtilities }: CoreProblem): CoreSolution {
-    const periods = transitionTensor.length;
-    const [wealth_size, ,] = size(transitionTensor[0]).valueOf() as number[];
+    const periods = transitionTensor.values.length;
+    const [wealth_size, ,] = size(transitionTensor.values[0]).valueOf() as number[];
 
     const allWealths = range(0, wealth_size);
 
@@ -33,8 +43,9 @@ export function coreSolveCPU({ transitionTensor, finalUtilities }: CoreProblem):
 
     for (let p = periods - 1; p >= 0; p--) {
         const nextUtility = matrix((expectedUtilities.valueOf() as number[][])[p + 1]);
-        const periodTransition = transitionTensor[p];
-        const strategyUtilities = contractCPU(periodTransition, nextUtility);
+        const periodValues = transitionTensor.values[p];
+        const periodSupportBandIndices = transitionTensor.supportBandIndices[p];
+        const strategyUtilities = contractCPU(periodValues, periodSupportBandIndices, nextUtility);
         const periodStrategies = (strategyUtilities.valueOf() as number[][]).map(max);
 
         optimalStrategies.subset(index(p, allWealths), periodStrategies.map(item => item.argmax));
@@ -45,8 +56,8 @@ export function coreSolveCPU({ transitionTensor, finalUtilities }: CoreProblem):
 }
 
 export async function coreSolveGPU({ transitionTensor, finalUtilities }: CoreProblem): Promise<CoreSolution> {
-    const periods = transitionTensor.length;
-    const [wealth_size, ,] = size(transitionTensor[0]).valueOf() as number[];
+    const periods = transitionTensor.values.length;
+    const [wealth_size, ,] = size(transitionTensor.values[0]).valueOf() as number[];
 
     const allWealths = range(0, wealth_size);
 
@@ -56,7 +67,7 @@ export async function coreSolveGPU({ transitionTensor, finalUtilities }: CorePro
 
     for (let p = periods - 1; p >= 0; p--) {
         const nextUtility = matrix((expectedUtilities.valueOf() as number[][])[p + 1]);
-        const periodTransition = transitionTensor[p];
+        const periodTransition = transitionTensor.values[p];
         const strategyUtilities = await contractGPU(periodTransition, nextUtility);
         const periodStrategies = (strategyUtilities.valueOf() as number[][]).map(max);
 
@@ -67,18 +78,21 @@ export async function coreSolveGPU({ transitionTensor, finalUtilities }: CorePro
     return { optimalStrategies, expectedUtilities };
 }
 
-function contractCPU(transition: Matrix, nextUtility: Matrix): Matrix {
-    const size = transition.size();
+function contractCPU(values: Matrix, supportBandIndices: Matrix, nextUtility: Matrix): Matrix {
+    const size = values.size();
     const result = zeros(size.slice(0, 2), 'dense') as Matrix;
 
-    const transitionValues = (transition.valueOf() as unknown) as number[][][];
+    const valuesArray = (values.valueOf() as unknown) as number[][][];
+    const bandIndicesArray = (supportBandIndices.valueOf() as unknown) as number[][][];
     const nextUtilityValues = nextUtility.valueOf() as number[];
     const resultValues = result.valueOf() as number[][];
 
     for (let i = 0; i < size[0]; i++) {
         for (let j = 0; j < size[1]; j++) {
-            for (let k = 0; k < size[2]; k++) {
-                resultValues[i][j] += transitionValues[i][j][k] * nextUtilityValues[k];
+            const bottom = bandIndicesArray[i][j][0];
+            const top = bandIndicesArray[i][j][1];
+            for (let k = bottom; k < top; k++) {
+                resultValues[i][j] += valuesArray[i][j][k] * nextUtilityValues[k];
             }
         }
     }
