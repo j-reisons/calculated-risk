@@ -1,6 +1,6 @@
 import { index, matrix, range, transpose } from "mathjs";
 import { Strategy } from "../input/state";
-import { coreSolveCPU } from "./coreCPU";
+import { TransitionTensor, coreSolveCPU } from "./coreCPU";
 import { computeTransitionTensor, extendWealthBins, replaceUnknownStrategies } from "./transform";
 import { zeros } from "./utils";
 
@@ -52,24 +52,25 @@ export async function solve(problem: Problem): Promise<Solution> {
         {
             extendedBoundaries: boundaries,
             extendedValues: values,
-            extendedOptimalTransitionTensor: indexOptimalTransitionTensor(transitionTensor.values, optimalStrategies)
+            extendedOptimalTransitionTensor: indexOptimalTransitionTensor(transitionTensor, optimalStrategies)
         },
     }
 }
 
-function indexOptimalTransitionTensor(transitionTensor: number[][][][], optimalStrategies: number[][]): number[][][] {
-    const optimalTransitionTensor = new Array<number[][]>(transitionTensor.length);
-    const wealthIndexSize = transitionTensor[0].length;
-    for (let p = 0; p < transitionTensor.length; p++) {
-        const transitionTensorArray = transitionTensor[p].valueOf() as unknown as number[][][];
-        const optimalTransitionMatrix = zeros([wealthIndexSize, wealthIndexSize]);
+function indexOptimalTransitionTensor(transitionTensor: TransitionTensor, optimalStrategies: number[][]): number[][][] {
+    const periods = optimalStrategies.length;
+    const wealthIndexSize = optimalStrategies[0].length;
+
+    const optimalTransitionTensor = zeros([periods, wealthIndexSize, wealthIndexSize]);
+    for (let p = 0; p < periods; p++) {
         for (let i = 0; i < wealthIndexSize; i++) {
-            for (let j = 0; j < wealthIndexSize; j++) {
-                const index = optimalStrategies[p][i] > 0 ? optimalStrategies[p][i] : 0;
-                optimalTransitionMatrix[j][i] = transitionTensorArray[i][index][j];
+            const strategyIndex = optimalStrategies[p][i] > 0 ? optimalStrategies[p][i] : 0;
+            const [bottom, top] = transitionTensor.supportBandIndices[p][i][strategyIndex];
+            for (let j = bottom; j < top; j++) {
+                optimalTransitionTensor[p][j][i] = transitionTensor.values[p][i][strategyIndex][j];
             }
         }
-        optimalTransitionTensor[p] = optimalTransitionMatrix;
     }
+
     return optimalTransitionTensor;
 }

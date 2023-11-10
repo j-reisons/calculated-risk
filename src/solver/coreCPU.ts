@@ -58,8 +58,7 @@ function contract(transitionValues: number[][][],
 
     for (let i = 0; i < result.length; i++) {
         for (let j = 0; j < result[0].length; j++) {
-            const bottom = transitionBandIndices[i][j][0];
-            const top = transitionBandIndices[i][j][1];
+            const [bottom, top] = transitionBandIndices[i][j];
             for (let k = bottom; k < top; k++) {
                 result[i][j] += transitionValues[i][j][k] * nextUtility[k];
             }
