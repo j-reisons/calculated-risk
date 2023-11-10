@@ -1,23 +1,23 @@
-import { Matrix, zeros } from "mathjs";
 import { ExtendedSolution } from "./main";
+import { zeros } from "./utils";
 
 
 export function computeTrajectories(extendedSolution: ExtendedSolution, periodIndex: number, startingWealth: number): number[][] {
-    const optimalTransitionTensor = extendedSolution.extendedOptimalTransitionTensor;
-    const periods = optimalTransitionTensor.length;
-    const wealthIndexSize = optimalTransitionTensor[0].size()[0];
+    const transitionTensor = extendedSolution.extendedOptimalTransitionTensor;
+    const periods = transitionTensor.length;
+    const wealthIndexSize = transitionTensor[0].length;
     // Set-up the distribution and propagate it forward
-    
-    const trajectories = zeros([periods + 1, wealthIndexSize], 'dense') as Matrix;
+
+    const trajectories = zeros([periods + 1, wealthIndexSize]);
     const wealthIndex = extendedSolution.extendedValues.findIndex((num) => num >= startingWealth);
     const trajectoriesArray = trajectories.valueOf() as number[][];
     trajectoriesArray[periodIndex][wealthIndex] = 1.0;
 
     for (let p = periodIndex; p < periods; p++) {
-        const transitionMatrixArray = optimalTransitionTensor[p].valueOf() as number[][];
+        const transitionMatrix = transitionTensor[p];
         for (let i = 0; i < wealthIndexSize; i++) {
             for (let j = 0; j < wealthIndexSize; j++) {
-                trajectoriesArray[p + 1][i] += trajectoriesArray[p][j] * transitionMatrixArray[i][j];
+                trajectoriesArray[p + 1][i] += trajectoriesArray[p][j] * transitionMatrix[i][j];
             }
         }
     }
@@ -36,8 +36,8 @@ export function findQuantiles(trajectories: number[][], probabilities: number[],
     const sortedTails = sortedProbabilities.map(p => (1 - p) / 2.0);
 
     const x = new Array<number>(trajectories.length - startPeriod);
-    const y_bottom = zeros([probabilities.length, trajectories.length - startPeriod]).valueOf() as number[][];
-    const y_top = zeros([probabilities.length, trajectories.length - startPeriod]).valueOf() as number[][];
+    const y_bottom = zeros([probabilities.length, trajectories.length - startPeriod]);
+    const y_top = zeros([probabilities.length, trajectories.length - startPeriod]);
 
     for (let p = 0; p < trajectories.length - startPeriod; p++) {
         x[p] = startPeriod + p;

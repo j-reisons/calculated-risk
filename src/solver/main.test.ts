@@ -6,7 +6,7 @@ import { debugPageHtml } from "../testutils/debugpage";
 import { toBeApproxEqual2dArray } from '../testutils/toBeApproxEqual2dArray';
 import { Problem, Solution, solve } from "./main";
 
-    // TODO: debug intermittent test crashes when calling into GPU code
+// TODO: debug intermittent test crashes when calling into GPU code
 // beforeAll(setupGPU)
 
 expect.extend({ toBeApproxEqual2dArray })

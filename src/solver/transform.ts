@@ -1,6 +1,7 @@
-import { Matrix, range, zeros } from "mathjs";
-import { TransitionTensor } from "./core";
+import { range } from "mathjs";
+import { TransitionTensor } from "./coreCPU";
 import { Problem } from "./main";
+import { zeros } from "./utils";
 
 // Pre and post-processing steps around the core solver.
 
@@ -11,7 +12,7 @@ import { Problem } from "./main";
 export interface ExtendedBins {
     boundaries: number[],
     values: number[],
-    originalRange: Matrix
+    originalRange: [number, number]
 }
 export function extendWealthBins(problem: Problem): ExtendedBins {
     const coarseMin = problem.wealthBoundaries[problem.wealthBoundaries.length - 1];
@@ -23,9 +24,7 @@ export function extendWealthBins(problem: Problem): ExtendedBins {
     const boundaries = [-Number.MAX_VALUE, ...problem.wealthBoundaries, ...coarseBoundaries.slice(1), Number.MAX_VALUE];
     const values = [problem.wealthValues[0], ...problem.wealthValues, ...coarseValues, coarseValues[coarseValues.length - 1]];
 
-    const originalRange = range(1, problem.wealthBoundaries.length + 1)
-
-    return { boundaries, values, originalRange };
+    return { boundaries, values, originalRange: [1, problem.wealthBoundaries.length + 1] };
 }
 
 function computeCoarseStep(problem: Problem): number {
@@ -75,19 +74,18 @@ export function computeTransitionTensor(
         periodsToCashflowIndices.set(i, uniqueCashflowIndices.get(cashflow)!);
     }
 
-    const cashflowTransitionMatrices = new Array<Matrix>(uniqueCashflowIndices.size);
-    const cashflowBandIndexMatrices = new Array<Matrix>(uniqueCashflowIndices.size);
+    const cashflowTransitionValues = new Array<number[][][]>(uniqueCashflowIndices.size);
+    const cashflowBandIndices = new Array<[number, number][][]>(uniqueCashflowIndices.size);
 
     for (const [cashflow, c] of uniqueCashflowIndices) {
-        cashflowTransitionMatrices[c] = zeros([values.length, strategyCDFs.length, values.length], 'dense') as Matrix;
-        cashflowBandIndexMatrices[c] = zeros([values.length, strategyCDFs.length, 2], 'dense') as Matrix;
-        const valuesArray = (cashflowTransitionMatrices[c].valueOf() as unknown) as number[][][];
-        const bandIndicesArray = (cashflowBandIndexMatrices[c].valueOf() as unknown) as number[][][];
+
+        cashflowTransitionValues[c] = zeros([values.length, strategyCDFs.length, values.length]);
+        cashflowBandIndices[c] = zeros([values.length, strategyCDFs.length, 2]) as [number, number][][];
         // Bankruptcy treatment, i.e. i=0
         for (let s = 0; s < strategyCDFs.length; s++) {
-            valuesArray[0][s][0] = 1;
-            bandIndicesArray[0][s][0] = 0;
-            bandIndicesArray[0][s][1] = 1;
+            cashflowTransitionValues[c][0][s][0] = 1;
+            cashflowBandIndices[c][0][s][1] = 1;
+            cashflowBandIndices[c][0][s][0] = 0;
         }
         for (let i = 1; i < values.length; i++) {
             for (let s = 0; s < strategyCDFs.length; s++) {
@@ -98,8 +96,8 @@ export function computeTransitionTensor(
                 const wealthTop = ((support[1] + 1) * values[i]) + cashflow;
                 const indexBottom = Math.max(binarySearch(boundaries, v => v > wealthBottom) - 2, 0); // I don't trust myself with the off-by-ones
                 const indexTop = Math.min(binarySearch(boundaries, v => v > wealthTop) + 1, values.length);
-                bandIndicesArray[i][s][0] = indexBottom;
-                bandIndicesArray[i][s][1] = indexTop;
+                cashflowBandIndices[c][i][s][0] = indexBottom;
+                cashflowBandIndices[c][i][s][1] = indexTop;
 
                 let CDFbottom;
                 let CDFtop = CDF(((boundaries[indexBottom] - cashflow) / values[i]) - 1);
@@ -107,31 +105,30 @@ export function computeTransitionTensor(
                 for (let j = indexBottom; j < indexTop; j++) {
                     CDFbottom = CDFtop;
                     CDFtop = CDF(((boundaries[j + 1] - cashflow) / values[i]) - 1);
-                    valuesArray[i][s][j] = CDFtop - CDFbottom;
+                    cashflowTransitionValues[c][i][s][j] = CDFtop - CDFbottom;
                 }
             }
         }
     }
 
-    const valueMatrices = new Array<Matrix>(periods);
-    const bandIndexMatrices = new Array<Matrix>(periods);
+    const periodTransitionValues = new Array<number[][][]>(periods);
+    const periodBandIndices = new Array<[number, number][][]>(periods);
 
     for (let p = 0; p < periods; p++) {
         const cashflowIndex = periodsToCashflowIndices.get(p)!
-        valueMatrices[p] = cashflowTransitionMatrices[cashflowIndex];
-        bandIndexMatrices[p] = cashflowBandIndexMatrices[cashflowIndex];
+        periodTransitionValues[p] = cashflowTransitionValues[cashflowIndex];
+        periodBandIndices[p] = cashflowBandIndices[cashflowIndex];
     }
 
-    return { values: valueMatrices, supportBandIndices: bandIndexMatrices };
+    return { values: periodTransitionValues, supportBandIndices: periodBandIndices };
 }
 
 // NaN indices are output by the solver when multiple maxima are found.
 // This function overwrites NaN areas with values found either above or below them.
 // If values are present both above and below a NaN area they must match to be used for overwriting.
-export function replaceUnknownStrategies(optimalStrategies: Matrix): void {
-    const strategiesArray = optimalStrategies.valueOf() as number[][];
-    for (let i = 0; i < strategiesArray.length; i++) {
-        const periodArray = strategiesArray[i];
+export function replaceUnknownStrategies(optimalStrategies: number[][]): void {
+    for (let i = 0; i < optimalStrategies.length; i++) {
+        const periodArray = optimalStrategies[i];
         let j = 0;
         let strategyBelow = NaN;
         let defaultStrategy = NaN;
