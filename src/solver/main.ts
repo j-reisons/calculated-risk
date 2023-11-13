@@ -3,7 +3,7 @@ import unpack from "ndarray-unpack";
 import { Strategy } from "../input/state";
 import { TransitionTensor, coreSolveCPU } from "./coreCPU";
 import { computeTransitionTensor, extendWealthBins, replaceUnknownStrategies } from "./transform";
-import { zeros } from "./utils";
+import { zerosND } from "./utils";
 
 export interface Problem {
     readonly wealthBoundaries: number[],
@@ -25,7 +25,7 @@ export interface ExtendedSolution {
     readonly extendedBoundaries: number[];
     readonly extendedValues: number[];
     // (periods, final_wealth, starting_wealth)
-    readonly extendedOptimalTransitionTensor: number[][][];
+    readonly extendedOptimalTransitionTensor: NdArray;
 }
 
 export async function solve(problem: Problem): Promise<Solution> {
@@ -60,18 +60,18 @@ export async function solve(problem: Problem): Promise<Solution> {
     }
 }
 
-function indexOptimalTransitionTensor(transitionTensor: TransitionTensor, optimalStrategies: NdArray): number[][][] {
+function indexOptimalTransitionTensor(transitionTensor: TransitionTensor, optimalStrategies: NdArray): NdArray {
     const periods = optimalStrategies.shape[0];
     const wealthIndexSize = optimalStrategies.shape[1];
 
-    const optimalTransitionTensor = zeros([periods, wealthIndexSize, wealthIndexSize]);
+    const optimalTransitionTensor = zerosND([periods, wealthIndexSize, wealthIndexSize]);
     for (let p = 0; p < periods; p++) {
         for (let i = 0; i < wealthIndexSize; i++) {
             const strategyIndex = optimalStrategies.get(p, i) > 0 ? optimalStrategies.get(p, i) : 0;
             const bottom = transitionTensor.supportBandIndices[p].get(i, strategyIndex, 0);
             const top = transitionTensor.supportBandIndices[p].get(i, strategyIndex, 1);
             for (let j = bottom; j < top; j++) {
-                optimalTransitionTensor[p][j][i] = transitionTensor.values[p].get(i, strategyIndex, j);
+                optimalTransitionTensor.set(p, j, i, transitionTensor.values[p].get(i, strategyIndex, j));
             }
         }
     }

@@ -1,27 +1,25 @@
+import matrixVectorProduct from 'ndarray-matrix-vector-product';
+import unpack from "ndarray-unpack";
 import { ExtendedSolution } from "./main";
-import { zeros } from "./utils";
+import { zeros, zerosND } from "./utils";
 
 
 export function computeTrajectories(extendedSolution: ExtendedSolution, periodIndex: number, startingWealth: number): number[][] {
     const transitionTensor = extendedSolution.extendedOptimalTransitionTensor;
-    const periods = transitionTensor.length;
-    const wealthIndexSize = transitionTensor[0].length;
+    const periods = transitionTensor.shape[0];
+    const wealthIndexSize = transitionTensor.shape[1];
     // Set-up the distribution and propagate it forward
 
-    const trajectories = zeros([periods + 1, wealthIndexSize]);
+    const trajectories = zerosND([periods + 1, wealthIndexSize]);
     const wealthIndex = extendedSolution.extendedValues.findIndex((num) => num >= startingWealth);
-    const trajectoriesArray = trajectories.valueOf() as number[][];
-    trajectoriesArray[periodIndex][wealthIndex] = 1.0;
+
+    trajectories.set(periodIndex, wealthIndex, 1.0)
 
     for (let p = periodIndex; p < periods; p++) {
-        const transitionMatrix = transitionTensor[p];
-        for (let i = 0; i < wealthIndexSize; i++) {
-            for (let j = 0; j < wealthIndexSize; j++) {
-                trajectoriesArray[p + 1][i] += trajectoriesArray[p][j] * transitionMatrix[i][j];
-            }
-        }
+        const transitionMatrix = transitionTensor.pick(p, null, null);
+        matrixVectorProduct(trajectories.pick(p + 1, null), transitionMatrix, trajectories.pick(p, null))
     }
-    return trajectories.valueOf() as number[][];
+    return unpack(trajectories) as number[][];
 }
 
 export interface QuantileTraces {

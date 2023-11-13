@@ -13,6 +13,8 @@
   "dependencies": {
     "mathjs": "^11.9.0",
     "ndarray": "^1.0.19",
+    "ndarray-gemm": "^1.0.0",
+    "ndarray-matrix-vector-product": "^1.0.0",
     "ndarray-ops": "^1.2.2",
     "ndarray-unpack": "^1.0.0",
     "plotly.js-cartesian-dist": "^2.24.3",
