@@ -1,7 +1,8 @@
 import { range } from "mathjs";
+import { NdArray } from "ndarray";
 import { TransitionTensor } from "./coreCPU";
 import { Problem } from "./main";
-import { zeros } from "./utils";
+import { zerosND } from "./utils";
 
 // Pre and post-processing steps around the core solver.
 
@@ -74,18 +75,18 @@ export function computeTransitionTensor(
         periodsToCashflowIndices.set(i, uniqueCashflowIndices.get(cashflow)!);
     }
 
-    const cashflowTransitionValues = new Array<number[][][]>(uniqueCashflowIndices.size);
-    const cashflowBandIndices = new Array<[number, number][][]>(uniqueCashflowIndices.size);
+    const cashflowTransitionValues = new Array<NdArray>(uniqueCashflowIndices.size);
+    const cashflowBandIndices = new Array<NdArray>(uniqueCashflowIndices.size);
 
     for (const [cashflow, c] of uniqueCashflowIndices) {
 
-        cashflowTransitionValues[c] = zeros([values.length, strategyCDFs.length, values.length]);
-        cashflowBandIndices[c] = zeros([values.length, strategyCDFs.length, 2]) as [number, number][][];
+        cashflowTransitionValues[c] = zerosND([values.length, strategyCDFs.length, values.length]);
+        cashflowBandIndices[c] = zerosND([values.length, strategyCDFs.length, 2]);
         // Bankruptcy treatment, i.e. i=0
         for (let s = 0; s < strategyCDFs.length; s++) {
-            cashflowTransitionValues[c][0][s][0] = 1;
-            cashflowBandIndices[c][0][s][1] = 1;
-            cashflowBandIndices[c][0][s][0] = 0;
+            cashflowTransitionValues[c].set(0, s, 0, 1);
+            cashflowBandIndices[c].set(0, s, 0, 0);
+            cashflowBandIndices[c].set(0, s, 1, 1);
         }
         for (let i = 1; i < values.length; i++) {
             for (let s = 0; s < strategyCDFs.length; s++) {
@@ -96,8 +97,8 @@ export function computeTransitionTensor(
                 const wealthTop = ((support[1] + 1) * values[i]) + cashflow;
                 const indexBottom = Math.max(binarySearch(boundaries, v => v > wealthBottom) - 2, 0); // I don't trust myself with the off-by-ones
                 const indexTop = Math.min(binarySearch(boundaries, v => v > wealthTop) + 1, values.length);
-                cashflowBandIndices[c][i][s][0] = indexBottom;
-                cashflowBandIndices[c][i][s][1] = indexTop;
+                cashflowBandIndices[c].set(i, s, 0, indexBottom);
+                cashflowBandIndices[c].set(i, s, 1, indexTop);
 
                 let CDFbottom;
                 let CDFtop = CDF(((boundaries[indexBottom] - cashflow) / values[i]) - 1);
@@ -105,14 +106,14 @@ export function computeTransitionTensor(
                 for (let j = indexBottom; j < indexTop; j++) {
                     CDFbottom = CDFtop;
                     CDFtop = CDF(((boundaries[j + 1] - cashflow) / values[i]) - 1);
-                    cashflowTransitionValues[c][i][s][j] = CDFtop - CDFbottom;
+                    cashflowTransitionValues[c].set(i, s, j, CDFtop - CDFbottom);
                 }
             }
         }
     }
 
-    const periodTransitionValues = new Array<number[][][]>(periods);
-    const periodBandIndices = new Array<[number, number][][]>(periods);
+    const periodTransitionValues = new Array<NdArray>(periods);
+    const periodBandIndices = new Array<NdArray>(periods);
 
     for (let p = 0; p < periods; p++) {
         const cashflowIndex = periodsToCashflowIndices.get(p)!
@@ -126,18 +127,20 @@ export function computeTransitionTensor(
 // NaN indices are output by the solver when multiple maxima are found.
 // This function overwrites NaN areas with values found either above or below them.
 // If values are present both above and below a NaN area they must match to be used for overwriting.
-export function replaceUnknownStrategies(optimalStrategies: number[][]): void {
-    for (let i = 0; i < optimalStrategies.length; i++) {
-        const periodArray = optimalStrategies[i];
+export function replaceUnknownStrategies(optimalStrategies: NdArray): void {
+
+
+    for (let i = 0; i < optimalStrategies.shape[0]; i++) {
+        const periodArray = optimalStrategies.pick(i, null);
         let j = 0;
         let strategyBelow = NaN;
         let defaultStrategy = NaN;
         let strategyAbove = NaN;
-        while (j < periodArray.length) {
-            if (isNaN(periodArray[j])) {
+        while (j < periodArray.shape[0]) {
+            if (isNaN(periodArray.get(j))) {
                 const start = j;
-                while (j < periodArray.length && isNaN(periodArray[j])) j++;
-                strategyAbove = j == periodArray.length ? NaN : periodArray[j];
+                while (j < periodArray.shape[0] && isNaN(periodArray.get(j))) j++;
+                strategyAbove = j == periodArray.shape[0] ? NaN : periodArray.get(j);
 
                 if (isNaN(strategyBelow)) {
                     defaultStrategy = strategyAbove;
@@ -150,11 +153,11 @@ export function replaceUnknownStrategies(optimalStrategies: number[][]): void {
                 }
 
                 for (let index = start; index < j; index++) {
-                    periodArray[index] = defaultStrategy;
+                    periodArray.set(index, defaultStrategy);
                 }
                 strategyBelow = strategyAbove;
             } else {
-                strategyBelow = periodArray[j];
+                strategyBelow = periodArray.get(j);
                 j++;
             }
         }

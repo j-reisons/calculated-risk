@@ -12,6 +12,9 @@
   },
   "dependencies": {
     "mathjs": "^11.9.0",
+    "ndarray": "^1.0.19",
+    "ndarray-ops": "^1.2.2",
+    "ndarray-unpack": "^1.0.0",
     "plotly.js-cartesian-dist": "^2.24.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -21,6 +24,8 @@
     "@types/bindings": "^1.5.2",
     "@types/jest": "^29.5.4",
     "@types/mathjs": "^9.4.2",
+    "@types/ndarray": "^1.0.14",
+    "@types/ndarray-ops": "^1.2.7",
     "@types/plotly.js": "^2.12.24",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
