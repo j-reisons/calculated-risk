@@ -53,7 +53,7 @@ function computeCoarseMax(problem: Problem): number {
         , 0
     );
 
-    return (originalMax + cashflowRunningSumMax) * (1 + (maxStrategySize * problem.periods));
+    return (originalMax + cashflowRunningSumMax) * Math.exp(Math.log(1 + maxStrategySize) * problem.periods);
 }
 
 export function computeTransitionTensor(

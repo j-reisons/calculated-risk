@@ -82,8 +82,8 @@ test('Log no cashflows', async () => {
         strategies: defaultStrategies.strategies,
         wealthBoundaries: defaultGridState.wealthBoundaries,
         wealthValues: defaultGridState.wealthValues,
-        wealthStep: defaultGridState.wealthStep,
-        periods: defaultGridState.periods,
+        wealthStep: 0.05,
+        periods: 150,
         cashflows: [0],
         utilityFunction: Math.log
     }
@@ -119,11 +119,5 @@ test('Log cashflows', async () => {
 function saveDebugPage(problem: Problem, solution: Solution, filename: string) {
     const html = debugPageHtml(problem, solution.optimalStrategies, solution.expectedUtilities);
     const tempPath = join(__dirname, "__snapshots__", "__newsnap__." + filename);
-    const path = join(__dirname, "__snapshots__", filename);
-
-    if (process.argv.includes('--updateSnapshot') || process.argv.includes('-u')) {
-        writeFileSync(path, html);
-    } else {
-        writeFileSync(tempPath, html);
-    }
+    writeFileSync(tempPath, html);
 }
