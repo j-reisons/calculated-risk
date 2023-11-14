@@ -18,14 +18,22 @@ export interface Problem {
 export interface Solution {
     readonly optimalStrategies: number[][];
     readonly expectedUtilities: number[][];
-    extendedSolution: ExtendedSolution | null;
+    extendedSolution: TrajectoriesInputs | null;
 }
 
-export interface ExtendedSolution {
-    readonly extendedBoundaries: number[];
-    readonly extendedValues: number[];
-    // (periods, final_wealth, starting_wealth)
-    readonly extendedOptimalTransitionTensor: NdArray;
+export interface TrajectoriesInputs {
+    readonly boundaries: number[];
+    readonly values: number[];
+    readonly optimalTransitionTensor: OptimalTransitionTensor;
+}
+
+// A tensor of dimensions (periods, next_wealth, starting_wealth)
+// Contains transition probabilities from starting_wealth to next_wealth for the optimal strategy
+export interface OptimalTransitionTensor {
+    // (periods, next_wealth, starting_wealth)
+    values: NdArray;
+    // (periods, starting_wealth, 2)
+    supportBandIndices: NdArray;
 }
 
 export async function solve(problem: Problem): Promise<Solution> {
@@ -44,37 +52,40 @@ export async function solve(problem: Problem): Promise<Solution> {
 
     // Recover original bins from the extended ones
     const clippedStrategies = optimalStrategies.hi(-1, originalRange[1]).lo(-1, originalRange[0]).transpose(1, 0);
-    const unpackedStrategies = unpack(clippedStrategies) as number[][];
     const clippedExpectedUtilities = expectedUtilities.hi(-1, originalRange[1]).lo(-1, originalRange[0]).transpose(1, 0);
-    const unpackedUtilities = unpack(clippedExpectedUtilities) as number[][];
 
     return {
-        optimalStrategies: unpackedStrategies,
-        expectedUtilities: unpackedUtilities,
+        optimalStrategies: unpack(clippedStrategies) as number[][],
+        expectedUtilities: unpack(clippedExpectedUtilities) as number[][],
         extendedSolution:
         {
-            extendedBoundaries: boundaries,
-            extendedValues: values,
-            extendedOptimalTransitionTensor: indexOptimalTransitionTensor(transitionTensor, optimalStrategies)
+            boundaries: boundaries,
+            values: values,
+            optimalTransitionTensor: indexOptimalTransitionTensor(transitionTensor, optimalStrategies)
         },
     }
 }
 
-function indexOptimalTransitionTensor(transitionTensor: TransitionTensor, optimalStrategies: NdArray): NdArray {
+function indexOptimalTransitionTensor(transitionTensor: TransitionTensor,
+    optimalStrategies: NdArray): OptimalTransitionTensor {
     const periods = optimalStrategies.shape[0];
     const wealthIndexSize = optimalStrategies.shape[1];
 
-    const optimalTransitionTensor = zerosND([periods, wealthIndexSize, wealthIndexSize]);
+    const values = zerosND([periods, wealthIndexSize, wealthIndexSize]);
+    const supportBandIndices = zerosND([periods, wealthIndexSize, 2]);
+    
     for (let p = 0; p < periods; p++) {
         for (let i = 0; i < wealthIndexSize; i++) {
             const strategyIndex = optimalStrategies.get(p, i) > 0 ? optimalStrategies.get(p, i) : 0;
             const bottom = transitionTensor.supportBandIndices[p].get(i, strategyIndex, 0);
             const top = transitionTensor.supportBandIndices[p].get(i, strategyIndex, 1);
+            supportBandIndices.set(p, i, 0, bottom);
+            supportBandIndices.set(p, i, 1, top);
             for (let j = bottom; j < top; j++) {
-                optimalTransitionTensor.set(p, j, i, transitionTensor.values[p].get(i, strategyIndex, j));
+                values.set(p, j, i, transitionTensor.values[p].get(i, strategyIndex, j));
             }
         }
     }
 
-    return optimalTransitionTensor;
+    return { values, supportBandIndices };
 }

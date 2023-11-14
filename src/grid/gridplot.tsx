@@ -79,8 +79,8 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
             setTrajectoriesState(
                 {
                     startPeriod: trajectoriesInputState.startingPeriod - 1,
-                    extendedValues: solution.extendedSolution!.extendedValues,
-                    extendedBoundaries: solution.extendedSolution!.extendedBoundaries,
+                    extendedValues: solution.extendedSolution!.values,
+                    extendedBoundaries: solution.extendedSolution!.boundaries,
                     extendedTrajectories: computeTrajectories(solution.extendedSolution!, trajectoriesInputState.startingPeriod - 1, trajectoriesInputState.startingWealth),
                 }
             )
@@ -109,7 +109,7 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
 
         if (trajectoriesState) {
             const quantiles = findQuantiles(trajectoriesState.extendedTrajectories, trajectoriesInputState.quantiles, trajectoriesState.startPeriod);
-            quantilesData = quantiles.flatMap(quantile => toPlotlyData(quantile, solution.extendedSolution!.extendedBoundaries, quantiles.length))
+            quantilesData = quantiles.flatMap(quantile => toPlotlyData(quantile, solution.extendedSolution!.boundaries, quantiles.length))
         }
     }
 

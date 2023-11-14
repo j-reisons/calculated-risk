@@ -1,24 +1,49 @@
-import matrixVectorProduct from 'ndarray-matrix-vector-product';
+import matrixProduct from "ndarray-gemm";
 import unpack from "ndarray-unpack";
-import { ExtendedSolution } from "./main";
+import unsqueeze from "ndarray-unsqueeze";
+
+import { TrajectoriesInputs } from "./main";
 import { zeros, zerosND } from "./utils";
 
 
-export function computeTrajectories(extendedSolution: ExtendedSolution, periodIndex: number, startingWealth: number): number[][] {
-    const transitionTensor = extendedSolution.extendedOptimalTransitionTensor;
-    const periods = transitionTensor.shape[0];
-    const wealthIndexSize = transitionTensor.shape[1];
+export function computeTrajectories(inputs: TrajectoriesInputs, periodIndex: number, startingWealth: number): number[][] {
+    const transitionValues = inputs.optimalTransitionTensor.values;
+    const transitionBands = inputs.optimalTransitionTensor.supportBandIndices;
+    const periods = transitionValues.shape[0];
+    const wealthIndexSize = transitionValues.shape[1];
     // Set-up the distribution and propagate it forward
 
     const trajectories = zerosND([periods + 1, wealthIndexSize]);
-    const wealthIndex = extendedSolution.extendedValues.findIndex((num) => num >= startingWealth);
+    const wealthIndex = inputs.values.findIndex((num) => num >= startingWealth);
 
     trajectories.set(periodIndex, wealthIndex, 1.0)
 
+    let bottom_this = wealthIndex;
+    let top_this = wealthIndex + 1;
+    let bottom_next, top_next;
+
     for (let p = periodIndex; p < periods; p++) {
-        const transitionMatrix = transitionTensor.pick(p, null, null);
-        matrixVectorProduct(trajectories.pick(p + 1, null), transitionMatrix, trajectories.pick(p, null))
+        bottom_next = Infinity;
+        top_next = 0;
+        for (let i = bottom_this; i < top_this; i++) {
+            bottom_next = Math.min(bottom_next, transitionBands.get(p, i, 0))
+            top_next = Math.max(top_next, transitionBands.get(p, i, 1))
+        }
+
+        const trajectoriesThisSlice = unsqueeze(trajectories.pick(p, null).hi(top_this).lo(bottom_this));
+
+        const transitionSlice = transitionValues.pick(p, null, null)
+            .hi(top_next, top_this)
+            .lo(bottom_next, bottom_this);
+
+        const trajectoriesNextSlice = unsqueeze(trajectories.pick(p + 1, null).hi(top_next).lo(bottom_next));
+
+        matrixProduct(trajectoriesNextSlice, transitionSlice, trajectoriesThisSlice);
+
+        bottom_this = bottom_next;
+        top_this = top_next;
     }
+
     return unpack(trajectories) as number[][];
 }
 
