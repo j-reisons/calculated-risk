@@ -7,9 +7,9 @@ import { zerosND } from "./utils";
 // for a given period and strategy
 // The (starting_wealth, next_wealth) slices of the tensor are band matrices.
 export interface TransitionTensor {
-    // A tensor of dimensions (periods, starting_wealth, strategy, next_wealth)
+    // An array of dimension (periods) of NdArrays of dimensions (starting_wealth, strategy, next_wealth)
     values: NdArray[];
-    // A tensor of dimensions (periods, starting_wealth, strategy, 2)
+    // An array of dimension (periods) of NdArrays of dimensions (starting_wealth, strategy, 2)
     // Contains next_wealth indices between which the values are non-zero
     supportBandIndices: NdArray[];
 }
@@ -22,10 +22,10 @@ export interface CoreProblem {
 }
 
 export interface CoreSolution {
-    // Matrix of dimensions (periods, wealth) containing the indices of optimal strategies
-    // -1 values indicate multiple optimal strategies
+    // NdArray of dimensions (periods, wealth) containing the indices of optimal strategies
+    // NaN values indicate multiple optimal strategies
     readonly optimalStrategies: NdArray;
-    // Matrix of dimensions (periods, wealth) containing expected utilities
+    // NdArray of dimensions (periods, wealth) containing expected utilities
     readonly expectedUtilities: NdArray;
 }
 
