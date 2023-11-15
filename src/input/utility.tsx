@@ -105,7 +105,8 @@ function toPlotlyData(trajectoriesState: TrajectoriesState, utility: number[]): 
     const terminalCDF = cumsum(terminalProbabilities) as number[];
 
     const terminalDensitites = terminalProbabilities.map((p, i) => p / widths[i]);
-    const scaleFactor = (1 - terminalProbabilities[0]) * Math.max(...utility) / Math.max(...terminalDensitites.slice(1, -1));
+    const maxUtility = Math.max(...utility);
+    const scaleFactor = (1 - terminalProbabilities[0]) * maxUtility / Math.max(...terminalDensitites.slice(1, -1));
     const scaledDensity = terminalDensitites.map(d => d * scaleFactor);
     scaledDensity[0] = terminalProbabilities[0];
     scaledDensity[scaledDensity.length - 1] = terminalProbabilities[terminalProbabilities.length - 1];
@@ -125,8 +126,9 @@ function toPlotlyData(trajectoriesState: TrajectoriesState, utility: number[]): 
     {
         name: "",
         x: [0, 0],
-        y: [0, terminalProbabilities[0]],
-        hovertemplate: "Wealth: %{x:.4s}<br>CDF: %{y:.2%}",
+        y: [0, terminalProbabilities[0] * maxUtility],
+        customdata: [0, terminalProbabilities[0]],
+        hovertemplate: "Wealth: %{x:.4s}<br>CDF: %{customdata:.2%}",
         type: 'scatter',
         mode: 'lines+markers',
         hoverinfo: 'none',
