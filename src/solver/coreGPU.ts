@@ -1,154 +1,236 @@
-// export async function coreSolveGPU({ transitionTensor, finalUtilities }: CoreProblem): Promise<CoreSolution> {
-//     const periods = transitionTensor.values.length;
-//     const [wealth_size, ,] = size(transitionTensor.values[0]).valueOf() as number[];
+import ndarray from "ndarray";
+import { CoreProblem, CoreSolution, TransitionTensor } from "./core";
+import shaderSource from './coreGPU.wgsl?raw';
 
-//     const allWealths = range(0, wealth_size);
+export async function solveCoreGPU({ transitionTensor, finalUtilities }: CoreProblem): Promise<CoreSolution> {
+    const adapter = await navigator.gpu.requestAdapter();
+    const device = await adapter!.requestDevice();
 
-//     const optimalStrategies = zeros([periods, wealth_size], 'dense') as Matrix;
-//     const expectedUtilities = zeros([periods + 1, wealth_size], 'dense') as Matrix;
-//     expectedUtilities.subset(index(periods, allWealths), finalUtilities);
+    const periods = transitionTensor.values.length;
+    const wealthSize = transitionTensor.values[0].shape[0];
+    const strategiesSize = transitionTensor.values[0].shape[1];
 
-//     for (let p = periods - 1; p >= 0; p--) {
-//         const nextUtility = matrix((expectedUtilities.valueOf() as number[][])[p + 1]);
-//         const periodTransition = transitionTensor.values[p];
-//         const strategyUtilities = await contractGPU(periodTransition, nextUtility);
-//         const periodStrategies = (strategyUtilities.valueOf() as number[][]).map(max);
+    const nanBuffer = initNanBuffer(device);
+    const periodBuffers = initPeriodBuffers(device, periods);
+    const dimensionsBuffer = initDimensionsBuffer(device, [periods, wealthSize, strategiesSize, wealthSize]);
+    const transitionTensorDataBuffers = initTransitionTensorDataBuffers(device, transitionTensor);
+    const transitionTensorSupportBuffers = initTransitionTensorSupportBuffers(device, transitionTensor);
+    const { buffer: expectedUtilitiesBuffer, readBuffer: expectedUtilitiesReadBuffer } = initExpectedUtilitiesBuffers(device, periods, wealthSize, finalUtilities);
+    const { buffer: optimalStrategiesBuffer, readBuffer: optimalStrategiesReadBuffer } = initOptimalStrategiesBuffers(device, periods, wealthSize);
 
-//         optimalStrategies.subset(index(p, allWealths), periodStrategies.map(item => item.argmax));
-//         expectedUtilities.subset(index(p, allWealths), periodStrategies.map(item => item.max));
-//     }
+    const shaderModule = device.createShaderModule({ code: shaderSource })
+    const computePipeline = device.createComputePipeline({
+        layout: "auto",
+        compute: {
+            module: shaderModule,
+            entryPoint: "main"
+        }
+    });
 
-//     return { optimalStrategies, expectedUtilities };
-// }
+    const periodBindGroups: GPUBindGroup[] = new Array(periods);
+    for (let p = 0; p < periods; p++) {
+        periodBindGroups[p] = device.createBindGroup({
+            layout: computePipeline.getBindGroupLayout(0),
+            entries: [
+                {
+                    binding: 0,
+                    resource: {
+                        buffer: nanBuffer
+                    }
+                },
+                {
+                    binding: 1,
+                    resource: {
+                        buffer: periodBuffers[p]
+                    }
+                },
+                {
+                    binding: 2,
+                    resource: {
+                        buffer: dimensionsBuffer
+                    }
+                },
+                {
+                    binding: 3,
+                    resource: {
+                        buffer: transitionTensorDataBuffers[p]
+                    }
+                },
+                {
+                    binding: 4,
+                    resource: {
+                        buffer: transitionTensorSupportBuffers[p]
+                    }
+                },
+                {
+                    binding: 5,
+                    resource: {
+                        buffer: expectedUtilitiesBuffer
+                    }
+                },
+                {
+                    binding: 6,
+                    resource: {
+                        buffer: optimalStrategiesBuffer
+                    }
+                }]
+        })
+    }
 
-// async function contractGPU(tensor1: Matrix, tensor2: Matrix): Promise<Matrix> {
-//     const reshaped1 = reshape(tensor1, [-1, tensor1.size()[tensor1.size().length - 1]]);
-//     const reshaped2 = reshape(tensor2, [tensor2.size()[0], -1]);
+    const commandEncoder: GPUCommandEncoder = device.createCommandEncoder();
+    const workGroupCount = Math.ceil(wealthSize / 64);
 
-//     const resultSize = [...tensor1.size().slice(0, -1), ...tensor2.size().slice(1)];
-//     const resultMatrix = await multiplyGPU(reshaped1, reshaped2);
+    for (let p = periods - 1; p >= 0; p--) {
+        const passEncoder = commandEncoder.beginComputePass();
+        passEncoder.setPipeline(computePipeline);
+        passEncoder.setBindGroup(0, periodBindGroups[p]);
+        passEncoder.dispatchWorkgroups(workGroupCount);
+        passEncoder.end();
+    }
 
-//     return reshape(resultMatrix, resultSize);
-// }
+    commandEncoder.copyBufferToBuffer(expectedUtilitiesBuffer, 0, expectedUtilitiesReadBuffer, 0, expectedUtilitiesBuffer.size);
+    commandEncoder.copyBufferToBuffer(optimalStrategiesBuffer, 0, optimalStrategiesReadBuffer, 0, optimalStrategiesBuffer.size);
 
-// async function multiplyGPU(matrix1: Matrix, matrix2: Matrix): Promise<Matrix> {
-//     const adapter = await navigator.gpu.requestAdapter();
-//     const device = await adapter!.requestDevice();
+    const gpuCommands = commandEncoder.finish();
+    device.queue.submit([gpuCommands]);
 
-//     const array1 = new Float32Array([...matrix1.size(), ...flatten(matrix1.toArray()) as number[]])
-//     const buffer1 = device.createBuffer({
-//         size: array1.byteLength,
-//         mappedAtCreation: true,
-//         usage: GPUBufferUsage.STORAGE
-//     });
-//     new Float32Array(buffer1.getMappedRange()).set(array1);
-//     buffer1.unmap();
+    await expectedUtilitiesReadBuffer.mapAsync(GPUMapMode.READ);
+    const expectedUtilities = ndarray(new Float32Array(expectedUtilitiesReadBuffer.getMappedRange()), [periods + 1, wealthSize]);
 
-//     const array2 = new Float32Array([...matrix2.size(), ...flatten(matrix2.toArray()) as number[]]);
-//     const buffer2 = device.createBuffer({
-//         size: array2.byteLength,
-//         mappedAtCreation: true,
-//         usage: GPUBufferUsage.STORAGE
-//     });
-//     new Float32Array(buffer2.getMappedRange()).set(array2);
-//     buffer2.unmap();
+    await optimalStrategiesReadBuffer.mapAsync(GPUMapMode.READ);
+    const optimalStrategies = ndarray(new Float32Array(optimalStrategiesReadBuffer.getMappedRange()), [periods, wealthSize]);
 
-//     const resultMatrixBufferSize = (2 + matrix1.size()[0] + matrix2.size()[1]) * Float32Array.BYTES_PER_ELEMENT
-//     const bufferResult = device.createBuffer({
-//         size: resultMatrixBufferSize,
-//         usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
-//     });
+    return { expectedUtilities, optimalStrategies };
+}
 
+function initNanBuffer(device: GPUDevice): GPUBuffer {
+    const nanBuffer = device.createBuffer({
+        mappedAtCreation: true,
+        size: 4,
+        usage: GPUBufferUsage.UNIFORM,
+    });
+    new Float32Array(nanBuffer.getMappedRange()).set([NaN]);
+    nanBuffer.unmap();
+    return nanBuffer;
+}
 
-//     const shaderModule = device.createShaderModule({
-//         code: `
-//           struct Matrix {
-//             size : vec2f,
-//             numbers: array<f32>,
-//           }
+function initPeriodBuffers(device: GPUDevice, periods: number): GPUBuffer[] {
+    const periodBuffers = new Array<GPUBuffer>(periods);
+    for (let p = 0; p < periods; p++) {
+        periodBuffers[p] = device.createBuffer({
+            mappedAtCreation: true,
+            size: 4,
+            usage: GPUBufferUsage.UNIFORM,
+        });
+        new Uint32Array(periodBuffers[p].getMappedRange()).set([p]);
+        periodBuffers[p].unmap();
+    }
+    return periodBuffers;
+}
 
-//           @group(0) @binding(0) var<storage, read> firstMatrix : Matrix;
-//           @group(0) @binding(1) var<storage, read> secondMatrix : Matrix;
-//           @group(0) @binding(2) var<storage, read_write> resultMatrix : Matrix;
+function initDimensionsBuffer(device: GPUDevice, dimensions: [number, number, number, number]): GPUBuffer {
+    const dimensionsBuffer =
+        device.createBuffer(
+            {
+                mappedAtCreation: true,
+                size: Uint32Array.BYTES_PER_ELEMENT * 4,
+                usage: GPUBufferUsage.UNIFORM
+            }
+        );
+    new Uint32Array(dimensionsBuffer.getMappedRange()).set(dimensions);
+    dimensionsBuffer.unmap();
+    return dimensionsBuffer;
+}
 
-//           @compute @workgroup_size(8, 8)
-//           fn main(@builtin(global_invocation_id) global_id : vec3u) {
-//             // Guard against out-of-bounds work group sizes
-//             if (global_id.x >= u32(firstMatrix.size.x) || global_id.y >= u32(secondMatrix.size.y)) {
-//               return;
-//             }
+function initTransitionTensorDataBuffers(device: GPUDevice, transitionTensor: TransitionTensor): GPUBuffer[] {
+    const dataSize = (transitionTensor.values[0].data as Float32Array).byteLength;
+    const uniqueToBuffer = new Map<number, GPUBuffer>();
+    const uniqueIndices = transitionTensor.uniqueValueIndices;
 
-//             resultMatrix.size = vec2(firstMatrix.size.x, secondMatrix.size.y);
+    const periodBuffers = new Array<GPUBuffer>(uniqueIndices.length);
+    for (let p = 0; p < uniqueIndices.length; p++) {
+        const u = uniqueIndices[p];
 
-//             let resultCell = vec2(global_id.x, global_id.y);
-//             var result = 0.0;
-//             for (var i = 0u; i < u32(firstMatrix.size.y); i = i + 1u) {
-//               let a = i + resultCell.x * u32(firstMatrix.size.y);
-//               let b = resultCell.y + i * u32(secondMatrix.size.y);
-//               result = result + firstMatrix.numbers[a] * secondMatrix.numbers[b];
-//             }
+        if (!uniqueToBuffer.has(u)) {
+            const values = transitionTensor.values[p]
+            const buffer = device.createBuffer({
+                mappedAtCreation: true,
+                size: dataSize,
+                usage: GPUBufferUsage.STORAGE
+            });
+            new Float32Array(buffer.getMappedRange()).set(values.data as Float32Array);
+            buffer.unmap();
+            uniqueToBuffer.set(u, buffer);
+        }
 
-//             let index = resultCell.y + resultCell.x * u32(secondMatrix.size.y);
-//             resultMatrix.numbers[index] = result;
-//           }
-//         `
-//     });
+        periodBuffers[p] = uniqueToBuffer.get(u)!;
+    }
 
-//     const computePipeline = device.createComputePipeline({
-//         layout: "auto",
-//         compute: {
-//             module: shaderModule,
-//             entryPoint: "main"
-//         }
-//     });
+    return periodBuffers;
+}
 
-//     const bindGroup = device.createBindGroup({
-//         layout: computePipeline.getBindGroupLayout(0),
-//         entries: [
-//             {
-//                 binding: 0,
-//                 resource: {
-//                     buffer: buffer1
-//                 }
-//             },
-//             {
-//                 binding: 1,
-//                 resource: {
-//                     buffer: buffer2
-//                 }
-//             },
-//             {
-//                 binding: 2,
-//                 resource: {
-//                     buffer: bufferResult
-//                 }
-//             }
-//         ]
-//     });
+function initTransitionTensorSupportBuffers(device: GPUDevice, transitionTensor: TransitionTensor): GPUBuffer[] {
+    const dataSize = (transitionTensor.supportBandIndices[0].data as Float32Array).byteLength;
+    const uniqueToBuffer = new Map<number, GPUBuffer>();
+    const uniqueIndices = transitionTensor.uniqueValueIndices;
 
-//     const commandEncoder = device.createCommandEncoder();
-//     const passEncoder = commandEncoder.beginComputePass();
-//     passEncoder.setPipeline(computePipeline);
-//     passEncoder.setBindGroup(0, bindGroup);
-//     const workgroupCountX = Math.ceil(array1[0] / 8);
-//     const workgroupCountY = Math.ceil(array2[1] / 8);
-//     passEncoder.dispatchWorkgroups(workgroupCountX, workgroupCountY);
-//     passEncoder.end();
+    const periodBuffers = new Array<GPUBuffer>(uniqueIndices.length);
+    for (let p = 0; p < uniqueIndices.length; p++) {
+        const u = uniqueIndices[p];
 
-//     const gpuReadBuffer = device.createBuffer({
-//         size: resultMatrixBufferSize,
-//         usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ
-//     });
+        if (!uniqueToBuffer.has(u)) {
+            const values = transitionTensor.supportBandIndices[p]
+            const buffer = device.createBuffer({
+                mappedAtCreation: true,
+                size: dataSize,
+                usage: GPUBufferUsage.STORAGE
+            });
+            new Float32Array(buffer.getMappedRange()).set(values.data as Float32Array);
+            buffer.unmap();
+            uniqueToBuffer.set(u, buffer);
+        }
 
-//     commandEncoder.copyBufferToBuffer(bufferResult, 0, gpuReadBuffer, 0, resultMatrixBufferSize);
-//     const gpuCommands = commandEncoder.finish();
-//     device.queue.submit([gpuCommands]);
+        periodBuffers[p] = uniqueToBuffer.get(u)!;
+    }
 
-//     // Read buffer.
-//     await gpuReadBuffer.mapAsync(GPUMapMode.READ);
-//     const output = new Float32Array(gpuReadBuffer.getMappedRange());
+    return periodBuffers;
+}
 
-//     // Read it back out into a Matrix
-//     return matrix(Array.from(output.subarray(2, output.length))).resize(Array.from(output.subarray(0, 1)));
-// }
+function initExpectedUtilitiesBuffers(device: GPUDevice, periods: number, wealthSize: number, finalUtilities: number[]): { buffer: GPUBuffer, readBuffer: GPUBuffer } {
+    const expectedUtilitiesBufferSize = (periods + 1) * wealthSize * Float32Array.BYTES_PER_ELEMENT;
 
+    const buffer = device.createBuffer({
+        mappedAtCreation: true,
+        size: expectedUtilitiesBufferSize,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+    new Float32Array(buffer
+        .getMappedRange(periods * wealthSize * Float32Array.BYTES_PER_ELEMENT, wealthSize * Float32Array.BYTES_PER_ELEMENT))
+        .set(finalUtilities)
+    buffer.unmap();
+
+    const readBuffer =
+        device.createBuffer({
+            size: expectedUtilitiesBufferSize,
+            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+        });
+
+    return { buffer, readBuffer };
+}
+
+function initOptimalStrategiesBuffers(device: GPUDevice, periods: number, wealthSize: number): { buffer: GPUBuffer, readBuffer: GPUBuffer } {
+    const optimalStrategiesBufferSize = periods * wealthSize * Float32Array.BYTES_PER_ELEMENT;
+
+    const buffer = device.createBuffer({
+        size: optimalStrategiesBufferSize,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
+
+    const readBuffer =
+        device.createBuffer({
+            size: optimalStrategiesBufferSize,
+            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+        });
+
+    return { buffer, readBuffer };
+}

@@ -1,41 +1,15 @@
 import ndarray, { NdArray } from "ndarray";
 import { assign } from "ndarray-ops";
+import { CoreProblem, CoreSolution } from "./core";
 import { zerosND } from "./utils";
 
-// A tensor of dimensions (periods, starting_wealth, strategy, next_wealth)
-// Contains transition probabilities from starting_wealth to next_wealth 
-// for a given period and strategy
-// The (starting_wealth, next_wealth) slices of the tensor are band matrices.
-export interface TransitionTensor {
-    // An array of dimension (periods) of NdArrays of dimensions (starting_wealth, strategy, next_wealth)
-    values: NdArray[];
-    // An array of dimension (periods) of NdArrays of dimensions (starting_wealth, strategy, 2)
-    // Contains next_wealth indices between which the values are non-zero
-    supportBandIndices: NdArray[];
-}
 
-export interface CoreProblem {
-    transitionTensor: TransitionTensor;
-    // An array of dimension (next_wealth) containing the value of the utility
-    // function for each wealth value.
-    finalUtilities: number[];
-}
-
-export interface CoreSolution {
-    // NdArray of dimensions (periods, wealth) containing the indices of optimal strategies
-    // NaN values indicate multiple optimal strategies
-    readonly optimalStrategies: NdArray;
-    // NdArray of dimensions (periods, wealth) containing expected utilities
-    readonly expectedUtilities: NdArray;
-}
-
-
-export function coreSolveCPU({ transitionTensor, finalUtilities }: CoreProblem): CoreSolution {
+export function solveCoreCPU({ transitionTensor, finalUtilities }: CoreProblem): CoreSolution {
     const periods = transitionTensor.values.length;
-    const wealth_size = transitionTensor.values[0].shape[0];
+    const wealthSize = transitionTensor.values[0].shape[0];
 
-    const optimalStrategies = zerosND([periods, wealth_size]);
-    const expectedUtilities = zerosND([periods + 1, wealth_size]);
+    const optimalStrategies = zerosND([periods, wealthSize]);
+    const expectedUtilities = zerosND([periods + 1, wealthSize]);
 
     assign(expectedUtilities.pick(periods, null), ndarray(finalUtilities));
 

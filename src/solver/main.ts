@@ -1,9 +1,11 @@
 import { NdArray } from "ndarray";
 import unpack from "ndarray-unpack";
 import { Strategy } from "../input/state";
-import { TransitionTensor, coreSolveCPU } from "./coreCPU";
 import { computeTransitionTensor, extendWealthBins, replaceUnknownStrategies } from "./transform";
 import { zerosND } from "./utils";
+import { TransitionTensor } from "./core";
+// import { solveCoreGPU } from "./coreGPU";
+import { solveCoreCPU } from "./coreCPU";
 
 export interface Problem {
     readonly wealthBoundaries: number[],
@@ -44,7 +46,7 @@ export async function solve(problem: Problem): Promise<Solution> {
 
     const transitionTensor = computeTransitionTensor(problem.periods, boundaries, values, problem.strategies.map(s => s.CDF), problem.strategies.map(s => s.support), problem.cashflows);
 
-    const coreSolution = coreSolveCPU({ transitionTensor, finalUtilities });
+    const coreSolution = await solveCoreCPU({ transitionTensor, finalUtilities });
 
     const { optimalStrategies, expectedUtilities } = coreSolution;
 

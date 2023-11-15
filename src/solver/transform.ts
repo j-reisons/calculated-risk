@@ -1,6 +1,6 @@
 import { range } from "mathjs";
 import { NdArray } from "ndarray";
-import { TransitionTensor } from "./coreCPU";
+import { TransitionTensor } from "./core";
 import { Problem } from "./main";
 import { zerosND } from "./utils";
 
@@ -114,14 +114,16 @@ export function computeTransitionTensor(
 
     const periodTransitionValues = new Array<NdArray>(periods);
     const periodBandIndices = new Array<NdArray>(periods);
+    const uniqueValueIndices = new Array<number>(periods);
 
     for (let p = 0; p < periods; p++) {
         const cashflowIndex = periodsToCashflowIndices.get(p)!
+        uniqueValueIndices[p] = cashflowIndex;
         periodTransitionValues[p] = cashflowTransitionValues[cashflowIndex];
         periodBandIndices[p] = cashflowBandIndices[cashflowIndex];
     }
 
-    return { values: periodTransitionValues, supportBandIndices: periodBandIndices };
+    return { values: periodTransitionValues, supportBandIndices: periodBandIndices, uniqueValueIndices};
 }
 
 // NaN indices are output by the solver when multiple maxima are found.
