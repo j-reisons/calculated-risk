@@ -1,9 +1,9 @@
 import { NdArray } from "ndarray";
 import unpack from "ndarray-unpack";
 import { Strategy } from "../input/state";
+import { TransitionTensor } from "./core";
 import { computeTransitionTensor, extendWealthBins, replaceUnknownStrategies } from "./transform";
 import { zerosND } from "./utils";
-import { TransitionTensor } from "./core";
 // import { solveCoreGPU } from "./coreGPU";
 import { solveCoreCPU } from "./coreCPU";
 
@@ -34,7 +34,7 @@ export interface TrajectoriesInputs {
 export interface OptimalTransitionTensor {
     // (periods, next_wealth, starting_wealth)
     values: NdArray;
-    // (periods, starting_wealth, 2)
+    // (periods, starting_wealth)
     supportBandIndices: NdArray;
 }
 
@@ -75,16 +75,17 @@ function indexOptimalTransitionTensor(transitionTensor: TransitionTensor,
 
     const values = zerosND([periods, wealthIndexSize, wealthIndexSize]);
     const supportBandIndices = zerosND([periods, wealthIndexSize, 2]);
-    
+
     for (let p = 0; p < periods; p++) {
+        const u = transitionTensor.uniquePeriodIndices[p];
         for (let i = 0; i < wealthIndexSize; i++) {
             const strategyIndex = optimalStrategies.get(p, i) > 0 ? optimalStrategies.get(p, i) : 0;
-            const bottom = transitionTensor.supportBandIndices[p].get(i, strategyIndex, 0);
-            const top = transitionTensor.supportBandIndices[p].get(i, strategyIndex, 1);
+            const bottom = transitionTensor.supportBandIndices[u].get(i, strategyIndex);
+            const bandWidth = transitionTensor.supportBandWidths[u].get(i, strategyIndex)
             supportBandIndices.set(p, i, 0, bottom);
-            supportBandIndices.set(p, i, 1, top);
-            for (let j = bottom; j < top; j++) {
-                values.set(p, j, i, transitionTensor.values[p].get(i, strategyIndex, j));
+            supportBandIndices.set(p, i, 1, bottom + bandWidth);
+            for (let j = 0; j < bandWidth; j++) {
+                values.set(p, bottom + j, i, transitionTensor.values[u].get(i, strategyIndex, j));
             }
         }
     }

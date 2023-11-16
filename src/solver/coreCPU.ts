@@ -1,12 +1,12 @@
 import ndarray, { NdArray } from "ndarray";
 import { assign } from "ndarray-ops";
-import { CoreProblem, CoreSolution } from "./core";
+import { CoreProblem, CoreSolution, TransitionTensor } from "./core";
 import { zerosND } from "./utils";
 
 
 export function solveCoreCPU({ transitionTensor, finalUtilities }: CoreProblem): CoreSolution {
-    const periods = transitionTensor.values.length;
-    const wealthSize = transitionTensor.values[0].shape[0];
+    const periods = transitionTensor.uniquePeriodIndices.length;
+    const wealthSize = finalUtilities.length;
 
     const optimalStrategies = zerosND([periods, wealthSize]);
     const expectedUtilities = zerosND([periods + 1, wealthSize]);
@@ -14,10 +14,8 @@ export function solveCoreCPU({ transitionTensor, finalUtilities }: CoreProblem):
     assign(expectedUtilities.pick(periods, null), ndarray(finalUtilities));
 
     for (let p = periods - 1; p >= 0; p--) {
-        const strategyUtilities = contract(transitionTensor.values[p],
-            transitionTensor.supportBandIndices[p],
-            expectedUtilities.pick(p + 1, null));
-
+        const strategyUtilities = contract(transitionTensor,
+            expectedUtilities.pick(p + 1, null), p);
 
         for (let i = 0; i < strategyUtilities.shape[0]; i++) {
             const wealthStrategyUtilities = strategyUtilities.pick(i, null);
@@ -30,19 +28,23 @@ export function solveCoreCPU({ transitionTensor, finalUtilities }: CoreProblem):
     return { optimalStrategies, expectedUtilities };
 }
 
-function contract(transitionValues: NdArray,
-    transitionBandIndices: NdArray,
-    nextUtility: NdArray): NdArray {
+function contract(transitionTensor: TransitionTensor,
+    nextUtility: NdArray,
+    period: number): NdArray {
+    const uniqueIndex = transitionTensor.uniquePeriodIndices[period];
+    const values = transitionTensor.values[uniqueIndex];
+    const supportBandIndices = transitionTensor.supportBandIndices[uniqueIndex];
+    const supportBandWidths = transitionTensor.supportBandWidths[uniqueIndex];
 
-    const result = zerosND(transitionValues.shape.slice(0, -1));
+    const result = zerosND(values.shape.slice(0, -1));
 
     for (let i = 0; i < result.shape[0]; i++) {
         for (let j = 0; j < result.shape[1]; j++) {
-            const bottom = transitionBandIndices.get(i, j, 0);
-            const top = transitionBandIndices.get(i, j, 1);
+            const bandIndex = supportBandIndices.get(i, j);
+            const bandWidth = supportBandWidths.get(i, j);
             let resultValue = 0;
-            for (let k = bottom; k < top; k++) {
-                resultValue += transitionValues.get(i, j, k) * nextUtility.get(k);
+            for (let k = 0; k < bandWidth; k++) {
+                resultValue += values.get(i, j, k) * nextUtility.get(bandIndex + k);
             }
             result.set(i, j, resultValue);
         }

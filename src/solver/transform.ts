@@ -65,73 +65,71 @@ export function computeTransitionTensor(
     cashflows: number[],
 ): TransitionTensor {
     const uniqueCashflowIndices = new Map<number, number>()
-    const periodsToCashflowIndices = new Map<number, number>()
+    const uniquePeriodIndices = new Array<number>(periods);
     let u = 0;
     for (let i = 0; i < periods; i++) {
         const cashflow = cashflows[i] || 0;
         if (!uniqueCashflowIndices.has(cashflow)) {
             uniqueCashflowIndices.set(cashflow, u++);
         }
-        periodsToCashflowIndices.set(i, uniqueCashflowIndices.get(cashflow)!);
+        uniquePeriodIndices[i] = uniqueCashflowIndices.get(cashflow)!;
     }
 
-    const cashflowTransitionValues = new Array<NdArray>(uniqueCashflowIndices.size);
-    const cashflowBandIndices = new Array<NdArray>(uniqueCashflowIndices.size);
+    const transitionValues = new Array<NdArray>(uniqueCashflowIndices.size);
+    const supportBandIndices = new Array<NdArray>(uniqueCashflowIndices.size);
+    const supportBandWidths = new Array<NdArray>(uniqueCashflowIndices.size);
 
     for (const [cashflow, c] of uniqueCashflowIndices) {
-
-        cashflowTransitionValues[c] = zerosND([values.length, strategyCDFs.length, values.length]);
-        cashflowBandIndices[c] = zerosND([values.length, strategyCDFs.length, 2]);
+        let maxBandwidth = 0;
+        supportBandIndices[c] = zerosND([values.length, strategyCDFs.length]);
+        supportBandWidths[c] = zerosND([values.length, strategyCDFs.length]);
         // Bankruptcy treatment, i.e. i=0
         for (let s = 0; s < strategyCDFs.length; s++) {
-            cashflowTransitionValues[c].set(0, s, 0, 1);
-            cashflowBandIndices[c].set(0, s, 0, 0);
-            cashflowBandIndices[c].set(0, s, 1, 1);
+            supportBandIndices[c].set(0, s, 0);
+            supportBandWidths[c].set(0, s, 1);
         }
         for (let i = 1; i < values.length; i++) {
             for (let s = 0; s < strategyCDFs.length; s++) {
-                const CDF = strategyCDFs[s];
-
                 const support = supports[s];
                 const wealthBottom = ((support[0] + 1) * values[i]) + cashflow;
                 const wealthTop = ((support[1] + 1) * values[i]) + cashflow;
                 const indexBottom = Math.max(binarySearch(boundaries, v => v > wealthBottom) - 2, 0); // I don't trust myself with the off-by-ones
                 const indexTop = Math.min(binarySearch(boundaries, v => v > wealthTop) + 1, values.length);
-                cashflowBandIndices[c].set(i, s, 0, indexBottom);
-                cashflowBandIndices[c].set(i, s, 1, indexTop);
+                const bandWidth = indexTop - indexBottom;
+                supportBandIndices[c].set(i, s, indexBottom);
+                supportBandWidths[c].set(i, s, bandWidth);
+                maxBandwidth = Math.max(maxBandwidth, bandWidth);
+            }
+        }
+
+        transitionValues[c] = zerosND([values.length, strategyCDFs.length, maxBandwidth]);
+        for (let s = 0; s < strategyCDFs.length; s++) {
+            transitionValues[c].set(0, s, 0, 1);
+        }
+        for (let i = 1; i < values.length; i++) {
+            for (let s = 0; s < strategyCDFs.length; s++) {
+                const CDF = strategyCDFs[s];
+                const bandIndex = supportBandIndices[c].get(i, s);
+                const bandWidth = supportBandWidths[c].get(i, s);
 
                 let CDFbottom;
-                let CDFtop = CDF(((boundaries[indexBottom] - cashflow) / values[i]) - 1);
-
-                for (let j = indexBottom; j < indexTop; j++) {
+                let CDFtop = CDF(((boundaries[bandIndex] - cashflow) / values[i]) - 1);
+                for (let j = 0; j < bandWidth; j++) {
                     CDFbottom = CDFtop;
-                    CDFtop = CDF(((boundaries[j + 1] - cashflow) / values[i]) - 1);
-                    cashflowTransitionValues[c].set(i, s, j, CDFtop - CDFbottom);
+                    CDFtop = CDF(((boundaries[bandIndex + j + 1] - cashflow) / values[i]) - 1);
+                    transitionValues[c].set(i, s, j, CDFtop - CDFbottom);
                 }
             }
         }
     }
 
-    const periodTransitionValues = new Array<NdArray>(periods);
-    const periodBandIndices = new Array<NdArray>(periods);
-    const uniqueValueIndices = new Array<number>(periods);
-
-    for (let p = 0; p < periods; p++) {
-        const cashflowIndex = periodsToCashflowIndices.get(p)!
-        uniqueValueIndices[p] = cashflowIndex;
-        periodTransitionValues[p] = cashflowTransitionValues[cashflowIndex];
-        periodBandIndices[p] = cashflowBandIndices[cashflowIndex];
-    }
-
-    return { values: periodTransitionValues, supportBandIndices: periodBandIndices, uniqueValueIndices};
+    return { values: transitionValues, supportBandIndices, supportBandWidths, uniquePeriodIndices };
 }
 
 // NaN indices are output by the solver when multiple maxima are found.
 // This function overwrites NaN areas with values found either above or below them.
 // If values are present both above and below a NaN area they must match to be used for overwriting.
 export function replaceUnknownStrategies(optimalStrategies: NdArray): void {
-
-
     for (let i = 0; i < optimalStrategies.shape[0]; i++) {
         const periodArray = optimalStrategies.pick(i, null);
         let j = 0;
