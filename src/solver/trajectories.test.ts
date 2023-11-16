@@ -1,34 +1,38 @@
 import ndarray from "ndarray";
-import { TrajectoriesInputs } from "./main";
+import { OptimalTransitionTensor } from "./optimal-transition";
 import { computeTrajectories } from "./trajectories";
 
 test('Trajectories are computed correctly', async () => {
     //@ts-format-ignore-region
-    const transition = [
-        0.5, 0.25, 0   , 0   , 0,
-        0.5, 0.5 , 0.25, 0   , 0,
-        0  , 0.25, 0.5 , 0.25, 0,
-        0  , 0   , 0.25, 0.5 , 0.5,
-        0  , 0   , 0   , 0.25, 0.5
-    ];
-    const supportBandIndices = [
-        0,2,
-        0,3,
-        1,4,
-        2,5,
-        3,5,
-    ];
-    //@ts-format-ignore-endregion
-    const transitionNd = ndarray(new Float32Array([...transition, ...transition, ...transition]), [3, 5, 5]);
-    const supportNd = ndarray(new Float32Array([...supportBandIndices, ...supportBandIndices, ...supportBandIndices]), [3, 5, 2]);
+    // const transition = [
+    //     0.5, 0.25, 0   , 0   , 0,
+    //     0.5, 0.5 , 0.25, 0   , 0,
+    //     0  , 0.25, 0.5 , 0.25, 0,
+    //     0  , 0   , 0.25, 0.5 , 0.5,
+    //     0  , 0   , 0   , 0.25, 0.5
+    // ];
+    const transitionFlat = [
+        0.5,0.5,0.0,
+        0.25,0.5,0.25,
+        0.25,0.5,0.25,
+        0.25,0.5,0.25,
+        0.5,0.5,0.5
+    ]
+    const bandIndices = [0,0,1,2,3];
+    const bandWidths = [2,3,3,3,2];
 
-    const inputs: TrajectoriesInputs = {
-        boundaries: [0, 1.5, 2.5, 3.5, 4.5, 5.5],
-        values: [1, 2, 3, 4, 5],
-        optimalTransitionTensor: { values: transitionNd, supportBandIndices: supportNd }
+    //@ts-format-ignore-endregion
+    const transitionNd = ndarray(new Float32Array([...transitionFlat]), [5, 3]);
+    const bandIndicesNd = ndarray(new Float32Array(bandIndices));
+    const bandWidthsNd = ndarray(new Float32Array(bandWidths));
+
+    const transitionTensor: OptimalTransitionTensor = {
+        values: [transitionNd, transitionNd, transitionNd],
+        supportBandIndices: [bandIndicesNd, bandIndicesNd, bandIndicesNd],
+        supportBandWidths: [bandWidthsNd, bandWidthsNd, bandWidthsNd]
     }
 
-    let result = computeTrajectories(inputs, 2, 2);
+    let result = computeTrajectories(transitionTensor, 2, 1);
     let expected = [
         [0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0],
@@ -37,7 +41,7 @@ test('Trajectories are computed correctly', async () => {
     ]
     expect(result).toStrictEqual(expected);
 
-    result = computeTrajectories(inputs, 1, 2);
+    result = computeTrajectories(transitionTensor, 1, 1);
     expected = [
         [0, 0, 0, 0, 0],
         [0, 1, 0, 0, 0],
@@ -46,7 +50,7 @@ test('Trajectories are computed correctly', async () => {
     ]
     expect(result).toStrictEqual(expected);
 
-    result = computeTrajectories(inputs, 0, 2);
+    result = computeTrajectories(transitionTensor, 0, 1);
     expected = [
         [0, 1, 0, 0, 0],
         [0.25, 0.5, 0.25, 0, 0],

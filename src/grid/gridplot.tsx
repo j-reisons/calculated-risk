@@ -76,12 +76,13 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
 
     useEffect(() => {
         if (trajectoriesInputState.startingPeriod && trajectoriesInputState.startingWealth && solution) {
+            const wealthIndex = solution.extendedSolution!.values.findIndex((num) => num >= trajectoriesInputState.startingWealth!);
             setTrajectoriesState(
                 {
                     startPeriod: trajectoriesInputState.startingPeriod - 1,
                     extendedValues: solution.extendedSolution!.values,
                     extendedBoundaries: solution.extendedSolution!.boundaries,
-                    extendedTrajectories: computeTrajectories(solution.extendedSolution!, trajectoriesInputState.startingPeriod - 1, trajectoriesInputState.startingWealth),
+                    extendedTrajectories: computeTrajectories(solution.extendedSolution!.optimalTransitionTensor, trajectoriesInputState.startingPeriod - 1, wealthIndex),
                 }
             )
         } else {

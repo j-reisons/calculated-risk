@@ -1,11 +1,9 @@
-import { NdArray } from "ndarray";
 import unpack from "ndarray-unpack";
 import { Strategy } from "../input/state";
-import { TransitionTensor } from "./core";
+import { solveCore } from "./coreCPU";
+import { OptimalTransitionTensor } from "./optimal-transition";
+import { indexOptimalTransitionTensor } from "./optimal-transitionCPU";
 import { computeTransitionTensor, extendWealthBins, replaceUnknownStrategies } from "./transform";
-import { zerosND } from "./utils";
-// import { solveCoreGPU } from "./coreGPU";
-import { solveCoreCPU } from "./coreCPU";
 
 export interface Problem {
     readonly wealthBoundaries: number[],
@@ -29,15 +27,6 @@ export interface TrajectoriesInputs {
     readonly optimalTransitionTensor: OptimalTransitionTensor;
 }
 
-// A tensor of dimensions (periods, next_wealth, starting_wealth)
-// Contains transition probabilities from starting_wealth to next_wealth for the optimal strategy
-export interface OptimalTransitionTensor {
-    // (periods, next_wealth, starting_wealth)
-    values: NdArray;
-    // (periods, starting_wealth)
-    supportBandIndices: NdArray;
-}
-
 export async function solve(problem: Problem): Promise<Solution> {
     const { boundaries, values, originalRange } = extendWealthBins(problem);
 
@@ -46,7 +35,7 @@ export async function solve(problem: Problem): Promise<Solution> {
 
     const transitionTensor = computeTransitionTensor(problem.periods, boundaries, values, problem.strategies.map(s => s.CDF), problem.strategies.map(s => s.support), problem.cashflows);
 
-    const coreSolution = await solveCoreCPU({ transitionTensor, finalUtilities });
+    const coreSolution = solveCore({ transitionTensor, finalUtilities });
 
     const { optimalStrategies, expectedUtilities } = coreSolution;
 
@@ -68,27 +57,3 @@ export async function solve(problem: Problem): Promise<Solution> {
     }
 }
 
-function indexOptimalTransitionTensor(transitionTensor: TransitionTensor,
-    optimalStrategies: NdArray): OptimalTransitionTensor {
-    const periods = optimalStrategies.shape[0];
-    const wealthIndexSize = optimalStrategies.shape[1];
-
-    const values = zerosND([periods, wealthIndexSize, wealthIndexSize]);
-    const supportBandIndices = zerosND([periods, wealthIndexSize, 2]);
-
-    for (let p = 0; p < periods; p++) {
-        const u = transitionTensor.uniquePeriodIndices[p];
-        for (let i = 0; i < wealthIndexSize; i++) {
-            const strategyIndex = optimalStrategies.get(p, i) > 0 ? optimalStrategies.get(p, i) : 0;
-            const bottom = transitionTensor.supportBandIndices[u].get(i, strategyIndex);
-            const bandWidth = transitionTensor.supportBandWidths[u].get(i, strategyIndex)
-            supportBandIndices.set(p, i, 0, bottom);
-            supportBandIndices.set(p, i, 1, bottom + bandWidth);
-            for (let j = 0; j < bandWidth; j++) {
-                values.set(p, bottom + j, i, transitionTensor.values[u].get(i, strategyIndex, j));
-            }
-        }
-    }
-
-    return { values, supportBandIndices };
-}

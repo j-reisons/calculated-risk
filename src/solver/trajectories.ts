@@ -1,21 +1,14 @@
-import matrixProduct from "ndarray-gemm";
 import unpack from "ndarray-unpack";
-import unsqueeze from "ndarray-unsqueeze";
 
-import { TrajectoriesInputs } from "./main";
+import { OptimalTransitionTensor } from "./optimal-transition";
 import { zeros, zerosND } from "./utils";
 
 
-export function computeTrajectories(inputs: TrajectoriesInputs, periodIndex: number, startingWealth: number): number[][] {
-    const transitionValues = inputs.optimalTransitionTensor.values;
-    const transitionBands = inputs.optimalTransitionTensor.supportBandIndices;
-    const periods = transitionValues.shape[0];
-    const wealthIndexSize = transitionValues.shape[1];
-    // Set-up the distribution and propagate it forward
-
+export function computeTrajectories({ values, supportBandIndices, supportBandWidths }: OptimalTransitionTensor, periodIndex: number, wealthIndex: number): number[][] {
+    const periods = values.length;
+    const wealthIndexSize = values[0].shape[0];
+    
     const trajectories = zerosND([periods + 1, wealthIndexSize]);
-    const wealthIndex = inputs.values.findIndex((num) => num >= startingWealth);
-
     trajectories.set(periodIndex, wealthIndex, 1.0)
 
     let bottom_this = wealthIndex;
@@ -25,20 +18,20 @@ export function computeTrajectories(inputs: TrajectoriesInputs, periodIndex: num
     for (let p = periodIndex; p < periods; p++) {
         bottom_next = Infinity;
         top_next = 0;
+
         for (let i = bottom_this; i < top_this; i++) {
-            bottom_next = Math.min(bottom_next, transitionBands.get(p, i, 0))
-            top_next = Math.max(top_next, transitionBands.get(p, i, 1))
+            const bandIndex = supportBandIndices[p].get(i);
+            const bandWidth = supportBandWidths[p].get(i)
+            
+            bottom_next = Math.min(bottom_next, bandIndex)
+            top_next = Math.max(top_next, bandIndex + bandWidth)
+
+            const probability_here = trajectories.get(p, i);
+            for (let j = 0; j < bandWidth; j++) {
+                const updated = trajectories.get(p + 1, bandIndex + j) + probability_here * values[p].get(i, j);
+                trajectories.set(p + 1, bandIndex + j, updated);
+            }
         }
-
-        const trajectoriesThisSlice = unsqueeze(trajectories.pick(p, null).hi(top_this).lo(bottom_this));
-
-        const transitionSlice = transitionValues.pick(p, null, null)
-            .hi(top_next, top_this)
-            .lo(bottom_next, bottom_this);
-
-        const trajectoriesNextSlice = unsqueeze(trajectories.pick(p + 1, null).hi(top_next).lo(bottom_next));
-
-        matrixProduct(trajectoriesNextSlice, transitionSlice, trajectoriesThisSlice);
 
         bottom_this = bottom_next;
         top_this = top_next;

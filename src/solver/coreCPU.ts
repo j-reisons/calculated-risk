@@ -4,7 +4,7 @@ import { CoreProblem, CoreSolution, TransitionTensor } from "./core";
 import { zerosND } from "./utils";
 
 
-export function solveCoreCPU({ transitionTensor, finalUtilities }: CoreProblem): CoreSolution {
+export function solveCore({ transitionTensor, finalUtilities }: CoreProblem): CoreSolution {
     const periods = transitionTensor.uniquePeriodIndices.length;
     const wealthSize = finalUtilities.length;
 

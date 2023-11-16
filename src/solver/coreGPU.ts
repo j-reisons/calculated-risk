@@ -2,7 +2,7 @@ import ndarray, { NdArray } from "ndarray";
 import { CoreProblem, CoreSolution, TransitionTensor } from "./core";
 import shaderSource from './coreGPU.wgsl?raw';
 
-export async function solveCoreGPU({ transitionTensor, finalUtilities }: CoreProblem): Promise<CoreSolution> {
+export async function solveCore({ transitionTensor, finalUtilities }: CoreProblem): Promise<CoreSolution> {
     const adapter = await navigator.gpu.requestAdapter();
     const device = await adapter!.requestDevice();
 

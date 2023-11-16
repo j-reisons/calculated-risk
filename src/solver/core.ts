@@ -9,13 +9,13 @@ import { NdArray } from "ndarray";
 // * The tensor has a band structure in the (starting_wealth, next_wealth) indices
 //   Only non-zero elements are stored, along with band locations and widths.
 export interface TransitionTensor {
-    // An array of dimension (unique_periods) of NdArrays of dimensions (starting_wealth, strategy, max_bandwidth)
+    // [unique_periods](starting_wealth, strategy, max_bandwidth)
     values: NdArray[];
-    // An array of dimension (unique_periods) of NdArrays of dimensions (starting_wealth, strategy)
     // Contains next_wealth indices marking the start of the band.
+    // [unique_periods](starting_wealth, strategy)
     supportBandIndices: NdArray[];
-    // An array of dimension (unique_periods) of NdArrays of dimensions (starting_wealth, strategy)
     // Contains bandwidths.
+    // [unique_periods](starting_wealth, strategy)
     supportBandWidths: NdArray[];
     // An array of dimension (periods) allowing to map from unique_periods to periods.
     // e.g. uniqueValueIndices = [0,0,0,0,0,1,1,1,1,1] indicates that the transition tensor
