@@ -1,3 +1,6 @@
 export default {
-  preset: 'ts-jest'
+  preset: 'ts-jest',
+  "moduleNameMapper": {
+    ".*\\.wgsl\\?raw": "jest-raw-loader"
+  }
 };

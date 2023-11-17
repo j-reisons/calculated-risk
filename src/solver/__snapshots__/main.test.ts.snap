@@ -9049,7 +9049,6 @@ exports[`Init with periods longer than cashflows 1`] = `
       1,
     ],
   ],
-  "extendedSolution": null,
   "optimalStrategies": [
     [
       0,
@@ -17494,6 +17493,7 @@ exports[`Init with periods longer than cashflows 1`] = `
       0,
     ],
   ],
+  "trajectoriesInputs": null,
 }
 `;
 
@@ -24737,7 +24737,6 @@ exports[`Init with periods shorter than cashflows 1`] = `
       1,
     ],
   ],
-  "extendedSolution": null,
   "optimalStrategies": [
     [
       0,
@@ -31373,6 +31372,7 @@ exports[`Init with periods shorter than cashflows 1`] = `
       0,
     ],
   ],
+  "trajectoriesInputs": null,
 }
 `;
 
@@ -41559,7 +41559,6 @@ exports[`Log cashflows 1`] = `
       14.698863983154297,
     ],
   ],
-  "extendedSolution": null,
   "optimalStrategies": [
     [
       0,
@@ -50958,6 +50957,7 @@ exports[`Log cashflows 1`] = `
       4,
     ],
   ],
+  "trajectoriesInputs": null,
 }
 `;
 
@@ -143224,7 +143224,6 @@ exports[`Log no cashflows 1`] = `
       12.922547340393066,
     ],
   ],
-  "extendedSolution": null,
   "optimalStrategies": [
     [
       0,
@@ -234883,6 +234882,7 @@ exports[`Log no cashflows 1`] = `
       4,
     ],
   ],
+  "trajectoriesInputs": null,
 }
 `;
 
@@ -242729,7 +242729,6 @@ exports[`The default problem is solved sensibly 1`] = `
       1,
     ],
   ],
-  "extendedSolution": null,
   "optimalStrategies": [
     [
       0,
@@ -249968,5 +249967,6 @@ exports[`The default problem is solved sensibly 1`] = `
       0,
     ],
   ],
+  "trajectoriesInputs": null,
 }
 `;

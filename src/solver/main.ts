@@ -2,8 +2,10 @@ import { NdArray } from "ndarray";
 import unpack from "ndarray-unpack";
 import { Strategy } from "../input/state";
 import { TransitionTensor } from "./core";
-import { solveCore } from "./coreGPU";
-import { computeTransitionTensor, extendWealthBins, replaceUnknownStrategies } from "./transform";
+import { solveCore as solveCoreCPU } from "./coreCPU";
+import { solveCore as solveCoreGPU } from "./coreGPU";
+import { computeTransitionTensor, extendWealthRange, replaceUnknownStrategies } from "./transform";
+
 
 export interface Problem {
     readonly wealthBoundaries: number[],
@@ -18,7 +20,7 @@ export interface Problem {
 export interface Solution {
     readonly optimalStrategies: number[][];
     readonly expectedUtilities: number[][];
-    trajectoriesInput: TrajectoriesInputs | null;
+    trajectoriesInputs: TrajectoriesInputs | null;
 }
 
 export interface TrajectoriesInputs {
@@ -28,34 +30,36 @@ export interface TrajectoriesInputs {
     readonly optimalStrategies: NdArray,
 }
 
-export async function solve(problem: Problem): Promise<Solution> {
-    const { boundaries, values, originalRange } = extendWealthBins(problem);
+export async function solve(originalProblem: Problem): Promise<Solution> {
+    const { problem, originalWealthRange: originalRange } = extendWealthRange(originalProblem);
 
-    const finalUtilities = values.map(problem.utilityFunction);
+    const transitionTensor = computeTransitionTensor(problem);
+
+    const finalUtilities = problem.wealthValues.map(problem.utilityFunction);
     finalUtilities[0] = 0;
 
-    const transitionTensor = computeTransitionTensor(problem.periods, boundaries, values, problem.strategies.map(s => s.CDF), problem.strategies.map(s => s.support), problem.cashflows);
+    let hasGPU = false;
+    try {
+        const adapter = await navigator.gpu?.requestAdapter();
+        const device = await adapter?.requestDevice();
+        if (device) {
+            hasGPU = true;
+        }
+    } catch (e) { e; }
 
-    // let hasGPU = false;
-    // try {
-    //     const adapter = await navigator.gpu?.requestAdapter();
-    //     const device = await adapter?.requestDevice();
-    //     if (device) {
-    //         hasGPU = true;
-    //     }
-    // } catch (e) { e; }
+    const { optimalStrategies, expectedUtilities } = hasGPU ?
+        await solveCoreGPU({ transitionTensor, finalUtilities }) :
+        solveCoreCPU({ transitionTensor, finalUtilities });
 
-    const { optimalStrategies, expectedUtilities } = await solveCore({ transitionTensor, finalUtilities });
     replaceUnknownStrategies(optimalStrategies);
 
-    // Recover original bins from the extended ones
     const clippedStrategies = optimalStrategies.hi(-1, originalRange[1]).lo(-1, originalRange[0]).transpose(1, 0);
     const clippedExpectedUtilities = expectedUtilities.hi(-1, originalRange[1]).lo(-1, originalRange[0]).transpose(1, 0);
 
     return {
         optimalStrategies: unpack(clippedStrategies) as number[][],
         expectedUtilities: unpack(clippedExpectedUtilities) as number[][],
-        trajectoriesInput: { boundaries, values, transitionTensor, optimalStrategies },
+        trajectoriesInputs: { boundaries: problem.wealthBoundaries, values: problem.wealthValues, transitionTensor, optimalStrategies },
     }
 }
 

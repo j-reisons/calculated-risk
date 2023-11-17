@@ -6,26 +6,29 @@ import { zerosND } from "./utils";
 
 // Pre and post-processing steps around the core solver.
 
-// Extend the original bins to create suitable boundary conditions.
-// Assign wealth values and utilities to all bins.
-// Provide index range of original bins in the extended ones.
-
-export interface ExtendedBins {
-    boundaries: number[],
-    values: number[],
-    originalRange: [number, number]
+// Extend the original wealth range to create suitable boundary conditions.
+export interface ExtendedProblem {
+    problem: Problem,
+    originalWealthRange: [number, number]
 }
-export function extendWealthBins(problem: Problem): ExtendedBins {
-    const coarseMin = problem.wealthBoundaries[problem.wealthBoundaries.length - 1];
-    const coarseMax = computeCoarseMax(problem);
-    const coarseStep = computeCoarseStep(problem);
+export function extendWealthRange(originalProblem: Problem): ExtendedProblem {
+    const coarseMin = originalProblem.wealthBoundaries[originalProblem.wealthBoundaries.length - 1];
+    const coarseMax = computeCoarseMax(originalProblem);
+    const coarseStep = computeCoarseStep(originalProblem);
     const coarseBoundaries = (range(Math.log(coarseMin), Math.log(coarseMax), Math.log(1 + coarseStep), true).valueOf() as number[]).map(Math.exp);
     const coarseValues = [...coarseBoundaries.keys()].slice(0, -1).map(i => (coarseBoundaries[i] + coarseBoundaries[i + 1]) / 2);
 
-    const boundaries = [-Number.MAX_VALUE, ...problem.wealthBoundaries, ...coarseBoundaries.slice(1), Number.MAX_VALUE];
-    const values = [problem.wealthValues[0], ...problem.wealthValues, ...coarseValues, coarseValues[coarseValues.length - 1]];
+    const wealthBoundaries = [-Number.MAX_VALUE, ...originalProblem.wealthBoundaries, ...coarseBoundaries.slice(1), Number.MAX_VALUE];
+    const wealthValues = [originalProblem.wealthValues[0], ...originalProblem.wealthValues, ...coarseValues, coarseValues[coarseValues.length - 1]];
 
-    return { boundaries, values, originalRange: [1, problem.wealthBoundaries.length + 1] };
+    return {
+        problem: {
+            ...originalProblem,
+            wealthBoundaries,
+            wealthValues
+        },
+        originalWealthRange: [1, originalProblem.wealthBoundaries.length + 1]
+    };
 }
 
 function computeCoarseStep(problem: Problem): number {
@@ -56,14 +59,10 @@ function computeCoarseMax(problem: Problem): number {
     return (originalMax + cashflowRunningSumMax) * Math.exp(Math.log(1 + maxStrategySize) * problem.periods);
 }
 
-export function computeTransitionTensor(
-    periods: number,
-    boundaries: number[],
-    values: number[],
-    strategyCDFs: ((r: number) => number)[],
-    supports: [number, number][],
-    cashflows: number[],
-): TransitionTensor {
+export function computeTransitionTensor({ periods, wealthBoundaries, wealthValues, strategies, cashflows }: Problem): TransitionTensor {
+    const strategyCDFs = strategies.map(s => s.CDF);
+    const supports = strategies.map(s => s.support);
+
     const uniqueCashflowIndices = new Map<number, number>()
     const uniquePeriodIndices = new Array<number>(periods);
     let u = 0;
@@ -81,20 +80,20 @@ export function computeTransitionTensor(
 
     for (const [cashflow, c] of uniqueCashflowIndices) {
         let maxBandwidth = 0;
-        supportBandIndices[c] = zerosND([values.length, strategyCDFs.length]);
-        supportBandWidths[c] = zerosND([values.length, strategyCDFs.length]);
+        supportBandIndices[c] = zerosND([wealthValues.length, strategyCDFs.length]);
+        supportBandWidths[c] = zerosND([wealthValues.length, strategyCDFs.length]);
         // Bankruptcy treatment, i.e. i=0
         for (let s = 0; s < strategyCDFs.length; s++) {
             supportBandIndices[c].set(0, s, 0);
             supportBandWidths[c].set(0, s, 1);
         }
-        for (let i = 1; i < values.length; i++) {
+        for (let i = 1; i < wealthValues.length; i++) {
             for (let s = 0; s < strategyCDFs.length; s++) {
                 const support = supports[s];
-                const wealthBottom = ((support[0] + 1) * values[i]) + cashflow;
-                const wealthTop = ((support[1] + 1) * values[i]) + cashflow;
-                const indexBottom = Math.max(binarySearch(boundaries, v => v > wealthBottom) - 2, 0); // I don't trust myself with the off-by-ones
-                const indexTop = Math.min(binarySearch(boundaries, v => v > wealthTop) + 1, values.length);
+                const wealthBottom = ((support[0] + 1) * wealthValues[i]) + cashflow;
+                const wealthTop = ((support[1] + 1) * wealthValues[i]) + cashflow;
+                const indexBottom = Math.max(binarySearch(wealthBoundaries, v => v > wealthBottom) - 2, 0); // I don't trust myself with the off-by-ones
+                const indexTop = Math.min(binarySearch(wealthBoundaries, v => v > wealthTop) + 1, wealthValues.length);
                 const bandWidth = indexTop - indexBottom;
                 supportBandIndices[c].set(i, s, indexBottom);
                 supportBandWidths[c].set(i, s, bandWidth);
@@ -102,21 +101,21 @@ export function computeTransitionTensor(
             }
         }
 
-        transitionValues[c] = zerosND([values.length, strategyCDFs.length, maxBandwidth]);
+        transitionValues[c] = zerosND([wealthValues.length, strategyCDFs.length, maxBandwidth]);
         for (let s = 0; s < strategyCDFs.length; s++) {
             transitionValues[c].set(0, s, 0, 1);
         }
-        for (let i = 1; i < values.length; i++) {
+        for (let i = 1; i < wealthValues.length; i++) {
             for (let s = 0; s < strategyCDFs.length; s++) {
                 const CDF = strategyCDFs[s];
                 const bandIndex = supportBandIndices[c].get(i, s);
                 const bandWidth = supportBandWidths[c].get(i, s);
 
                 let CDFbottom;
-                let CDFtop = CDF(((boundaries[bandIndex] - cashflow) / values[i]) - 1);
+                let CDFtop = CDF(((wealthBoundaries[bandIndex] - cashflow) / wealthValues[i]) - 1);
                 for (let j = 0; j < bandWidth; j++) {
                     CDFbottom = CDFtop;
-                    CDFtop = CDF(((boundaries[bandIndex + j + 1] - cashflow) / values[i]) - 1);
+                    CDFtop = CDF(((wealthBoundaries[bandIndex + j + 1] - cashflow) / wealthValues[i]) - 1);
                     transitionValues[c].set(i, s, j, CDFtop - CDFbottom);
                 }
             }
