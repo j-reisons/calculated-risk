@@ -17,7 +17,7 @@ export interface TransitionTensor {
     // Contains bandwidths.
     // [unique_periods](starting_wealth, strategy)
     supportBandWidths: NdArray[];
-    // An array of dimension (periods) allowing to map from unique_periods to periods.
+    // An array of dimension [periods] allowing to map from unique_periods to periods.
     // e.g. uniqueValueIndices = [0,0,0,0,0,1,1,1,1,1] indicates that the transition tensor
     // stays identical for periods 0->4 and 5->9, with values stored under values[0] and values[1] respectively.
     uniquePeriodIndices: number[];

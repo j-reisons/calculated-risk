@@ -1,6 +1,7 @@
 import unpack from "ndarray-unpack";
 import { Strategy } from "../input/state";
-import { solveCore } from "./coreCPU";
+import { solveCore as solveCoreCPU } from "./coreCPU";
+import { solveCore as solveCoreGPU } from "./coreGPU";
 import { OptimalTransitionTensor } from "./optimal-transition";
 import { indexOptimalTransitionTensor } from "./optimal-transitionCPU";
 import { computeTransitionTensor, extendWealthBins, replaceUnknownStrategies } from "./transform";
@@ -35,7 +36,17 @@ export async function solve(problem: Problem): Promise<Solution> {
 
     const transitionTensor = computeTransitionTensor(problem.periods, boundaries, values, problem.strategies.map(s => s.CDF), problem.strategies.map(s => s.support), problem.cashflows);
 
-    const coreSolution = solveCore({ transitionTensor, finalUtilities });
+    let coreSolution;
+    try {
+        const adapter = await navigator.gpu?.requestAdapter();
+        const device = await adapter?.requestDevice();
+        if (device) {
+            coreSolution = await solveCoreGPU({ transitionTensor, finalUtilities });
+        }
+    } catch (e) { e; }
+    if (coreSolution === undefined) {
+        coreSolution = solveCoreCPU({ transitionTensor, finalUtilities });
+    }
 
     const { optimalStrategies, expectedUtilities } = coreSolution;
 

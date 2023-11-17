@@ -1,6 +1,5 @@
 @group(0) @binding(0) var<uniform> nan : f32;
 @group(0) @binding(1) var<uniform> period : u32;
-// TODO : redo all the dimension indexing
 // starting_wealth, strategies, max_bandwidth
 @group(0) @binding(2) var<uniform> dimensions : vec3u;
 
