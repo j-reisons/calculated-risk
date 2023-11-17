@@ -24,7 +24,7 @@ test('The default problem is solved sensibly', async () => {
     }
 
     const solutionCPU: Solution = await solve(defaultProblem);
-    solutionCPU.extendedSolution = null;
+    solutionCPU.trajectoriesInput = null;
 
     saveDebugPage(defaultProblem, solutionCPU, "defaultProblem_CPU.html");
 
@@ -49,7 +49,7 @@ test('Init with periods shorter than cashflows', async () => {
     }
 
     const solutionCPU: Solution = await solve(defaultProblem);
-    solutionCPU.extendedSolution = null;
+    solutionCPU.trajectoriesInput = null;
 
     saveDebugPage(defaultProblem, solutionCPU, "shorter_CPU.html");
 
@@ -69,7 +69,7 @@ test('Init with periods longer than cashflows', async () => {
     }
 
     const solutionCPU: Solution = await solve(defaultProblem);
-    solutionCPU.extendedSolution = null;
+    solutionCPU.trajectoriesInput = null;
 
     saveDebugPage(defaultProblem, solutionCPU, "longer_CPU.html");
 
@@ -89,7 +89,7 @@ test('Log no cashflows', async () => {
     }
 
     const solutionCPU: Solution = await solve(defaultProblem);
-    solutionCPU.extendedSolution = null;
+    solutionCPU.trajectoriesInput = null;
 
     saveDebugPage(defaultProblem, solutionCPU, "log_CPU.html");
 
@@ -110,7 +110,7 @@ test('Log cashflows', async () => {
     }
 
     const solutionCPU: Solution = await solve(defaultProblem);
-    solutionCPU.extendedSolution = null;
+    solutionCPU.trajectoriesInput = null;
 
     saveDebugPage(defaultProblem, solutionCPU, "log_cashflows_CPU.html");
     expect(solutionCPU).toMatchSnapshot();

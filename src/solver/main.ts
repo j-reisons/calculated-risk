@@ -1,8 +1,8 @@
+import { NdArray } from "ndarray";
 import unpack from "ndarray-unpack";
 import { Strategy } from "../input/state";
-import { solveCore } from "./coreCPU";
-import { OptimalTransitionTensor } from "./optimal-transition";
-import { indexOptimalTransitionTensor } from "./optimal-transitionCPU";
+import { TransitionTensor } from "./core";
+import { solveCore } from "./coreGPU";
 import { computeTransitionTensor, extendWealthBins, replaceUnknownStrategies } from "./transform";
 
 export interface Problem {
@@ -18,13 +18,14 @@ export interface Problem {
 export interface Solution {
     readonly optimalStrategies: number[][];
     readonly expectedUtilities: number[][];
-    extendedSolution: TrajectoriesInputs | null;
+    trajectoriesInput: TrajectoriesInputs | null;
 }
 
 export interface TrajectoriesInputs {
     readonly boundaries: number[];
     readonly values: number[];
-    readonly optimalTransitionTensor: OptimalTransitionTensor;
+    readonly transitionTensor: TransitionTensor,
+    readonly optimalStrategies: NdArray,
 }
 
 export async function solve(problem: Problem): Promise<Solution> {
@@ -44,10 +45,8 @@ export async function solve(problem: Problem): Promise<Solution> {
     //     }
     // } catch (e) { e; }
 
-    const { optimalStrategies, expectedUtilities } = solveCore({ transitionTensor, finalUtilities });
-
+    const { optimalStrategies, expectedUtilities } = await solveCore({ transitionTensor, finalUtilities });
     replaceUnknownStrategies(optimalStrategies);
-    const optimalTransitionTensor = indexOptimalTransitionTensor(transitionTensor, optimalStrategies);
 
     // Recover original bins from the extended ones
     const clippedStrategies = optimalStrategies.hi(-1, originalRange[1]).lo(-1, originalRange[0]).transpose(1, 0);
@@ -56,12 +55,7 @@ export async function solve(problem: Problem): Promise<Solution> {
     return {
         optimalStrategies: unpack(clippedStrategies) as number[][],
         expectedUtilities: unpack(clippedExpectedUtilities) as number[][],
-        extendedSolution:
-        {
-            boundaries: boundaries,
-            values: values,
-            optimalTransitionTensor: await optimalTransitionTensor
-        },
+        trajectoriesInput: { boundaries, values, transitionTensor, optimalStrategies },
     }
 }
 

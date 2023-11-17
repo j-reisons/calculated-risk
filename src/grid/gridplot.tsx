@@ -76,13 +76,13 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
 
     useEffect(() => {
         if (trajectoriesInputState.startingPeriod && trajectoriesInputState.startingWealth && solution) {
-            const wealthIndex = solution.extendedSolution!.values.findIndex((num) => num >= trajectoriesInputState.startingWealth!);
+            const wealthIndex = solution.trajectoriesInput!.values.findIndex((num) => num >= trajectoriesInputState.startingWealth!);
             setTrajectoriesState(
                 {
                     startPeriod: trajectoriesInputState.startingPeriod - 1,
-                    extendedValues: solution.extendedSolution!.values,
-                    extendedBoundaries: solution.extendedSolution!.boundaries,
-                    extendedTrajectories: computeTrajectories(solution.extendedSolution!.optimalTransitionTensor, trajectoriesInputState.startingPeriod - 1, wealthIndex),
+                    extendedValues: solution.trajectoriesInput!.values,
+                    extendedBoundaries: solution.trajectoriesInput!.boundaries,
+                    extendedTrajectories: computeTrajectories(solution.trajectoriesInput!.transitionTensor, solution.trajectoriesInput!.optimalStrategies, trajectoriesInputState.startingPeriod - 1, wealthIndex),
                 }
             )
         } else {
@@ -110,7 +110,7 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
 
         if (trajectoriesState) {
             const quantiles = findQuantiles(trajectoriesState.extendedTrajectories, trajectoriesInputState.quantiles, trajectoriesState.startPeriod);
-            quantilesData = quantiles.flatMap(quantile => toPlotlyData(quantile, solution.extendedSolution!.boundaries, quantiles.length))
+            quantilesData = quantiles.flatMap(quantile => toPlotlyData(quantile, solution.trajectoriesInput!.boundaries, quantiles.length))
         }
     }
 

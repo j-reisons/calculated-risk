@@ -1,13 +1,18 @@
 import unpack from "ndarray-unpack";
 
-import { OptimalTransitionTensor } from "./optimal-transition";
+import { NdArray } from "ndarray";
+import { TransitionTensor } from "./core";
 import { zeros, zerosND } from "./utils";
 
 
-export function computeTrajectories({ values, supportBandIndices, supportBandWidths }: OptimalTransitionTensor, periodIndex: number, wealthIndex: number): number[][] {
-    const periods = values.length;
+export function computeTrajectories(
+    { values, supportBandIndices, supportBandWidths, uniquePeriodIndices }: TransitionTensor,
+    optimalStrategies: NdArray,
+    periodIndex: number,
+    wealthIndex: number): number[][] {
+    const periods = uniquePeriodIndices.length;
     const wealthIndexSize = values[0].shape[0];
-    
+
     const trajectories = zerosND([periods + 1, wealthIndexSize]);
     trajectories.set(periodIndex, wealthIndex, 1.0)
 
@@ -18,17 +23,23 @@ export function computeTrajectories({ values, supportBandIndices, supportBandWid
     for (let p = periodIndex; p < periods; p++) {
         bottom_next = Infinity;
         top_next = 0;
+        const u = uniquePeriodIndices[p];
+
+        const periodValues = values[u];
+        const periodBandIndices = supportBandIndices[u];
+        const periodBandWidths = supportBandWidths[u];
 
         for (let i = bottom_this; i < top_this; i++) {
-            const bandIndex = supportBandIndices[p].get(i);
-            const bandWidth = supportBandWidths[p].get(i)
-            
+            const s = optimalStrategies.get(p, i);
+            const bandIndex = periodBandIndices.get(i, s);
+            const bandWidth = periodBandWidths.get(i, s)
+
             bottom_next = Math.min(bottom_next, bandIndex)
             top_next = Math.max(top_next, bandIndex + bandWidth)
 
             const probability_here = trajectories.get(p, i);
             for (let j = 0; j < bandWidth; j++) {
-                const updated = trajectories.get(p + 1, bandIndex + j) + probability_here * values[p].get(i, j);
+                const updated = trajectories.get(p + 1, bandIndex + j) + probability_here * periodValues.get(i, s, j);
                 trajectories.set(p + 1, bandIndex + j, updated);
             }
         }
