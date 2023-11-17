@@ -36,21 +36,21 @@ export async function solve(problem: Problem): Promise<Solution> {
 
     const transitionTensor = computeTransitionTensor(problem.periods, boundaries, values, problem.strategies.map(s => s.CDF), problem.strategies.map(s => s.support), problem.cashflows);
 
-    let coreSolution;
+    let hasGPU = false;
     try {
         const adapter = await navigator.gpu?.requestAdapter();
         const device = await adapter?.requestDevice();
         if (device) {
-            coreSolution = await solveCoreGPU({ transitionTensor, finalUtilities });
+            hasGPU = true;
         }
     } catch (e) { e; }
-    if (coreSolution === undefined) {
-        coreSolution = solveCoreCPU({ transitionTensor, finalUtilities });
-    }
 
-    const { optimalStrategies, expectedUtilities } = coreSolution;
+    const { optimalStrategies, expectedUtilities } = hasGPU ?
+        await solveCoreGPU({ transitionTensor, finalUtilities })
+        : solveCoreCPU({ transitionTensor, finalUtilities });
 
     replaceUnknownStrategies(optimalStrategies);
+    const optimalTransitionTensor = indexOptimalTransitionTensor(transitionTensor, optimalStrategies);
 
     // Recover original bins from the extended ones
     const clippedStrategies = optimalStrategies.hi(-1, originalRange[1]).lo(-1, originalRange[0]).transpose(1, 0);
@@ -63,7 +63,7 @@ export async function solve(problem: Problem): Promise<Solution> {
         {
             boundaries: boundaries,
             values: values,
-            optimalTransitionTensor: indexOptimalTransitionTensor(transitionTensor, optimalStrategies)
+            optimalTransitionTensor: await optimalTransitionTensor
         },
     }
 }
