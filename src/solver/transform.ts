@@ -128,7 +128,7 @@ export function computeTransitionTensor(
 
 // NaN indices are output by the solver when multiple maxima are found.
 // This function overwrites NaN areas with values found either above or below them.
-// If values are present both above and below a NaN area they must match to be used for overwriting.
+// If values are present both above and below a NaN area the value above is picked.
 export function replaceUnknownStrategies(optimalStrategies: NdArray): void {
     for (let i = 0; i < optimalStrategies.shape[0]; i++) {
         const periodArray = optimalStrategies.pick(i, null);
@@ -142,14 +142,10 @@ export function replaceUnknownStrategies(optimalStrategies: NdArray): void {
                 while (j < periodArray.shape[0] && isNaN(periodArray.get(j))) j++;
                 strategyAbove = j == periodArray.shape[0] ? NaN : periodArray.get(j);
 
-                if (isNaN(strategyBelow)) {
-                    defaultStrategy = strategyAbove;
-                } else if (isNaN(strategyAbove)) {
-                    defaultStrategy = strategyBelow
-                } else if (strategyBelow == strategyAbove) {
-                    defaultStrategy = strategyBelow
+                if (isNaN(strategyAbove)) {
+                    defaultStrategy = strategyBelow;
                 } else {
-                    defaultStrategy = NaN;
+                    defaultStrategy = strategyAbove;
                 }
 
                 for (let index = start; index < j; index++) {
