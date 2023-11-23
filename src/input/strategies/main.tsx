@@ -1,3 +1,4 @@
+import isEqual from "lodash.isequal";
 import Plotly from "plotly.js-cartesian-dist";
 import React, { useState } from "react";
 import createPlotlyComponent from 'react-plotly.js/factory';
@@ -29,12 +30,15 @@ export const StrategiesForm = ({ gridState, strategiesState, setStrategiesState 
         const valid = arrayOrNull !== null && arrayOrNull.length > 0;
         if (valid) {
             const params = new URLSearchParams(window.location.search);
+            const oldStrategiesString = params.get(STRATEGIES_PARAM);
             params.set(STRATEGIES_PARAM, state.strategiesString);
             history.replaceState({}, "", '?' + params.toString())
-
-            setStrategiesState({ strategies: arrayOrNull })
+            if (!isEqual(oldStrategiesString, state.strategiesString)) {
+                setStrategiesState({ strategies: arrayOrNull });
+            }
         }
-        setState({ ...state, strategiesStringValid: valid })
+        const newState = { ...state, strategiesStringValid: valid };
+        setState(s => { return isEqual(s, newState) ? s : newState })
     }
 
     const traces = strategiesState.strategies.flatMap(s => toPlotlyData(s, gridState.wealthStep));

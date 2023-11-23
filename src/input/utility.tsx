@@ -1,3 +1,4 @@
+import isEqual from "lodash.isequal";
 import { cumsum } from "mathjs";
 import Plotly from "plotly.js-cartesian-dist";
 import React, { useState } from 'react';
@@ -19,24 +20,23 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
 
     const [state, setState] = useState<UtilityFormState>(initUtilityForm);
 
-    const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setState({
-            ...state,
-            utilityString: event.target.value,
-        })
-    }
+    const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => { setState({ ...state, utilityString: event.target.value }) }
 
-    const onFocus = () => { setState({ ...state, textAreaFocused: true }); }
+    const onFocus = () => { setState({ ...state, textAreaFocused: true }) }
 
     const onBlur = () => {
         const utilityOrNull = parseUtility(state.utilityString);
         if (utilityOrNull !== null) {
             const params = new URLSearchParams(window.location.search);
+            const oldUtilityString = params.get(UTILITY_PARAM);
             params.set(UTILITY_PARAM, state.utilityString);
             history.replaceState({}, "", '?' + params.toString())
 
-            setUtilityState({ utilityFunction: utilityOrNull });
+            if (!isEqual(oldUtilityString, state.utilityString)) {
+                setUtilityState({ utilityFunction: utilityOrNull });
+            }
         }
+
         setState({ ...state, textAreaFocused: false, utilityStringParses: utilityOrNull !== null });
     }
 

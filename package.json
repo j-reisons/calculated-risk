@@ -12,13 +12,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "lodash.isequal": "^4.5.0",
     "mathjs": "^11.9.0",
     "ndarray": "^1.0.19",
-    "ndarray-gemm": "^1.0.0",
-    "ndarray-matrix-vector-product": "^1.0.0",
     "ndarray-ops": "^1.2.2",
     "ndarray-unpack": "^1.0.0",
-    "ndarray-unsqueeze": "^1.0.3",
     "plotly.js-cartesian-dist": "^2.24.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -27,6 +25,7 @@
   "devDependencies": {
     "@types/bindings": "^1.5.2",
     "@types/jest": "^29.5.4",
+    "@types/lodash.isequal": "^4.5.8",
     "@types/mathjs": "^9.4.2",
     "@types/ndarray": "^1.0.14",
     "@types/ndarray-ops": "^1.2.7",

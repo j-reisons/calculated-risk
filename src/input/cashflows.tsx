@@ -1,3 +1,4 @@
+import isEqual from "lodash.isequal";
 import { range } from "mathjs";
 import Plotly from "plotly.js-cartesian-dist";
 import React, { useState } from 'react';
@@ -19,40 +20,21 @@ export const CashflowsForm = ({ gridState, cashflowsState, setCashflowsState }: 
 
     const [state, setState] = useState<CashflowsFormState>(initCashflowsForm);
 
-    const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setState({
-            ...state,
-            cashflowString: event.target.value,
-        })
-    }
+    const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => { setState({ ...state, cashflowString: event.target.value }) };
 
-    const onFocus = () => {
-        setState({
-            ...state,
-            cashflowStringValid: true,
-        })
-    }
+    const onFocus = () => { setState({ ...state, cashflowStringValid: true }) };
 
     const onBlur = () => {
         const arrayOrNull = parseCashflows(state.cashflowString);
-        if (arrayOrNull == null) {
-            setState({
-                ...state,
-                cashflowStringValid: false,
-            })
-        } else {
-            setState({
-                ...state,
-                cashflowStringValid: true,
-            });
+        const newState = { ...state, cashflowStringValid: !(arrayOrNull === null) };
+        setState(newState);
 
+        if (newState.cashflowStringValid) {
             const params = new URLSearchParams(window.location.search);
             params.set(CASHFLOWS_PARAM, state.cashflowString);
             history.replaceState({}, "", '?' + params.toString())
-
-            setCashflowsState({
-                cashflows: arrayOrNull
-            });
+            const newState = { cashflows: arrayOrNull! };
+            setCashflowsState(s => { return isEqual(s, newState) ? s : newState });
         }
     }
 

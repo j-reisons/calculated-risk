@@ -1,3 +1,4 @@
+import isEqual from 'lodash.isequal';
 import React, { useState } from 'react';
 import { initGridFormState } from '../InitState';
 import { GRID_PARAM, GridFormState, GridState, TRAJECTORIES_PARAM, TrajectoriesInputFormState, TrajectoriesInputState, logGrid } from './state';
@@ -14,32 +15,21 @@ export const SideForm = ({ trajectoriesInputFormState, setGridState, setTrajecto
     const [gridFormState, setGridFormState] = useState<GridFormState>(initGridFormState);
 
     const syncGridFormState = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setGridFormState(
-            {
-                ...gridFormState,
-                [event.target.id]: event.target.value
-            }
-        )
+        setGridFormState({ ...gridFormState, [event.target.id]: event.target.value });
     };
 
     const syncGridState = () => {
-        const gridOrNull = gridIfValid(gridFormState)
-        if (gridOrNull !== null) {
+        const newState = gridIfValid(gridFormState)
+        if (newState !== null) {
             const params = new URLSearchParams(window.location.search);
             params.set(GRID_PARAM, JSON.stringify(gridFormState));
             history.replaceState({}, "", '?' + params.toString())
-
-            setGridState(gridOrNull);
+            setGridState(s => { return isEqual(s, newState) ? s : newState });
         }
     }
 
     const syncTrajectoriesInputFormState = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setTrajectoriesInputFormState(
-            {
-                ...trajectoriesInputFormState,
-                [event.target.id]: event.target.value,
-            }
-        )
+        setTrajectoriesInputFormState({ ...trajectoriesInputFormState, [event.target.id]: event.target.value });
     };
 
     const handleCheckbox = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,13 +47,13 @@ export const SideForm = ({ trajectoriesInputFormState, setGridState, setTrajecto
     };
 
     const syncTrajectoriesInputState = () => {
-        const stateOrNull = trajectoriesInputStateIfValid(trajectoriesInputFormState, gridFormState)
-        if (stateOrNull !== null) {
+        const newState = trajectoriesInputStateIfValid(trajectoriesInputFormState, gridFormState);
+        if (newState !== null) {
             const params = new URLSearchParams(window.location.search);
             params.set(TRAJECTORIES_PARAM, JSON.stringify(trajectoriesInputFormState));
             history.replaceState({}, "", '?' + params.toString())
 
-            setTrajectoriesInputState(stateOrNull);
+            setTrajectoriesInputState(s => { return isEqual(s, newState) ? s : newState });
         }
     };
 
@@ -127,6 +117,7 @@ export const SideForm = ({ trajectoriesInputFormState, setGridState, setTrajecto
 
 export function gridIfValid(gridFormState: GridFormState): GridState | null {
     let wealthMin, wealthStep, wealthMax, periods: number;
+    if (!gridFormState.wealthStep.trim().endsWith("%")) return null;
 
     try {
         wealthMin = parseInt(gridFormState.wealthMin);
