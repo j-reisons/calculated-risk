@@ -1,4 +1,3 @@
-import { range } from "mathjs";
 import { NdArray } from "ndarray";
 import { TransitionTensor } from "./core";
 import { Problem } from "./main";
@@ -12,10 +11,7 @@ export interface ExtendedProblem {
     originalWealthRange: [number, number]
 }
 export function extendWealthRange(originalProblem: Problem): ExtendedProblem {
-    const coarseMin = originalProblem.wealthBoundaries[originalProblem.wealthBoundaries.length - 1];
-    const coarseMax = computeCoarseMax(originalProblem);
-    const coarseStep = computeCoarseStep(originalProblem);
-    const coarseBoundaries = (range(Math.log(coarseMin), Math.log(coarseMax), Math.log(1 + coarseStep), true).valueOf() as number[]).map(Math.exp);
+    const coarseBoundaries = computeCoarseBoundaries(originalProblem);
     const coarseValues = [...coarseBoundaries.keys()].slice(0, -1).map(i => (coarseBoundaries[i] + coarseBoundaries[i + 1]) / 2);
 
     const wealthBoundaries = [-Number.MAX_VALUE, ...originalProblem.wealthBoundaries, ...coarseBoundaries.slice(1), Number.MAX_VALUE];
@@ -31,32 +27,33 @@ export function extendWealthRange(originalProblem: Problem): ExtendedProblem {
     };
 }
 
-function computeCoarseStep(problem: Problem): number {
-    const minStrategySize = problem.strategies.reduce(
-        (minSize, strategy) => {
-            return Math.min(minSize, (Math.abs(strategy.location) + strategy.scale));
-        }
-        , Infinity);
-    return Math.max(minStrategySize, problem.wealthStep);
-}
-
-function computeCoarseMax(problem: Problem): number {
+function computeCoarseBoundaries(problem: Problem): number[] {
     const originalMax = problem.wealthBoundaries[problem.wealthBoundaries.length - 1];
-
     const cashflowRunningSumMax = problem.cashflows.reduce(
         (value, num) => {
             return { max: Math.max(value.max, value.sum + num), sum: value.sum + num }
         }
         , { max: 0, sum: 0 }).max;
 
-    const maxStrategySize = problem.strategies.reduce(
-        (maxSize, strategy) => {
-            return Math.max(maxSize, (strategy.location + strategy.scale));
+    const coarseNeeds = problem.strategies.map(
+        s => {
+            const multiplier = Math.exp(Math.log(1 + s.location) * problem.periods + Math.log(1 + s.scale) * Math.sqrt(problem.periods));
+            return {
+                coarseStep: Math.max(s.scale / 2, problem.wealthStep),
+                coarseMax: (originalMax + cashflowRunningSumMax) * multiplier
+            }
         }
-        , 0
-    );
+    ).sort((a, b) => a.coarseStep - b.coarseStep);
 
-    return (originalMax + cashflowRunningSumMax) * Math.exp(Math.log(1 + maxStrategySize) * problem.periods);
+    const logRange = [Math.log(problem.wealthBoundaries[problem.wealthBoundaries.length - 1])];
+    for (let i = 0; i < coarseNeeds.length; i++) {
+        const logStep = Math.log(1 + coarseNeeds[i].coarseStep);
+        const logMax = Math.log(coarseNeeds[i].coarseMax);
+        while (logRange[logRange.length - 1] < logMax) {
+            logRange.push(logRange[logRange.length - 1] + logStep);
+        }
+    }
+    return logRange.map(Math.exp);
 }
 
 export function computeTransitionTensor({ periods, wealthBoundaries, wealthValues, strategies, cashflows }: Problem): TransitionTensor {
