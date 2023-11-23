@@ -17493,7 +17493,8 @@ exports[`Init with periods longer than cashflows 1`] = `
       0,
     ],
   ],
-  "trajectoriesInputs": null,
+  "riskOfRuin": Any<Object>,
+  "trajectoriesInputs": Any<Object>,
 }
 `;
 
@@ -31372,7 +31373,8 @@ exports[`Init with periods shorter than cashflows 1`] = `
       0,
     ],
   ],
-  "trajectoriesInputs": null,
+  "riskOfRuin": Any<Object>,
+  "trajectoriesInputs": Any<Object>,
 }
 `;
 
@@ -50957,7 +50959,8 @@ exports[`Log cashflows 1`] = `
       4,
     ],
   ],
-  "trajectoriesInputs": null,
+  "riskOfRuin": Any<Object>,
+  "trajectoriesInputs": Any<Object>,
 }
 `;
 
@@ -234882,7 +234885,8 @@ exports[`Log no cashflows 1`] = `
       4,
     ],
   ],
-  "trajectoriesInputs": null,
+  "riskOfRuin": Any<Object>,
+  "trajectoriesInputs": Any<Object>,
 }
 `;
 
@@ -249967,6 +249971,7 @@ exports[`The default problem is solved sensibly 1`] = `
       0,
     ],
   ],
-  "trajectoriesInputs": null,
+  "riskOfRuin": Any<Object>,
+  "trajectoriesInputs": Any<Object>,
 }
 `;

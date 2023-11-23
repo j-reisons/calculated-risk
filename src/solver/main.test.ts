@@ -24,7 +24,6 @@ test('The default problem is solved sensibly', async () => {
     }
 
     const solutionCPU: Solution = await solve(defaultProblem);
-    solutionCPU.trajectoriesInputs = null;
 
     saveDebugPage(defaultProblem, solutionCPU, "defaultProblem_CPU.html");
 
@@ -33,7 +32,10 @@ test('The default problem is solved sensibly', async () => {
     // expect(solutionCPU.expectedUtilities).toBeApproxEqual2dArray(solutionGPU.expectedUtilities, 1E-6);
     // expect(solutionCPU.optimalStrategies).toBeApproxEqual2dArray(solutionGPU.optimalStrategies, 1E-6);
 
-    expect(solutionCPU).toMatchSnapshot();
+    expect(solutionCPU).toMatchSnapshot({
+        trajectoriesInputs: expect.any(Object),
+        riskOfRuin: expect.any(Object)
+    });
 }, 1000000);
 
 test('Init with periods shorter than cashflows', async () => {
@@ -49,11 +51,15 @@ test('Init with periods shorter than cashflows', async () => {
     }
 
     const solutionCPU: Solution = await solve(defaultProblem);
-    solutionCPU.trajectoriesInputs = null;
 
     saveDebugPage(defaultProblem, solutionCPU, "shorter_CPU.html");
 
-    expect(solutionCPU).toMatchSnapshot();
+    expect(solutionCPU).toMatchSnapshot(
+        {
+            trajectoriesInputs: expect.any(Object),
+            riskOfRuin: expect.any(Object)
+        }
+    );
 });
 
 test('Init with periods longer than cashflows', async () => {
@@ -69,11 +75,13 @@ test('Init with periods longer than cashflows', async () => {
     }
 
     const solutionCPU: Solution = await solve(defaultProblem);
-    solutionCPU.trajectoriesInputs = null;
 
     saveDebugPage(defaultProblem, solutionCPU, "longer_CPU.html");
 
-    expect(solutionCPU).toMatchSnapshot();
+    expect(solutionCPU).toMatchSnapshot({
+        trajectoriesInputs: expect.any(Object),
+        riskOfRuin: expect.any(Object)
+    });
 });
 
 test('Log no cashflows', async () => {
@@ -89,11 +97,13 @@ test('Log no cashflows', async () => {
     }
 
     const solutionCPU: Solution = await solve(defaultProblem);
-    solutionCPU.trajectoriesInputs = null;
 
     saveDebugPage(defaultProblem, solutionCPU, "log_CPU.html");
 
-    expect(solutionCPU).toMatchSnapshot();
+    expect(solutionCPU).toMatchSnapshot({
+        trajectoriesInputs: expect.any(Object),
+        riskOfRuin: expect.any(Object)
+    });
 });
 
 test('Log cashflows', async () => {
@@ -110,10 +120,14 @@ test('Log cashflows', async () => {
     }
 
     const solutionCPU: Solution = await solve(defaultProblem);
-    solutionCPU.trajectoriesInputs = null;
 
     saveDebugPage(defaultProblem, solutionCPU, "log_cashflows_CPU.html");
-    expect(solutionCPU).toMatchSnapshot();
+    expect(solutionCPU).toMatchSnapshot(
+        {
+            trajectoriesInputs: expect.any(Object),
+            riskOfRuin: expect.any(Object)
+        }
+    );
 }, 1000000);
 
 function saveDebugPage(problem: Problem, solution: Solution, filename: string) {

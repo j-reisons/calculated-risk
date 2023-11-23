@@ -4,7 +4,7 @@ import { Strategy } from "../input/state";
 import { TransitionTensor } from "./core";
 import { solveCore as solveCoreCPU } from "./coreCPU";
 import { solveCore as solveCoreGPU } from "./coreGPU";
-import { computeTransitionTensor, extendWealthRange, replaceUnknownStrategies } from "./transform";
+import { computeRiskOfRuin, computeTransitionTensor, extendWealthRange, replaceUnknownStrategies } from "./transform";
 
 
 export interface Problem {
@@ -20,7 +20,8 @@ export interface Problem {
 export interface Solution {
     readonly optimalStrategies: number[][];
     readonly expectedUtilities: number[][];
-    trajectoriesInputs: TrajectoriesInputs | null;
+    readonly riskOfRuin: number[][];
+    readonly trajectoriesInputs: TrajectoriesInputs;
 }
 
 export interface TrajectoriesInputs {
@@ -52,13 +53,16 @@ export async function solve(originalProblem: Problem): Promise<Solution> {
         solveCoreCPU({ transitionTensor, finalUtilities });
 
     replaceUnknownStrategies(optimalStrategies);
+    const riskofRuin = computeRiskOfRuin(transitionTensor, optimalStrategies);
 
     const clippedStrategies = optimalStrategies.hi(-1, originalRange[1]).lo(-1, originalRange[0]).transpose(1, 0);
     const clippedExpectedUtilities = expectedUtilities.hi(-1, originalRange[1]).lo(-1, originalRange[0]).transpose(1, 0);
+    const clippedRiskOfRuin = riskofRuin.hi(-1, originalRange[1]).lo(-1, originalRange[0]).transpose(1, 0);
 
     return {
         optimalStrategies: unpack(clippedStrategies) as number[][],
         expectedUtilities: unpack(clippedExpectedUtilities) as number[][],
+        riskOfRuin: unpack(clippedRiskOfRuin) as number[][],
         trajectoriesInputs: { boundaries: problem.wealthBoundaries, values: problem.wealthValues, transitionTensor, optimalStrategies },
     }
 }

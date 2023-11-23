@@ -76,13 +76,13 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
 
     useEffect(() => {
         if (trajectoriesInputState.startingPeriod && trajectoriesInputState.startingWealth && solution) {
-            const wealthIndex = solution.trajectoriesInputs!.values.findIndex((num) => num >= trajectoriesInputState.startingWealth!);
+            const wealthIndex = solution.trajectoriesInputs.values.findIndex((num) => num >= trajectoriesInputState.startingWealth!);
             setTrajectoriesState(
                 {
                     startPeriod: trajectoriesInputState.startingPeriod - 1,
-                    extendedValues: solution.trajectoriesInputs!.values,
-                    extendedBoundaries: solution.trajectoriesInputs!.boundaries,
-                    extendedTrajectories: computeTrajectories(solution.trajectoriesInputs!.transitionTensor, solution.trajectoriesInputs!.optimalStrategies, trajectoriesInputState.startingPeriod - 1, wealthIndex),
+                    extendedValues: solution.trajectoriesInputs.values,
+                    extendedBoundaries: solution.trajectoriesInputs.boundaries,
+                    extendedTrajectories: computeTrajectories(solution.trajectoriesInputs.transitionTensor, solution.trajectoriesInputs.optimalStrategies, trajectoriesInputState.startingPeriod - 1, wealthIndex),
                 }
             )
         } else {
@@ -102,15 +102,15 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
                 y: gridState.wealthValues,
                 z: solution.optimalStrategies,
                 colorscale: computeColorScale(strategiesState.strategies),
-                customdata: customData(solution.expectedUtilities, solution.optimalStrategies, strategiesState.strategies.map(s => s.name)) as unknown as Plotly.Datum[][],
-                hovertemplate: "Period: %{x:.0f}<br>Wealth: %{y:.4s}<br>Strategy: %{customdata[0]}<br>Utility: %{customdata[1]:.4g}",
+                customdata: customData(solution.expectedUtilities, solution.riskOfRuin, solution.optimalStrategies, strategiesState.strategies.map(s => s.name)) as unknown as Plotly.Datum[][],
+                hovertemplate: "Period: %{x:.0f}<br>Wealth: %{y:.4s}<br>Strategy: %{customdata[0]}<br>Utility: %{customdata[1]:.4g}<br>Risk of ruin: %{customdata[2]:.2%}",
                 type: 'heatmap',
                 showscale: false,
             } as Plotly.Data];
 
         if (trajectoriesState) {
             const quantiles = findQuantiles(trajectoriesState.extendedTrajectories, trajectoriesInputState.quantiles, trajectoriesState.startPeriod);
-            quantilesData = quantiles.flatMap(quantile => toPlotlyData(quantile, solution.trajectoriesInputs!.boundaries, quantiles.length))
+            quantilesData = quantiles.flatMap(quantile => toPlotlyData(quantile, solution.trajectoriesInputs.boundaries, quantiles.length))
         }
     }
 
@@ -168,14 +168,15 @@ function toPlotlyData(quantileTraces: QuantileTraces, wealthBoundaries: number[]
 
 const TOTAL_ALPHA = 0.7
 
-function customData(expectedUtilities: number[][], optimalStrategies: number[][], strategyNames: string[]) {
+function customData(expectedUtilities: number[][], riskOfRuin: number[][], optimalStrategies: number[][], strategyNames: string[]) {
     if (expectedUtilities.length == 0) return [];
-    const customData = zeros(expectedUtilities.length, expectedUtilities[0].length).valueOf() as (number | string)[][][];
+    const customData = zeros(expectedUtilities.length, expectedUtilities[0].length).valueOf() as [string, number, number][][];
     for (let i = 0; i < expectedUtilities.length; i++) {
         for (let j = 0; j < expectedUtilities[0].length; j++) {
-            customData[i][j] = new Array<number | string>(2);
-            customData[i][j][0] = strategyNames[optimalStrategies[i][j]] || "Unknown";
-            customData[i][j][1] = expectedUtilities[i][j];
+            customData[i][j] = [
+                strategyNames[optimalStrategies[i][j]] || "Unknown",
+                expectedUtilities[i][j],
+                riskOfRuin[i][j]];
         }
     }
     return customData;

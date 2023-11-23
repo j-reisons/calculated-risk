@@ -156,6 +156,41 @@ export function replaceUnknownStrategies(optimalStrategies: NdArray): void {
     }
 }
 
+export function computeRiskOfRuin({ values, supportBandIndices, supportBandWidths, uniquePeriodIndices }: TransitionTensor, optimalStrategies: NdArray): NdArray {
+    const periods = uniquePeriodIndices.length;
+    const wealthIndexSize = values[0].shape[0];
+    const riskOfRuin = zerosND([periods + 1, wealthIndexSize]);
+    riskOfRuin.set(periods, 0, 1.0);
+
+    let top_this = 0;
+    let top_next = 1;
+
+    for (let p = periods - 1; p >= 0; p--) {
+        const u = uniquePeriodIndices[p];
+
+        const periodValues = values[u];
+        const periodBandIndices = supportBandIndices[u];
+        const periodBandWidths = supportBandWidths[u];
+
+        for (let i = 0; i < wealthIndexSize; i++) {
+            const s = optimalStrategies.get(p, i);
+            const bandIndex = periodBandIndices.get(i, s);
+            if (bandIndex > top_next) continue;
+            const bandWidth = periodBandWidths.get(i, s)
+            const top = Math.min(bandWidth, top_next - bandIndex);
+            let sum = 0;
+            for (let j = 0; j < top; j++) {
+                sum += periodValues.get(i, s, j) * riskOfRuin.get(p + 1, bandIndex + j);
+            }
+            top_this = i;
+            riskOfRuin.set(p, i, sum);
+        }
+        top_next = top_this;
+    }
+
+    return riskOfRuin;
+}
+
 function binarySearch(arr: number[], predicate: (v: number) => boolean): number {
     let low = 0;
     let high = arr.length - 1;
