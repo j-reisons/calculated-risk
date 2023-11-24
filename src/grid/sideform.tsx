@@ -5,12 +5,14 @@ import { GRID_PARAM, GridFormState, GridState, TRAJECTORIES_PARAM, TrajectoriesI
 
 export interface SideFormProps {
     trajectoriesInputFormState: TrajectoriesInputFormState;
+    pickOnClick: boolean;
     setGridState: React.Dispatch<React.SetStateAction<GridState>>;
     setTrajectoriesInputFormState: React.Dispatch<React.SetStateAction<TrajectoriesInputFormState>>;
     setTrajectoriesInputState: React.Dispatch<React.SetStateAction<TrajectoriesInputState>>;
+    setPickOnClick: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export const SideForm = ({ trajectoriesInputFormState, setGridState, setTrajectoriesInputFormState, setTrajectoriesInputState }: SideFormProps) => {
+export const SideForm = ({ trajectoriesInputFormState, pickOnClick, setGridState, setTrajectoriesInputFormState, setTrajectoriesInputState, setPickOnClick }: SideFormProps) => {
 
     const [gridFormState, setGridFormState] = useState<GridFormState>(initGridFormState);
 
@@ -32,19 +34,7 @@ export const SideForm = ({ trajectoriesInputFormState, setGridState, setTrajecto
         setTrajectoriesInputFormState({ ...trajectoriesInputFormState, [event.target.id]: event.target.value });
     };
 
-    const handleCheckbox = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const newState = {
-            ...trajectoriesInputFormState,
-            [event.target.id]: event.target.checked,
-        };
-
-        const params = new URLSearchParams(window.location.search);
-        params.set(TRAJECTORIES_PARAM, JSON.stringify(newState));
-        history.replaceState({}, "", '?' + params.toString())
-
-        setTrajectoriesInputFormState(newState);
-        setTrajectoriesInputState(state => { return { ...state, pickOnClick: event.target.checked } });
-    };
+    const handlePickOnClick = (event: React.ChangeEvent<HTMLInputElement>) => { setPickOnClick(event.target.checked); };
 
     const syncTrajectoriesInputState = () => {
         const newState = trajectoriesInputStateIfValid(trajectoriesInputFormState, gridFormState);
@@ -108,8 +98,8 @@ export const SideForm = ({ trajectoriesInputFormState, setGridState, setTrajecto
                     id="quantiles" name="quantiles"
                     pattern="^\s*(\d+(\.\d+)?%)(\s*,\s*(\d+(\.\d+)?%))*\s*$" /></div>
 
-            <input type="checkbox" id="pickOnClick" name="pickOnClick" checked={trajectoriesInputFormState.pickOnClick}
-                onChange={handleCheckbox} />
+            <input type="checkbox" id="pickOnClick" name="pickOnClick" checked={pickOnClick}
+                onChange={handlePickOnClick} />
             <label htmlFor="pickOnClick"> Pick-on-click</label>
         </div>
     )
@@ -144,13 +134,11 @@ export function trajectoriesInputStateIfValid(trajectoriesInputFormState: Trajec
 
     let startingWealth, startingPeriod: number | null;
     let quantiles: number[];
-    let pickOnClick: boolean;
 
     try {
         startingWealth = parseInt(trajectoriesInputFormState.startingWealth);
         startingPeriod = parseInt(trajectoriesInputFormState.startingPeriod);
         quantiles = trajectoriesInputFormState.quantiles.split(',').map(s => s.replace('%', '')).map(s => parseFloat(s) / 100);
-        pickOnClick = trajectoriesInputFormState.pickOnClick;
     }
     catch (e) {
         return null
@@ -163,5 +151,5 @@ export function trajectoriesInputStateIfValid(trajectoriesInputFormState: Trajec
     startingWealth = isNaN(startingWealth) ? null : startingWealth;
     startingPeriod = isNaN(startingPeriod) ? null : startingPeriod;
 
-    return { startingWealth, startingPeriod, quantiles, pickOnClick }
+    return { startingWealth, startingPeriod, quantiles }
 }

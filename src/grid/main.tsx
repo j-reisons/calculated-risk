@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { initTrajectoriesInputFormState, initTrajectoriesInputState } from "../InitState";
+import { initPickOnClick, initTrajectoriesInputFormState, initTrajectoriesInputState } from "../InitState";
 import { CashflowsState, StrategiesState, UtilityState } from "../input/state";
 import { GridPlot } from "./gridplot";
 import "./main.css";
@@ -21,20 +21,24 @@ export const Grid = ({ gridState, strategiesState, cashflowsState, utilityState,
 
     const [trajectoriesInputState, setTrajectoriesInputState] = useState<TrajectoriesInputState>(initTrajectoriesInputState);
     const [trajectoriesInputFormState, setTrajectoriesInputFormState] = useState<TrajectoriesInputFormState>(initTrajectoriesInputFormState);
+    const [pickOnClick, setPickOnClick] = useState<boolean>(initPickOnClick);
 
     return (
         <div className="grid">
             <SideForm
                 trajectoriesInputFormState={trajectoriesInputFormState}
+                pickOnClick={pickOnClick}
                 setGridState={setGridState}
                 setTrajectoriesInputFormState={setTrajectoriesInputFormState}
-                setTrajectoriesInputState={setTrajectoriesInputState} />
+                setTrajectoriesInputState={setTrajectoriesInputState}
+                setPickOnClick={setPickOnClick} />
             <GridPlot
                 gridState={gridState}
                 strategiesState={strategiesState}
                 cashflowsState={cashflowsState}
                 utilityState={utilityState}
                 trajectoriesInputState={trajectoriesInputState}
+                pickOnClick={pickOnClick}
                 trajectoriesState={trajectoriesState}
                 setTrajectoriesInputState={setTrajectoriesInputState}
                 setTrajectoriesInputFormState={setTrajectoriesInputFormState}

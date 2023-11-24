@@ -22,13 +22,11 @@ export interface TrajectoriesInputFormState {
     readonly startingWealth: string;
     readonly startingPeriod: string;
     readonly quantiles: string;
-    readonly pickOnClick: boolean;
 }
 export interface TrajectoriesInputState {
     readonly startingWealth: number | null,
     readonly startingPeriod: number | null,
     readonly quantiles: number[],
-    readonly pickOnClick: boolean;
 }
 
 export interface TrajectoriesState {

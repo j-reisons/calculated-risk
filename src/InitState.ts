@@ -18,6 +18,7 @@ const parsedTrajectories = trajectoriesString ? JSON.parse(trajectoriesString) :
 const validTrajectories = parsedTrajectories ? trajectoriesInputStateIfValid(parsedTrajectories, initGridFormState) : null;
 export const initTrajectoriesInputFormState: TrajectoriesInputFormState = validTrajectories ? parsedTrajectories : defaultTrajectoriesInputForm
 export const initTrajectoriesInputState: TrajectoriesInputState = validTrajectories ? validTrajectories : defaultTrajectoriesInputState;
+export const initPickOnClick: boolean = false;
 
 
 const cashflowsString = searchParams.get(CASHFLOWS_PARAM);

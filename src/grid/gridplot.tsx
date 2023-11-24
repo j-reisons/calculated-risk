@@ -15,13 +15,14 @@ export interface GridPlotProps {
     readonly cashflowsState: CashflowsState,
     readonly utilityState: UtilityState,
     readonly trajectoriesInputState: TrajectoriesInputState;
+    readonly pickOnClick: boolean;
     readonly trajectoriesState: TrajectoriesState | null;
     readonly setTrajectoriesInputFormState: React.Dispatch<React.SetStateAction<TrajectoriesInputFormState>>;
     readonly setTrajectoriesInputState: React.Dispatch<React.SetStateAction<TrajectoriesInputState>>;
     readonly setTrajectoriesState: React.Dispatch<React.SetStateAction<TrajectoriesState | null>>;
 }
 
-export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilityState, trajectoriesInputState, trajectoriesState, setTrajectoriesInputFormState, setTrajectoriesInputState, setTrajectoriesState }: GridPlotProps) => {
+export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilityState, trajectoriesInputState, pickOnClick, trajectoriesState, setTrajectoriesInputFormState, setTrajectoriesInputState, setTrajectoriesState }: GridPlotProps) => {
 
     const [solution, setSolution] = useState<Solution | null>(null);
 
@@ -50,27 +51,11 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
 
         setTrajectoriesInputFormState(
             state => {
-                if (state.pickOnClick) {
-                    return {
-                        ...state,
-                        startingWealth: wealth.toString(),
-                        startingPeriod: period.toString(),
-                    }
-                } else {
-                    return state;
-                }
+                return pickOnClick ? { ...state, startingWealth: wealth.toString(), startingPeriod: period.toString() } : state;
             });
         setTrajectoriesInputState(
             state => {
-                if (state.pickOnClick) {
-                    return {
-                        ...state,
-                        startingWealth: wealth,
-                        startingPeriod: period,
-                    }
-                } else {
-                    return state;
-                }
+                return pickOnClick ? { ...state, startingWealth: wealth, startingPeriod: period } : state;
             });
     }
 
