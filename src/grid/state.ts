@@ -17,17 +17,16 @@ export interface GridState {
     readonly wealthValues: number[];
 }
 
-export const TRAJECTORIES_PARAM = "trajectories";
-export interface TrajectoriesInputFormState {
+export const START_PARAM = "start";
+export interface TrajectoriesStartFormState {
     readonly startingWealth: string;
     readonly startingPeriod: string;
-    readonly quantiles: string;
 }
-export interface TrajectoriesInputState {
+export interface TrajectoriesStartState {
     readonly startingWealth: number | null,
     readonly startingPeriod: number | null,
-    readonly quantiles: number[],
 }
+export const QUANTILES_PARAM = "quantiles";
 
 export interface TrajectoriesState {
     readonly startPeriod: number;

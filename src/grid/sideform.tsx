@@ -1,18 +1,21 @@
 import isEqual from 'lodash.isequal';
 import React, { useState } from 'react';
 import { initGridFormState } from '../InitState';
-import { GRID_PARAM, GridFormState, GridState, TRAJECTORIES_PARAM, TrajectoriesInputFormState, TrajectoriesInputState, logGrid } from './state';
+import { GRID_PARAM, GridFormState, GridState, QUANTILES_PARAM, START_PARAM, TrajectoriesStartFormState, TrajectoriesStartState, logGrid } from './state';
 
 export interface SideFormProps {
-    trajectoriesInputFormState: TrajectoriesInputFormState;
+    trajectoriesStartFormState: TrajectoriesStartFormState;
+    quantilesString: string;
     pickOnClick: boolean;
     setGridState: React.Dispatch<React.SetStateAction<GridState>>;
-    setTrajectoriesInputFormState: React.Dispatch<React.SetStateAction<TrajectoriesInputFormState>>;
-    setTrajectoriesInputState: React.Dispatch<React.SetStateAction<TrajectoriesInputState>>;
+    setTrajectoriesStartFormState: React.Dispatch<React.SetStateAction<TrajectoriesStartFormState>>;
+    setQuantilesString: React.Dispatch<React.SetStateAction<string>>;
+    setTrajectoriesStartState: React.Dispatch<React.SetStateAction<TrajectoriesStartState>>;
+    setQuantiles: React.Dispatch<React.SetStateAction<number[]>>;
     setPickOnClick: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export const SideForm = ({ trajectoriesInputFormState, pickOnClick, setGridState, setTrajectoriesInputFormState, setTrajectoriesInputState, setPickOnClick }: SideFormProps) => {
+export const SideForm = ({ trajectoriesStartFormState, quantilesString, pickOnClick, setGridState, setTrajectoriesStartFormState, setQuantilesString, setTrajectoriesStartState, setQuantiles, setPickOnClick }: SideFormProps) => {
 
     const [gridFormState, setGridFormState] = useState<GridFormState>(initGridFormState);
 
@@ -30,22 +33,33 @@ export const SideForm = ({ trajectoriesInputFormState, pickOnClick, setGridState
         }
     }
 
-    const syncTrajectoriesInputFormState = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setTrajectoriesInputFormState({ ...trajectoriesInputFormState, [event.target.id]: event.target.value });
+    const syncTrajectoriesStartFormState = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setTrajectoriesStartFormState({ ...trajectoriesStartFormState, [event.target.id]: event.target.value });
     };
 
-    const handlePickOnClick = (event: React.ChangeEvent<HTMLInputElement>) => { setPickOnClick(event.target.checked); };
-
-    const syncTrajectoriesInputState = () => {
-        const newState = trajectoriesInputStateIfValid(trajectoriesInputFormState, gridFormState);
+    const syncTrajectoriesStartState = () => {
+        const newState = trajectoriesStartStateIfValid(trajectoriesStartFormState, gridFormState);
         if (newState !== null) {
             const params = new URLSearchParams(window.location.search);
-            params.set(TRAJECTORIES_PARAM, JSON.stringify(trajectoriesInputFormState));
+            params.set(START_PARAM, JSON.stringify(trajectoriesStartFormState));
             history.replaceState({}, "", '?' + params.toString())
 
-            setTrajectoriesInputState(s => { return isEqual(s, newState) ? s : newState });
+            setTrajectoriesStartState(s => { return isEqual(s, newState) ? s : newState });
         }
     };
+
+    const syncQuantilesString = (event: React.ChangeEvent<HTMLInputElement>) => { setQuantilesString(event.target.value) }
+    const syncQuantiles = () => {
+        const newState = quantilesIfValid(quantilesString);
+        if (newState !== null) {
+            const params = new URLSearchParams(window.location.search);
+            params.set(QUANTILES_PARAM, quantilesString);
+            history.replaceState({}, "", '?' + params.toString())
+            setQuantiles(s => { return isEqual(s, newState) ? s : newState });
+        }
+    }
+
+    const handlePickOnClick = (event: React.ChangeEvent<HTMLInputElement>) => { setPickOnClick(event.target.checked); };
 
 
     return (
@@ -81,20 +95,20 @@ export const SideForm = ({ trajectoriesInputFormState, pickOnClick, setGridState
             <h4>Trajectories</h4>
 
             <div>Starting wealth
-                <br /> <input type="text" inputMode="numeric" value={trajectoriesInputFormState.startingWealth}
-                    onChange={syncTrajectoriesInputFormState} onBlur={syncTrajectoriesInputState}
+                <br /> <input type="text" inputMode="numeric" value={trajectoriesStartFormState.startingWealth}
+                    onChange={syncTrajectoriesStartFormState} onBlur={syncTrajectoriesStartState}
                     id="startingWealth" name="startingWealth"
                     pattern="^\d+$" /></div>
 
             <div>Starting period
-                <br /> <input type="text" inputMode="numeric" value={trajectoriesInputFormState.startingPeriod}
-                    onChange={syncTrajectoriesInputFormState} onBlur={syncTrajectoriesInputState}
+                <br /> <input type="text" inputMode="numeric" value={trajectoriesStartFormState.startingPeriod}
+                    onChange={syncTrajectoriesStartFormState} onBlur={syncTrajectoriesStartState}
                     id="startingPeriod" name="startingPeriod"
                     pattern="^\d+$" /></div>
 
             <div>Quantiles
-                <br /><input type="text" inputMode="numeric" value={trajectoriesInputFormState.quantiles}
-                    onChange={syncTrajectoriesInputFormState} onBlur={syncTrajectoriesInputState}
+                <br /><input type="text" inputMode="numeric" value={quantilesString}
+                    onChange={syncQuantilesString} onBlur={syncQuantiles}
                     id="quantiles" name="quantiles"
                     pattern="^\s*(\d+(\.\d+)?%)(\s*,\s*(\d+(\.\d+)?%))*\s*$" /></div>
 
@@ -128,17 +142,15 @@ export function gridIfValid(gridFormState: GridFormState): GridState | null {
     return logGrid(wealthMin, wealthMax, wealthStep, periods);
 }
 
-export function trajectoriesInputStateIfValid(trajectoriesInputFormState: TrajectoriesInputFormState, gridFormState: GridFormState): TrajectoriesInputState | null {
+export function trajectoriesStartStateIfValid(trajectoriesStartFormState: TrajectoriesStartFormState, gridFormState: GridFormState): TrajectoriesStartState | null {
     const gridState = gridIfValid(gridFormState);
     if (gridState == null) return null;
 
     let startingWealth, startingPeriod: number | null;
-    let quantiles: number[];
 
     try {
-        startingWealth = parseInt(trajectoriesInputFormState.startingWealth);
-        startingPeriod = parseInt(trajectoriesInputFormState.startingPeriod);
-        quantiles = trajectoriesInputFormState.quantiles.split(',').map(s => s.replace('%', '')).map(s => parseFloat(s) / 100);
+        startingWealth = parseInt(trajectoriesStartFormState.startingWealth);
+        startingPeriod = parseInt(trajectoriesStartFormState.startingPeriod);
     }
     catch (e) {
         return null
@@ -146,10 +158,19 @@ export function trajectoriesInputStateIfValid(trajectoriesInputFormState: Trajec
 
     if (startingWealth > gridState.wealthMax || startingWealth < gridState.wealthMin) return null;
     if (startingPeriod > gridState.periods || startingPeriod <= 0) return null;
-    if (!quantiles.every(q => q >= 0 && q <= 1)) return null;
 
     startingWealth = isNaN(startingWealth) ? null : startingWealth;
     startingPeriod = isNaN(startingPeriod) ? null : startingPeriod;
 
-    return { startingWealth, startingPeriod, quantiles }
+    return { startingWealth, startingPeriod }
+}
+
+export function quantilesIfValid(quantilesString: string): number[] | null {
+    let quantiles: number[];
+    try { quantiles = quantilesString.split(',').map(s => s.replace('%', '')).map(s => parseFloat(s) / 100); }
+    catch (e) { return null; }
+
+    if (!quantiles.every(q => q >= 0 && q <= 1)) return null;
+
+    return quantiles;
 }

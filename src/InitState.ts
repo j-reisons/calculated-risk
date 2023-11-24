@@ -1,6 +1,6 @@
-import { defaultCashflows, defaultCashflowsForm, defaultGridForm, defaultGridState, defaultStrategies, defaultStrategiesForm, defaultTrajectoriesInputForm, defaultTrajectoriesInputState, defaultUtility, defaultUtilityFormState } from "./DefaultState";
-import { gridIfValid, trajectoriesInputStateIfValid } from "./grid/sideform";
-import { GRID_PARAM, GridFormState, GridState, TRAJECTORIES_PARAM, TrajectoriesInputFormState, TrajectoriesInputState } from "./grid/state";
+import { defaultCashflows, defaultCashflowsForm, defaultGridForm, defaultGridState, defaultQuantiles, defaultQuantilesString, defaultStrategies, defaultStrategiesForm, defaultTrajectoriesStartForm, defaultTrajectoriesStartState, defaultUtility, defaultUtilityFormState } from "./DefaultState";
+import { gridIfValid, quantilesIfValid, trajectoriesStartStateIfValid } from "./grid/sideform";
+import { GRID_PARAM, GridFormState, GridState, QUANTILES_PARAM, START_PARAM, TrajectoriesStartFormState, TrajectoriesStartState } from "./grid/state";
 import { CASHFLOWS_PARAM, CashflowsFormState, CashflowsState, STRATEGIES_PARAM, StrategiesFormState, StrategiesState, UTILITY_PARAM, parseCashflows, parseUtility } from "./input/state";
 import { compileStrategiesArray } from "./input/strategies/compiler";
 
@@ -13,13 +13,18 @@ export const initGridFormState: GridFormState = validGrid ? parsedGrid : default
 export const initGridState: GridState = validGrid ? validGrid : defaultGridState;
 
 
-const trajectoriesString = searchParams.get(TRAJECTORIES_PARAM);
-const parsedTrajectories = trajectoriesString ? JSON.parse(trajectoriesString) : null;
-const validTrajectories = parsedTrajectories ? trajectoriesInputStateIfValid(parsedTrajectories, initGridFormState) : null;
-export const initTrajectoriesInputFormState: TrajectoriesInputFormState = validTrajectories ? parsedTrajectories : defaultTrajectoriesInputForm
-export const initTrajectoriesInputState: TrajectoriesInputState = validTrajectories ? validTrajectories : defaultTrajectoriesInputState;
-export const initPickOnClick: boolean = false;
+const startString = searchParams.get(START_PARAM);
+const parsedStart = startString ? JSON.parse(startString) : null;
+const validStart = parsedStart ? trajectoriesStartStateIfValid(parsedStart, initGridFormState) : null;
+export const initTrajectoriesStartFormState: TrajectoriesStartFormState = validStart ? parsedStart : defaultTrajectoriesStartForm;
+export const initTrajectoriesStartState: TrajectoriesStartState = validStart ? validStart : defaultTrajectoriesStartState;
 
+const quantilesString = searchParams.get(QUANTILES_PARAM);
+const validQuantiles = quantilesString ? quantilesIfValid(quantilesString) : null;
+export const initQuantilesString = validQuantiles ? quantilesString : defaultQuantilesString;
+export const initQuantiles = validQuantiles ? validQuantiles : defaultQuantiles;
+
+export const initPickOnClick: boolean = false;
 
 const cashflowsString = searchParams.get(CASHFLOWS_PARAM);
 const parsedCashflows = cashflowsString ? parseCashflows(cashflowsString) : null;

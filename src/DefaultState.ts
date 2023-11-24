@@ -11,18 +11,18 @@ export const defaultGridForm = {
 export const defaultGridState = logGrid(1000, 400000, 0.01, 10);
 
 
-export const defaultTrajectoriesInputForm = {
+export const defaultTrajectoriesStartForm = {
     startingWealth: "70000",
     startingPeriod: "1",
-    quantiles: "68%, 95%, 99%",
-    pickOnClick: true,
 };
-export const defaultTrajectoriesInputState = {
+export const defaultTrajectoriesStartState = {
     startingWealth: 70000,
     startingPeriod: 1,
-    quantiles: [0.68, 0.95, 0.99],
-    pickOnClick: true,
 };
+
+
+export const defaultQuantilesString = "68%, 95%, 99%";
+export const defaultQuantiles = [0.68, 0.95, 0.99];
 
 
 export const defaultCashflowsForm = {

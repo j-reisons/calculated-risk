@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { initPickOnClick, initTrajectoriesInputFormState, initTrajectoriesInputState } from "../InitState";
+import { initPickOnClick, initQuantiles, initQuantilesString, initTrajectoriesStartFormState, initTrajectoriesStartState } from "../InitState";
 import { CashflowsState, StrategiesState, UtilityState } from "../input/state";
 import { GridPlot } from "./gridplot";
 import "./main.css";
 import { SideForm } from "./sideform";
-import { GridState, TrajectoriesInputFormState, TrajectoriesInputState, TrajectoriesState } from "./state";
+import { GridState, TrajectoriesStartFormState, TrajectoriesStartState, TrajectoriesState } from "./state";
 
 export interface GridProps {
     gridState: GridState;
@@ -19,29 +19,35 @@ export interface GridProps {
 export const Grid = ({ gridState, strategiesState, cashflowsState, utilityState, trajectoriesState,
     setGridState, setTrajectoriesState }: GridProps) => {
 
-    const [trajectoriesInputState, setTrajectoriesInputState] = useState<TrajectoriesInputState>(initTrajectoriesInputState);
-    const [trajectoriesInputFormState, setTrajectoriesInputFormState] = useState<TrajectoriesInputFormState>(initTrajectoriesInputFormState);
+    const [trajectoriesStartState, setTrajectoriesStartState] = useState<TrajectoriesStartState>(initTrajectoriesStartState);
+    const [trajectoriesStartFormState, setTrajectoriesStartFormState] = useState<TrajectoriesStartFormState>(initTrajectoriesStartFormState);
+    const [quantilesString, setQuantilesString] = useState<string>(initQuantilesString!);
+    const [quantiles, setQuantiles] = useState<number[]>(initQuantiles);
     const [pickOnClick, setPickOnClick] = useState<boolean>(initPickOnClick);
 
     return (
         <div className="grid">
             <SideForm
-                trajectoriesInputFormState={trajectoriesInputFormState}
+                trajectoriesStartFormState={trajectoriesStartFormState}
+                quantilesString={quantilesString}
                 pickOnClick={pickOnClick}
                 setGridState={setGridState}
-                setTrajectoriesInputFormState={setTrajectoriesInputFormState}
-                setTrajectoriesInputState={setTrajectoriesInputState}
+                setTrajectoriesStartFormState={setTrajectoriesStartFormState}
+                setQuantilesString={setQuantilesString}
+                setTrajectoriesStartState={setTrajectoriesStartState}
+                setQuantiles={setQuantiles}
                 setPickOnClick={setPickOnClick} />
             <GridPlot
                 gridState={gridState}
                 strategiesState={strategiesState}
                 cashflowsState={cashflowsState}
                 utilityState={utilityState}
-                trajectoriesInputState={trajectoriesInputState}
+                quantiles={quantiles}
+                trajectoriesStartState={trajectoriesStartState}
                 pickOnClick={pickOnClick}
                 trajectoriesState={trajectoriesState}
-                setTrajectoriesInputState={setTrajectoriesInputState}
-                setTrajectoriesInputFormState={setTrajectoriesInputFormState}
+                setTrajectoriesStartState={setTrajectoriesStartState}
+                setTrajectoriesStartFormState={setTrajectoriesStartFormState}
                 setTrajectoriesState={setTrajectoriesState} />
         </div>)
 }

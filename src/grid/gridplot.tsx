@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import createPlotlyComponent from 'react-plotly.js/factory';
 import { CashflowsState, StrategiesState, Strategy, UtilityState } from "../input/state";
 import { Problem, Solution, solve } from "../solver/main";
-import { QuantileTraces, computeTrajectories, findQuantiles } from "../solver/trajectories";
-import { GridState, RdBu, TrajectoriesInputFormState, TrajectoriesInputState, TrajectoriesState, interpolateColor } from "./state";
+import { QuantileLocations, computeTrajectories, findQuantiles } from "../solver/trajectories";
+import { GridState, RdBu, TrajectoriesStartFormState, TrajectoriesStartState, TrajectoriesState, interpolateColor } from "./state";
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -14,15 +14,16 @@ export interface GridPlotProps {
     readonly strategiesState: StrategiesState,
     readonly cashflowsState: CashflowsState,
     readonly utilityState: UtilityState,
-    readonly trajectoriesInputState: TrajectoriesInputState;
+    readonly trajectoriesStartState: TrajectoriesStartState;
+    readonly quantiles: number[];
     readonly pickOnClick: boolean;
     readonly trajectoriesState: TrajectoriesState | null;
-    readonly setTrajectoriesInputFormState: React.Dispatch<React.SetStateAction<TrajectoriesInputFormState>>;
-    readonly setTrajectoriesInputState: React.Dispatch<React.SetStateAction<TrajectoriesInputState>>;
+    readonly setTrajectoriesStartFormState: React.Dispatch<React.SetStateAction<TrajectoriesStartFormState>>;
+    readonly setTrajectoriesStartState: React.Dispatch<React.SetStateAction<TrajectoriesStartState>>;
     readonly setTrajectoriesState: React.Dispatch<React.SetStateAction<TrajectoriesState | null>>;
 }
 
-export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilityState, trajectoriesInputState, pickOnClick, trajectoriesState, setTrajectoriesInputFormState, setTrajectoriesInputState, setTrajectoriesState }: GridPlotProps) => {
+export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilityState, trajectoriesStartState, quantiles, pickOnClick, trajectoriesState, setTrajectoriesStartFormState, setTrajectoriesStartState, setTrajectoriesState }: GridPlotProps) => {
 
     const [solution, setSolution] = useState<Solution | null>(null);
 
@@ -44,39 +45,39 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
         solveProblem();
     }, [gridState, strategiesState, cashflowsState, utilityState, setTrajectoriesState])
 
-    const clickHandler = (data: Plotly.PlotMouseEvent) => {
-        const index = data.points[0].pointIndex as unknown as number[];
-        const wealth = Math.floor(gridState.wealthValues[index[0]]);
-        const period = index[1] + 1;
-
-        setTrajectoriesInputFormState(
-            state => {
-                return pickOnClick ? { ...state, startingWealth: wealth.toString(), startingPeriod: period.toString() } : state;
-            });
-        setTrajectoriesInputState(
-            state => {
-                return pickOnClick ? { ...state, startingWealth: wealth, startingPeriod: period } : state;
-            });
-    }
-
     useEffect(() => {
-        if (trajectoriesInputState.startingPeriod && trajectoriesInputState.startingWealth && solution) {
-            const wealthIndex = solution.trajectoriesInputs.values.findIndex((num) => num >= trajectoriesInputState.startingWealth!);
+        if (trajectoriesStartState.startingPeriod && trajectoriesStartState.startingWealth && solution) {
+            const wealthIndex = solution.trajectoriesInputs.values.findIndex((num) => num >= trajectoriesStartState.startingWealth!);
             setTrajectoriesState(
                 {
-                    startPeriod: trajectoriesInputState.startingPeriod - 1,
+                    startPeriod: trajectoriesStartState.startingPeriod - 1,
                     extendedValues: solution.trajectoriesInputs.values,
                     extendedBoundaries: solution.trajectoriesInputs.boundaries,
-                    extendedTrajectories: computeTrajectories(solution.trajectoriesInputs.transitionTensor, solution.trajectoriesInputs.optimalStrategies, trajectoriesInputState.startingPeriod - 1, wealthIndex),
+                    extendedTrajectories: computeTrajectories(solution.trajectoriesInputs.transitionTensor, solution.trajectoriesInputs.optimalStrategies, trajectoriesStartState.startingPeriod - 1, wealthIndex),
                 }
             )
         } else {
             setTrajectoriesState(null);
         }
-    }, [solution, trajectoriesInputState, setTrajectoriesState])
+    }, [solution, trajectoriesStartState, setTrajectoriesState])
+
+    const clickHandler = (data: Plotly.PlotMouseEvent) => {
+        const index = data.points[0].pointIndex as unknown as number[];
+        const wealth = Math.floor(gridState.wealthValues[index[0]]);
+        const period = index[1] + 1;
+
+        setTrajectoriesStartFormState(
+            state => {
+                return pickOnClick ? { startingWealth: wealth.toString(), startingPeriod: period.toString() } : state;
+            });
+        setTrajectoriesStartState(
+            state => {
+                return pickOnClick ? { startingWealth: wealth, startingPeriod: period } : state;
+            });
+    }
 
     let heatmapData: Plotly.Data[] = [];
-    let quantilesData: Plotly.Data[] = [];
+    let quantileData: Plotly.Data[] = [];
 
     if (solution) {
         heatmapData = [
@@ -94,13 +95,13 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
             } as Plotly.Data];
 
         if (trajectoriesState) {
-            const quantiles = findQuantiles(trajectoriesState.extendedTrajectories, trajectoriesInputState.quantiles, trajectoriesState.startPeriod);
-            quantilesData = quantiles.flatMap(quantile => toPlotlyData(quantile, solution.trajectoriesInputs.boundaries, quantiles.length))
+            const quantileLocations = findQuantiles(trajectoriesState.extendedTrajectories, quantiles, trajectoriesState.startPeriod);
+            quantileData = quantileLocations.flatMap(quantile => toPlotlyData(quantile, solution.trajectoriesInputs.boundaries, quantileLocations.length))
         }
     }
 
     const traces: Plotly.Data[] = [
-        ...quantilesData,
+        ...quantileData,
         ...heatmapData];
 
     const layout: Partial<Plotly.Layout> = {
@@ -127,24 +128,24 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
     )
 }
 
-function toPlotlyData(quantileTraces: QuantileTraces, wealthBoundaries: number[], quantileCount: number): Plotly.Data[] {
+function toPlotlyData(quantileLocations: QuantileLocations, wealthBoundaries: number[], quantileCount: number): Plotly.Data[] {
     const alpha = 1 - Math.exp(Math.log(1 - TOTAL_ALPHA) / quantileCount)
     return [
         {
-            x: quantileTraces.x,
-            y: quantileTraces.y_bottom.map(y => wealthBoundaries[y]),
+            x: quantileLocations.x,
+            y: quantileLocations.y_bottom.map(y => wealthBoundaries[y]),
             line: { color: "transparent" },
-            name: "p=" + quantileTraces.probability,
+            name: "p=" + quantileLocations.probability,
             showlegend: false,
             type: "scatter"
         },
         {
-            x: quantileTraces.x,
-            y: quantileTraces.y_top.map(y => wealthBoundaries[y]),
+            x: quantileLocations.x,
+            y: quantileLocations.y_top.map(y => wealthBoundaries[y]),
             fill: "tonexty",
             fillcolor: `rgba(100,100,100,${alpha})`,
             line: { color: "transparent" },
-            name: "p=" + quantileTraces.probability,
+            name: "p=" + quantileLocations.probability,
             showlegend: false,
             type: "scatter"
         }
