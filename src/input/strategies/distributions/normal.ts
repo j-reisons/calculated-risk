@@ -31,11 +31,11 @@ export class Normal implements Distribution {
     }
 }
 
-function normalCDF(mean: number, vola: number): (r: number) => number {
+export function normalCDF(mean: number, vola: number): (r: number) => number {
     return (r: number) => { return 0.5 * (1 + cachedErf((r - mean) / (SQRT_2 * vola))) }
 }
 
-function normalPDF(mean: number, vola: number): (r: number) => number {
+export function normalPDF(mean: number, vola: number): (r: number) => number {
     return (r: number) => {
         const exponent = - (((r - mean) / vola) ** 2) / 2;
         return Math.exp(exponent) / (vola * SQRT_2_PI);

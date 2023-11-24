@@ -154,13 +154,15 @@ function xValues(strategy: Strategy, step: number): number[] {
             deduped.push(allPoints[i]);
         }
     }
-    return deduped;
+    const result = deduped.filter(x => x > strategy.support[0] && x < strategy.support[1]);
+    return result;
 }
 
 const RANGE_SCALES_LAYOUT = 5;
 
 function getXrange(strategies: Strategy[]): [number, number] {
-    return strategies.map(s => [s.location - RANGE_SCALES_LAYOUT * s.scale, s.location + RANGE_SCALES_LAYOUT * s.scale]).reduce(
+    return strategies.map(s => [Math.max(s.location - RANGE_SCALES_LAYOUT * s.scale, s.support[0]),
+    Math.min(s.location + RANGE_SCALES_LAYOUT * s.scale, s.support[1])]).reduce(
         (acc, arr) => [Math.min(acc[0], arr[0]), Math.max(acc[1], arr[1])], [0, 0]
     ) as [number, number];
 }

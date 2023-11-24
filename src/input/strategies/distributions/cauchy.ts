@@ -30,17 +30,15 @@ export class Cauchy implements Distribution {
 
 }
 
-const PI = 3.14159265359;
-const ONE_OVER_PI = 0.31830988618;
-
 function cauchyPDF(location: number, scale: number): (r: number) => number {
     return (r: number) => {
         const scaledDelta = (r - location) / scale;
         const denom = 1 + scaledDelta ** 2;
-        return 1 / (PI * scale * denom);
+        return 1 / (Math.PI * scale * denom);
     }
 }
 
+const ONE_OVER_PI = 1 / Math.PI;
 function cauchyCDF(location: number, scale: number): (r: number) => number {
     return (r: number) => {
         const scaledDelta = (r - location) / scale;

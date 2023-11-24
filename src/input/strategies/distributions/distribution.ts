@@ -1,6 +1,7 @@
 import { Delta } from "../../state";
 import { Cauchy } from "./cauchy";
 import { DeltaDist } from "./delta";
+import { LogNormal } from "./lognormal";
 import { Normal } from "./normal";
 
 export interface Distribution {
@@ -23,7 +24,8 @@ const factories: { [key: string]: (args: number[]) => Distribution | null } =
 {
     'normal': Normal.createArgs,
     'delta': DeltaDist.createArgs,
-    'cauchy': Cauchy.createArgs
+    'cauchy': Cauchy.createArgs,
+    'lognormal': LogNormal.createArgs
 };
 
 export function createDistribution(name: string, args: number[]): Distribution | null {
