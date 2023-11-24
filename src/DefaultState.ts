@@ -42,11 +42,11 @@ export const defaultStrategiesForm = {
 }
 export const defaultStrategies = {
     strategies: [
-        { name: 'cash', ...Normal.create(0.01, 0.01), colorIndex: 0 },
-        { name: 'e_25', ...Normal.create(0.02, 0.05), colorIndex: 0.25 },
-        { name: 'e_50', ...Normal.create(0.03, 0.1), colorIndex: 0.5 },
-        { name: 'e_75', ...Normal.create(0.04, 0.15), colorIndex: 0.75 },
-        { name: 'e_100', ...Normal.create(0.05, 0.2), colorIndex: 1.0 }
+        { name: 'cash', ...Normal.createArgs([0.01, 0.01])!, colorIndex: 0 },
+        { name: 'e_25', ...Normal.createArgs([0.02, 0.05])!, colorIndex: 0.25 },
+        { name: 'e_50', ...Normal.createArgs([0.03, 0.1])!, colorIndex: 0.5 },
+        { name: 'e_75', ...Normal.createArgs([0.04, 0.15])!, colorIndex: 0.75 },
+        { name: 'e_100', ...Normal.createArgs([0.05, 0.2])!, colorIndex: 1.0 }
     ]
 };
 

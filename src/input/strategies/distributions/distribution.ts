@@ -1,4 +1,5 @@
 import { Delta } from "../../state";
+import { Cauchy } from "./cauchy";
 import { DeltaDist } from "./delta";
 import { Normal } from "./normal";
 
@@ -21,7 +22,8 @@ export interface WeightedDistribution {
 const factories: { [key: string]: (args: number[]) => Distribution | null } =
 {
     'normal': Normal.createArgs,
-    'delta': DeltaDist.createArgs
+    'delta': DeltaDist.createArgs,
+    'cauchy': Cauchy.createArgs
 };
 
 export function createDistribution(name: string, args: number[]): Distribution | null {

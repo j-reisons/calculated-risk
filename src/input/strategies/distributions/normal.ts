@@ -26,10 +26,6 @@ export class Normal implements Distribution {
     static createArgs(args: number[]): Distribution | null {
         if (args.length != 2) return null;
         const [mean, vola] = args;
-        return Normal.create(mean, vola);
-    }
-
-    static create(mean: number, vola: number): Distribution {
         if (vola == 0) return new DeltaDist(mean);
         return new Normal(mean, vola);
     }

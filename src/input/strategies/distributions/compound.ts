@@ -16,7 +16,7 @@ export class Compound implements Distribution {
         this.CDF = compoundCdf(components);
         this.location = compoundLocation(components);
         this.scale = compoundScale(components);
-        this.support = compoundFiveNines(components);
+        this.support = compoundSupport(components);
         this.pointsOfInterest = compoundPointsOfInterest(components);
         this.deltas = compoundDeltas(components);
     }
@@ -33,7 +33,7 @@ function compoundScale(components: WeightedDistribution[]): number {
     return Math.sqrt(secondMoment - compoundLocation(components) ** 2);
 }
 
-function compoundFiveNines(components: WeightedDistribution[]): [number, number] {
+function compoundSupport(components: WeightedDistribution[]): [number, number] {
     return components.reduce((acc, c) => {
         return [Math.min(acc[0], c.distribution.support[0]), Math.max(acc[1], c.distribution.support[1])]
     }, [0, 0])

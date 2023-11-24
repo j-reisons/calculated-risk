@@ -42,11 +42,15 @@ export const StrategiesForm = ({ gridState, strategiesState, setStrategiesState 
     }
 
     const traces = strategiesState.strategies.flatMap(s => toPlotlyData(s, gridState.wealthStep));
+    const xRange = getXrange(strategiesState.strategies);
     const margin = 30;
     const layout: Partial<Plotly.Layout> = {
         height: 250,
         width: 400,
         margin: { t: margin, l: margin, r: margin, b: margin },
+        xaxis: {
+            range: xRange,
+        },
         yaxis: {
             showticklabels: false
         }
@@ -81,8 +85,6 @@ function toPlotlyData(strategy: Strategy, step: number): Plotly.Data[] {
     const CDF = x.map(strategy.CDF);
 
     const color = interpolateColor(strategy.colorIndex, RdBu);
-
-    // TODO: compute the CDF
 
     const pdfTrace = {
         name: strategy.name,
@@ -124,7 +126,7 @@ function toPlotlyData(strategy: Strategy, step: number): Plotly.Data[] {
     return [pdfTrace, ...deltaTraces];
 }
 
-const RANGE_SCALES = 5;
+const RANGE_SCALES_POINTS = 20;
 const POINTS_PER_SIDE_POI = 5;
 
 function xValues(strategy: Strategy, step: number): number[] {
@@ -132,7 +134,7 @@ function xValues(strategy: Strategy, step: number): number[] {
 
     const allPoints = [];
 
-    const pointsPerSide = Math.ceil((scale * RANGE_SCALES) / step);
+    const pointsPerSide = Math.ceil((scale * RANGE_SCALES_POINTS) / step);
     const start = location - step * pointsPerSide;
     for (let i = 0; i < pointsPerSide * 2 + 1; i++) {
         allPoints.push(start + i * step);
@@ -153,4 +155,12 @@ function xValues(strategy: Strategy, step: number): number[] {
         }
     }
     return deduped;
+}
+
+const RANGE_SCALES_LAYOUT = 5;
+
+function getXrange(strategies: Strategy[]): [number, number] {
+    return strategies.map(s => [s.location - RANGE_SCALES_LAYOUT * s.scale, s.location + RANGE_SCALES_LAYOUT * s.scale]).reduce(
+        (acc, arr) => [Math.min(acc[0], arr[0]), Math.max(acc[1], arr[1])], [0, 0]
+    ) as [number, number];
 }
