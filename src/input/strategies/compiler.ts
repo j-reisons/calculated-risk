@@ -4,7 +4,7 @@ import { Compound } from "./distributions/compound";
 import { Distribution, WeightedDistribution, createDistribution } from "./distributions/distribution";
 
 export function compileStrategiesArray(strategiesString: string): (Strategy[] | null) {
-    const lines = strategiesString.split("\n");
+    const lines = strategiesString.split("\n").filter(s => s.trim() !== "");
     const strategies: Strategy[] = [];
 
     for (let i = 0; i < lines.length; i++) {
