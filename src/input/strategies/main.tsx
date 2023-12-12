@@ -58,9 +58,7 @@ export const StrategiesForm = ({ gridState, strategiesState, setStrategiesState 
 
     return (
         <div className="container">
-            <div className="instructions">
-                <div className="title">Strategies</div>
-                Lorem ipsum dolor sit amet</div>
+            <div className="title">Strategies</div>
             <textarea className={"input-box"}
                 style={!state.strategiesStringValid ? { borderColor: "red" } : {}}
                 placeholder={'# Create some strategies, e.g. \ncash = Normal(1%,1%)\ncoinflip = 0.5*delta(1) + 0.5*delta(-1)'}

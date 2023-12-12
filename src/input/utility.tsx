@@ -73,9 +73,7 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
 
     return (
         <div className="container">
-            <div className="instructions">
-                <div className="title">Utility</div>
-                Lorem ipsum dolor sit amet</div>
+            <div className="title">Utility</div>
             <textarea className={"input-box"}
                 style={redBorder ? { borderColor: "red" } : {}}
                 placeholder={'# Assign Utility(w), e.g. \nUtility(w) = step(w - 100000)'}

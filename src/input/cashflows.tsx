@@ -65,9 +65,7 @@ export const CashflowsForm = ({ gridState, cashflowsState, setCashflowsState }: 
 
     return (
         <div className="container">
-            <div className="instructions">
-                <div className="title">Cashflows</div>
-                Lorem ipsum dolor sit amet</div>
+            <div className="title">Cashflows</div>
             <textarea className={"input-box"}
                 style={!state.cashflowStringValid ? { borderColor: "red" } : {}}
                 placeholder={'# Assign cashflows, e.g. \ncashflows = [1,2,3]'}
