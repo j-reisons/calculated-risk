@@ -32,7 +32,7 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
             strategies: strategiesState.strategies,
             wealthBoundaries: gridState.wealthBoundaries,
             wealthValues: gridState.wealthValues,
-            wealthStep: gridState.wealthStep,
+            logStep: gridState.logStep,
             periods: gridState.periods,
             cashflows: cashflowsState.cashflows,
             utilityFunction: utilityState.utilityFunction,

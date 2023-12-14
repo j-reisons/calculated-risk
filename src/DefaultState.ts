@@ -1,14 +1,14 @@
-import { logGrid } from "./grid/state";
+import { linLogGrid } from "./grid/state";
 import { step } from "./input/state";
 import { Normal } from "./input/strategies/distributions/normal";
 
 export const defaultGridForm = {
-    wealthMin: "1000",
+    linStep: "1000",
     wealthMax: "400000",
-    wealthStep: "1%",
+    logStep: "1%",
     periods: "10",
 }
-export const defaultGridState = logGrid(1000, 400000, 0.01, 10);
+export const defaultGridState = linLogGrid(1000, 400000, 0.01, 10);
 
 
 export const defaultTrajectoriesStartForm = {

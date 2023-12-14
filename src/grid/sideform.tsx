@@ -1,7 +1,7 @@
 import isEqual from 'lodash.isequal';
 import React, { useState } from 'react';
 import { initGridFormState } from '../InitState';
-import { GRID_PARAM, GridFormState, GridState, QUANTILES_PARAM, START_PARAM, TrajectoriesStartFormState, TrajectoriesStartState, logGrid } from './state';
+import { GRID_PARAM, GridFormState, GridState, QUANTILES_PARAM, START_PARAM, TrajectoriesStartFormState, TrajectoriesStartState, linLogGrid } from './state';
 
 export interface SideFormProps {
     trajectoriesStartFormState: TrajectoriesStartFormState;
@@ -73,17 +73,17 @@ export const SideForm = ({ trajectoriesStartFormState, quantilesString, pickOnCl
                     id="wealthMax" name="wealthMax"
                     pattern="^\d+$" /></div>
 
-            <div>Wealth step
+            <div>Wealth step - log
                 <br />
-                <input type="text" inputMode="numeric" value={gridFormState.wealthStep}
+                <input type="text" inputMode="numeric" value={gridFormState.logStep}
                     onChange={syncGridFormState} onBlur={syncGridState}
-                    id="wealthStep" name="wealthStep"
+                    id="logStep" name="logStep"
                     pattern="^\d+(\.\d+)?%$" /></div>
 
-            <div>Wealth min
-                <br /> <input type="text" inputMode="numeric" value={gridFormState.wealthMin}
+            <div>Wealth step - lin
+                <br /> <input type="text" inputMode="numeric" value={gridFormState.linStep}
                     onChange={syncGridFormState} onBlur={syncGridState}
-                    id="wealthMin" name="wealthMin"
+                    id="linStep" name="linStep"
                     pattern="^\d+$" /></div>
 
             <div>Periods
@@ -120,12 +120,12 @@ export const SideForm = ({ trajectoriesStartFormState, quantilesString, pickOnCl
 }
 
 export function gridIfValid(gridFormState: GridFormState): GridState | null {
-    let wealthMin, wealthStep, wealthMax, periods: number;
-    if (!gridFormState.wealthStep.trim().endsWith("%")) return null;
+    let linStep, wealthStep, wealthMax, periods: number;
+    if (!gridFormState.logStep.trim().endsWith("%")) return null;
 
     try {
-        wealthMin = parseInt(gridFormState.wealthMin);
-        wealthStep = parseFloat(gridFormState.wealthStep.replace('%', '')) / 100;
+        linStep = parseInt(gridFormState.linStep);
+        wealthStep = parseFloat(gridFormState.logStep.replace('%', '')) / 100;
         wealthMax = parseInt(gridFormState.wealthMax);
         periods = parseInt(gridFormState.periods);
     }
@@ -133,13 +133,13 @@ export function gridIfValid(gridFormState: GridFormState): GridState | null {
         return null;
     }
 
-    if (wealthMin < 0) return null;
-    if (wealthMin >= wealthMax) return null;
+    if (linStep < 0) return null;
+    if (linStep >= wealthMax) return null;
     if (wealthMax <= 0) return null;
     if (wealthStep <= 0) return null;
     if (periods <= 0) return null;
 
-    return logGrid(wealthMin, wealthMax, wealthStep, periods);
+    return linLogGrid(linStep, wealthMax, wealthStep, periods);
 }
 
 export function trajectoriesStartStateIfValid(trajectoriesStartFormState: TrajectoriesStartFormState, gridFormState: GridFormState): TrajectoriesStartState | null {
@@ -156,7 +156,7 @@ export function trajectoriesStartStateIfValid(trajectoriesStartFormState: Trajec
         return null
     }
 
-    if (startingWealth > gridState.wealthMax || startingWealth < gridState.wealthMin) return null;
+    if (startingWealth > gridState.wealthMax || startingWealth < gridState.linStep) return null;
     if (startingPeriod > gridState.periods || startingPeriod <= 0) return null;
 
     startingWealth = isNaN(startingWealth) ? null : startingWealth;

@@ -10,7 +10,7 @@ import { computeRiskOfRuin, computeTransitionTensor, extendWealthRange, replaceU
 export interface Problem {
     readonly wealthBoundaries: number[],
     readonly wealthValues: number[],
-    readonly wealthStep: number,
+    readonly logStep: number,
     readonly periods: number,
     readonly strategies: Strategy[]
     readonly cashflows: number[],

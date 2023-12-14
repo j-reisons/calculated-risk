@@ -41,7 +41,7 @@ export const StrategiesForm = ({ gridState, strategiesState, setStrategiesState 
         setState(s => { return isEqual(s, newState) ? s : newState })
     }
 
-    const traces = strategiesState.strategies.flatMap(s => toPlotlyData(s, gridState.wealthStep));
+    const traces = strategiesState.strategies.flatMap(s => toPlotlyData(s, gridState.logStep));
     const xRange = getXrange(strategiesState.strategies);
     const margin = 30;
     const layout: Partial<Plotly.Layout> = {

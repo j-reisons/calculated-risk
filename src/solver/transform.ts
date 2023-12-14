@@ -39,7 +39,7 @@ function computeCoarseBoundaries(problem: Problem): number[] {
         s => {
             const multiplier = Math.exp(Math.log(1 + s.location) * problem.periods + Math.log(1 + s.scale) * Math.sqrt(problem.periods));
             return {
-                coarseStep: Math.max(s.scale / 2, problem.wealthStep),
+                coarseStep: Math.max(s.scale / 2, problem.logStep),
                 coarseMax: (originalMax + cashflowRunningSumMax) * multiplier
             }
         }

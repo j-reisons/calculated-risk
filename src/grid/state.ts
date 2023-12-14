@@ -2,15 +2,15 @@ import { range } from "mathjs";
 
 export const GRID_PARAM = "grid";
 export interface GridFormState {
-    readonly wealthMin: string;
     readonly wealthMax: string;
-    readonly wealthStep: string;
+    readonly logStep: string;
+    readonly linStep: string;
     readonly periods: string;
 }
 export interface GridState {
-    readonly wealthMin: number;
     readonly wealthMax: number;
-    readonly wealthStep: number;
+    readonly logStep: number;
+    readonly linStep: number;
     readonly periods: number;
 
     readonly wealthBoundaries: number[];
@@ -35,10 +35,13 @@ export interface TrajectoriesState {
     readonly extendedTrajectories: number[][];
 }
 
-export function logGrid(wealthMin: number, wealthMax: number, wealthStep: number, periods: number): GridState {
-    const wealthBoundaries = (range(Math.log(wealthMin), Math.log(wealthMax), Math.log(1 + wealthStep), true).valueOf() as number[]).map(Math.exp);
+export function linLogGrid(linStep: number, wealthMax: number, logStep: number, periods: number): GridState {
+    const linLogBoundary = linStep / logStep;
+    const linRange = range(0, linLogBoundary, linStep, true).valueOf() as number[];
+    const logRange = (range(Math.log(linRange[linRange.length - 1]), Math.log(wealthMax), Math.log(1 + logStep), true).valueOf() as number[]).map(Math.exp);
+    const wealthBoundaries = linRange.slice(0, -1).concat(logRange);
     const wealthValues = [...wealthBoundaries.keys()].slice(0, -1).map(i => (wealthBoundaries[i] + wealthBoundaries[i + 1]) / 2);
-    return { wealthMin, wealthMax, wealthStep, wealthBoundaries, wealthValues, periods }
+    return { linStep, wealthMax, logStep, wealthBoundaries, wealthValues, periods }
 }
 
 export const RdBu: [number, string][] = [

@@ -1,7 +1,7 @@
 import { writeFileSync } from 'fs';
 import { join } from 'path';
 import { defaultCashflows, defaultGridState, defaultStrategies, defaultUtility } from "../DefaultState";
-import { logGrid } from '../grid/state';
+import { linLogGrid } from '../grid/state';
 import { debugPageHtml } from "../testutils/debugpage";
 import { toBeApproxEqual2dArray } from '../testutils/toBeApproxEqual2dArray';
 import { Problem, Solution, solve } from "./main";
@@ -17,7 +17,7 @@ test('The default problem is solved sensibly', async () => {
         strategies: defaultStrategies.strategies,
         wealthBoundaries: defaultGridState.wealthBoundaries,
         wealthValues: defaultGridState.wealthValues,
-        wealthStep: defaultGridState.wealthStep,
+        logStep: defaultGridState.logStep,
         periods: defaultGridState.periods,
         cashflows: defaultCashflows.cashflows,
         utilityFunction: defaultUtility.utilityFunction
@@ -44,7 +44,7 @@ test('Init with periods shorter than cashflows', async () => {
         strategies: defaultStrategies.strategies,
         wealthBoundaries: defaultGridState.wealthBoundaries,
         wealthValues: defaultGridState.wealthValues,
-        wealthStep: defaultGridState.wealthStep,
+        logStep: defaultGridState.logStep,
         periods: 9,
         cashflows: defaultCashflows.cashflows,
         utilityFunction: defaultUtility.utilityFunction
@@ -68,7 +68,7 @@ test('Init with periods longer than cashflows', async () => {
         strategies: defaultStrategies.strategies,
         wealthBoundaries: defaultGridState.wealthBoundaries,
         wealthValues: defaultGridState.wealthValues,
-        wealthStep: defaultGridState.wealthStep,
+        logStep: defaultGridState.logStep,
         periods: 12,
         cashflows: defaultCashflows.cashflows,
         utilityFunction: defaultUtility.utilityFunction
@@ -90,7 +90,7 @@ test('Log no cashflows', async () => {
         strategies: defaultStrategies.strategies,
         wealthBoundaries: defaultGridState.wealthBoundaries,
         wealthValues: defaultGridState.wealthValues,
-        wealthStep: 0.05,
+        logStep: 0.05,
         periods: 150,
         cashflows: [0],
         utilityFunction: Math.log
@@ -107,13 +107,13 @@ test('Log no cashflows', async () => {
 });
 
 test('Log cashflows', async () => {
-    const gridState = logGrid(1000, 2400000, 0.01, 10);
+    const gridState = linLogGrid(1000, 2400000, 0.01, 10);
     const defaultProblem: Problem =
     {
         strategies: defaultStrategies.strategies,
         wealthBoundaries: gridState.wealthBoundaries,
         wealthValues: gridState.wealthValues,
-        wealthStep: gridState.wealthStep,
+        logStep: gridState.logStep,
         periods: gridState.periods,
         cashflows: defaultCashflows.cashflows,
         utilityFunction: Math.log
