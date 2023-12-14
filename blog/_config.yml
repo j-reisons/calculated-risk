@@ -1,0 +1,7 @@
+title: Calculated risk
+url: "https://calculatedri.sk"
+baseurl: ""
+author: ""
+theme: minima
+header_pages:
+  calculator.md
