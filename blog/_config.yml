@@ -4,4 +4,7 @@ baseurl: ""
 author: ""
 theme: minima
 header_pages:
-  calculator.md
+  - about.md
+  - cases.md
+  - docs.md
+  - calculator.md
