@@ -11,3 +11,5 @@ and underused in financial planning, hence this project.
 * If you believe in trial-and-error over reading, [head straight to the calculator](/calculator).
 * For a more didactic introduction, [head to the case studies](/cases).
 * For more exhaustive information, [head to the docs](/docs).
+
+N.B. While the calculator technically works on mobile, it's by no means a pleasant experience: it was built with desktop in mind.
