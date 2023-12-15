@@ -9,7 +9,7 @@ permalink: /about/
 I’d argue that asking yourself this question will be significantly more impactful 
 to your financial future than worrying about what to invest in.
 
-In some sense, the question of how to build your portfolio [has been solved](https://www.youtube.com/watch?v=TI5p8vqdjTw). 
+In some sense, the question of how to build your portfolio [has been solved](https://www.youtube.com/watch?v=TI5p8vqdjTw).  
 Focus on diversification and low costs, make sure you have good reasons for deviating from the market portfolio, and you’re pretty much done. 
 Modern ETFs make these tasks easy to accomplish for whatever risk profile you might have. 
 Trying to get fancy chasing excess risk-adjusted returns is almost certainly a waste of time for the average investor.
@@ -30,10 +30,12 @@ Almost all published investing advice focuses on what to invest in, rather than 
 Part of this is simple supply and demand: picking stocks or industries is interesting and exciting. 
 Setting up your finances with a view to three decades from now? Much less sexy. People write what people read.
 
-The other part is that most people, even the financially literate, even many of the financial professionals giving out advice, simply are not trained on how to approach these questions in a methodical way. 
-While the relevant foundations of choice theory and optimal betting have been established since the 1960s, the transition of these ideas out of academia into financial education and practice has been slow. 
+The other part is that most people, even the financially literate, even many of the financial professionals giving out advice, simply are not trained on how to approach these questions in a methodical way.  
+While the relevant foundations of choice theory and optimal betting have been established since the 1960s, the transition of these ideas out of academia into financial education and practice has been slow.  
 Some of this slowness can be attributed to the lack of computing power available when these ideas first appeared, some to various accidents of history.
-Haghani and Dewey’s [biased coin flip experiment](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2856963) illustrates this failure of education well: 
+Haghani and Dewey’s [biased coin flip experiment](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2856963) illustrates this failure of dissemination well: 
 the majority of the experiment’s financially trained participants failed to make optimal sizing decisions on the simplest of favorable bets.
 
-This website hopes to make these relevant results of choice theory more accessible and useful.
+This website hopes to help you answer this key question of appropriate risk by giving you a simple
+conceptual framework to inform your choices, along with the computational tooling to apply the 
+framework to your specific situation.
