@@ -8,7 +8,7 @@ permalink: /docs/
 
 ### Model
 
-The model of investing used is based on the following assumptions:
+The model of investing used by the calculator is based on the following assumptions:
 
 #### Time
 * We are investing towards some time horizon.
@@ -18,7 +18,7 @@ The model of investing used is based on the following assumptions:
 #### Strategies
 * We have a fixed, finite set of strategies we can invest in.
 * The strategies are characterized by their return distributions. 
-* The return distributions do not change over time periods.
+* The return distributions do not change over time.
 * Strategy returns are independent of everything else in the model: there are no correlations or autocorrelations of any kind.
 
 #### Cashflows
@@ -28,13 +28,13 @@ The model of investing used is based on the following assumptions:
 #### Utility of final wealth
 * We aim to optimize the expected value of some function of wealth at the end of the time horizon.
 
-#### Bankruptcy treatment
+#### Bankruptcy
 * Bankruptcy is permanent: if wealth drops to 0 due to negative cashflows or strategy returns it will stay at 0 for all subsequent periods.
 * The utility of bankruptcy is set to 0, i.e. $ Utility(0) = 0 $.
 
 ### Questions
 
-Given a set of strategies, a series of cashflows, and a utility function, we want to know:
+Given a set of strategies, a series of cashflows, a utility function, and a time horizon, we want to know:
 * For every value of wealth and time
    * What strategy should be chosen to optimize expected utility ?
    * Given optimal strategy choices, what is the expected utility ?
@@ -91,8 +91,8 @@ $ T_{p,s,0,j} = \delta_{0,j} $ , with $ \delta_{i,j} $ the Kronecker delta.
 The algorithm used by the calculator to choose optimal strategies and compute the 
 associated expected utilities exploits the problem's optimal substructure:
 if the optimal expected utility as a function of wealth is known for the next period, then the maximal
-expected utility each strategy can achieve if picked in the present period can be computed for all present values of wealth.
-Then it is simply a matter of picking the strategy with the highest value.
+expected utility each strategy can achieve if picked in the present period can be computed for any present value of wealth.
+Then it is simply a matter of picking the strategy with the highest value for each value of wealth.
 
 Given a problem with $P$ periods, $S$ strategies and a discretization of wealth into $I$ bins the algorithm is:
  * Allocate a matrix to store optimal expected utilities $U_{p,i}$ of size $P + 1$ by $I$.
@@ -120,7 +120,18 @@ To compute how the probability distribution of wealth evolves from a starting po
 
 #### Grid form
 
+The grid form allows to set $wealth\\_max$, $log\\_step$, $lin\\_step$, and the number of periods.  
+This defines the wealth and time discretization over which the calculation takes place.  
+The form fields expect integer inputs, except $log\\_step$ which also accepts decimals and expects a $\\%$ symbol at the end.
+
 #### Trajectories form
+
+The trajectories form allows to set the starting wealth and period from which wealth trajectories are computed forward.
+This can be done either through the corresponding form fields, or by selecting "Pick-on-click" and clicking on the desired
+starting point on the policy map.
+
+The wealth trajectories are plotted over the policy map as greyed-out confidence intervals.
+This is configured by the confidence intervals field, which expects comma separated percentage values.
 
 #### Strategies form
 
@@ -141,6 +152,7 @@ plot
 utility
 Terminal distribution
 
+#### Policy map
 
 ### Known issues
 Grey screen of death
