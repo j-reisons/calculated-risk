@@ -57,7 +57,8 @@ export const StrategiesForm = ({ gridState, strategiesState, setStrategiesState 
     }
 
     return (
-        <div className="container">
+        <div className="container"
+            style={{ gridColumn: 1 }}>
             <div className="title">Strategies</div>
             <textarea className={"input-box"}
                 style={!state.strategiesStringValid ? { borderColor: "red" } : {}}

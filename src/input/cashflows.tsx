@@ -59,12 +59,14 @@ export const CashflowsForm = ({ gridState, cashflowsState, setCashflowsState }: 
         width: 400,
         xaxis: {
             range: [0.5, gridState.periods + 0.5],
+            showgrid: true,
         },
         margin: { t: margin, l: margin, r: margin, b: margin }
     }
 
     return (
-        <div className="container">
+        <div className="container"
+            style={{ gridColumn: 2 }}>
             <div className="title">Cashflows</div>
             <textarea className={"input-box"}
                 style={!state.cashflowStringValid ? { borderColor: "red" } : {}}
@@ -77,7 +79,7 @@ export const CashflowsForm = ({ gridState, cashflowsState, setCashflowsState }: 
             <Plot
                 data={traces}
                 layout={layout} />
-        </div>
+        </div >
     )
 
 }

@@ -72,7 +72,8 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
     }
 
     return (
-        <div className="container">
+        <div className="container"
+        style={{ gridColumn: 3 }}>
             <div className="title">Utility</div>
             <textarea className={"input-box"}
                 style={redBorder ? { borderColor: "red" } : {}}

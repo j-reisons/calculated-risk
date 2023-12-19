@@ -1,12 +1,16 @@
   .top-container {
     height: auto;
     margin: auto;
-    display: inline-flex;
+    display: inline-grid;
     flex-wrap: wrap;
     padding: 30px;
     grid-gap: 10px;
+    width:100;
+    width: -moz-available;
+    width: -webkit-fill-available;
+    width: stretch;
   }
-  
+
   .container {
     border: 2px solid #aaa;
     min-height: 400px;
@@ -14,11 +18,11 @@
     height: auto;
     margin: auto;
     display: grid;
-    grid-template-rows: 20% 20% 60%;
+    grid-template-rows: 7% 25% 70%;
     padding: 30px;
     grid-gap: 10px;
   }
-  
+
   .title {
     font-size: 16px;
     font-weight: bold;
@@ -28,19 +32,19 @@
   .instructions {
     font-size: 16px;
     margin-bottom: 10px;
-    display:inline-block;
+    display: inline-block;
     vertical-align: top;
     padding: 10px;
-    grid-row:1;
+    grid-row: 1;
   }
-  
+
   .input-box {
-    grid-row:2;
-    resize:none;
-    height:80px;
+    grid-row: 2;
+    resize: none;
+    height: 80px;
   }
-  
+
   .plotting-area {
     border: 1px solid #ccc;
-    grid-row:3;
+    grid-row: 3;
   }

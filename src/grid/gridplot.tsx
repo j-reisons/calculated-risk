@@ -105,7 +105,7 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
         ...heatmapData];
 
     const layout: Partial<Plotly.Layout> = {
-        width: 1100,
+        width: 1250,
         height: 500,
         xaxis: {
             range: [0, gridState.periods]
