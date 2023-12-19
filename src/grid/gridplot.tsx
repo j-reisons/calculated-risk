@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import createPlotlyComponent from 'react-plotly.js/factory';
 import { CashflowsState, StrategiesState, Strategy, UtilityState } from "../input/state";
 import { Problem, Solution, solve } from "../solver/main";
-import { QuantileLocations, computeTrajectories, findQuantiles } from "../solver/trajectories";
+import { CILocations, computeTrajectories, findCIs } from "../solver/trajectories";
 import { GridState, RdBu, TrajectoriesStartFormState, TrajectoriesStartState, TrajectoriesState, interpolateColor } from "./state";
 
 const Plot = createPlotlyComponent(Plotly);
@@ -15,7 +15,7 @@ export interface GridPlotProps {
     readonly cashflowsState: CashflowsState,
     readonly utilityState: UtilityState,
     readonly trajectoriesStartState: TrajectoriesStartState;
-    readonly quantiles: number[];
+    readonly CIs: number[];
     readonly pickOnClick: boolean;
     readonly trajectoriesState: TrajectoriesState | null;
     readonly setTrajectoriesStartFormState: React.Dispatch<React.SetStateAction<TrajectoriesStartFormState>>;
@@ -23,7 +23,7 @@ export interface GridPlotProps {
     readonly setTrajectoriesState: React.Dispatch<React.SetStateAction<TrajectoriesState | null>>;
 }
 
-export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilityState, trajectoriesStartState, quantiles, pickOnClick, trajectoriesState, setTrajectoriesStartFormState, setTrajectoriesStartState, setTrajectoriesState }: GridPlotProps) => {
+export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilityState, trajectoriesStartState, CIs, pickOnClick, trajectoriesState, setTrajectoriesStartFormState, setTrajectoriesStartState, setTrajectoriesState }: GridPlotProps) => {
 
     const [solution, setSolution] = useState<Solution | null>(null);
 
@@ -77,7 +77,7 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
     }
 
     let heatmapData: Plotly.Data[] = [];
-    let quantileData: Plotly.Data[] = [];
+    let CIData: Plotly.Data[] = [];
 
     if (solution) {
         heatmapData = [
@@ -95,13 +95,13 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
             } as Plotly.Data];
 
         if (trajectoriesState) {
-            const quantileLocations = findQuantiles(trajectoriesState.extendedTrajectories, quantiles, trajectoriesState.startPeriod);
-            quantileData = quantileLocations.flatMap(quantile => toPlotlyData(quantile, solution.trajectoriesInputs.boundaries, quantileLocations.length))
+            const CILocations = findCIs(trajectoriesState.extendedTrajectories, CIs, trajectoriesState.startPeriod);
+            CIData = CILocations.flatMap(CI => toPlotlyData(CI, solution.trajectoriesInputs.boundaries, CILocations.length))
         }
     }
 
     const traces: Plotly.Data[] = [
-        ...quantileData,
+        ...CIData,
         ...heatmapData];
 
     const layout: Partial<Plotly.Layout> = {
@@ -128,24 +128,24 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
     )
 }
 
-function toPlotlyData(quantileLocations: QuantileLocations, wealthBoundaries: number[], quantileCount: number): Plotly.Data[] {
-    const alpha = 1 - Math.exp(Math.log(1 - TOTAL_ALPHA) / quantileCount)
+function toPlotlyData(CILocations: CILocations, wealthBoundaries: number[], CICount: number): Plotly.Data[] {
+    const alpha = 1 - Math.exp(Math.log(1 - TOTAL_ALPHA) / CICount)
     return [
         {
-            x: quantileLocations.x,
-            y: quantileLocations.y_bottom.map(y => wealthBoundaries[y]),
+            x: CILocations.x,
+            y: CILocations.y_bottom.map(y => wealthBoundaries[y]),
             line: { color: "transparent" },
-            name: "p=" + quantileLocations.probability,
+            name: "p=" + CILocations.probability,
             showlegend: false,
             type: "scatter"
         },
         {
-            x: quantileLocations.x,
-            y: quantileLocations.y_top.map(y => wealthBoundaries[y]),
+            x: CILocations.x,
+            y: CILocations.y_top.map(y => wealthBoundaries[y]),
             fill: "tonexty",
             fillcolor: `rgba(100,100,100,${alpha})`,
             line: { color: "transparent" },
-            name: "p=" + quantileLocations.probability,
+            name: "p=" + CILocations.probability,
             showlegend: false,
             type: "scatter"
         }

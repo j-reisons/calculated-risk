@@ -1,6 +1,6 @@
-import { defaultCashflows, defaultCashflowsForm, defaultGridForm, defaultGridState, defaultQuantiles, defaultQuantilesString, defaultStrategies, defaultStrategiesForm, defaultTrajectoriesStartForm, defaultTrajectoriesStartState, defaultUtility, defaultUtilityFormState } from "./DefaultState";
-import { gridIfValid, quantilesIfValid, trajectoriesStartStateIfValid } from "./grid/sideform";
-import { GRID_PARAM, GridFormState, GridState, QUANTILES_PARAM, START_PARAM, TrajectoriesStartFormState, TrajectoriesStartState } from "./grid/state";
+import { defaultCashflows, defaultCashflowsForm, defaultGridForm, defaultGridState, defaultCIs, defaultCIString, defaultStrategies, defaultStrategiesForm, defaultTrajectoriesStartForm, defaultTrajectoriesStartState, defaultUtility, defaultUtilityFormState } from "./DefaultState";
+import { gridIfValid, CIsIfValid, trajectoriesStartStateIfValid } from "./grid/sideform";
+import { GRID_PARAM, GridFormState, GridState, CIs_PARAM, START_PARAM, TrajectoriesStartFormState, TrajectoriesStartState } from "./grid/state";
 import { CASHFLOWS_PARAM, CashflowsFormState, CashflowsState, STRATEGIES_PARAM, StrategiesFormState, StrategiesState, UTILITY_PARAM, parseCashflows, parseUtility } from "./input/state";
 import { compileStrategiesArray } from "./input/strategies/compiler";
 
@@ -19,10 +19,10 @@ const validStart = parsedStart ? trajectoriesStartStateIfValid(parsedStart, init
 export const initTrajectoriesStartFormState: TrajectoriesStartFormState = validStart ? parsedStart : defaultTrajectoriesStartForm;
 export const initTrajectoriesStartState: TrajectoriesStartState = validStart ? validStart : defaultTrajectoriesStartState;
 
-const quantilesString = searchParams.get(QUANTILES_PARAM);
-const validQuantiles = quantilesString ? quantilesIfValid(quantilesString) : null;
-export const initQuantilesString = validQuantiles ? quantilesString : defaultQuantilesString;
-export const initQuantiles = validQuantiles ? validQuantiles : defaultQuantiles;
+const CIString = searchParams.get(CIs_PARAM);
+const validCIs = CIString ? CIsIfValid(CIString) : null;
+export const initCIsString = validCIs ? CIString : defaultCIString;
+export const initCIs = validCIs ? validCIs : defaultCIs;
 
 export const initPickOnClick: boolean = false;
 

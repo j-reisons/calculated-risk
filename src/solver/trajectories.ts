@@ -51,20 +51,20 @@ export function computeTrajectories(
     return unpack(trajectories) as number[][];
 }
 
-export interface QuantileLocations {
+export interface CILocations {
     readonly probability: number
     readonly x: number[]
     readonly y_bottom: number[]
     readonly y_top: number[]
 }
 
-export function findQuantiles(trajectories: number[][], quantiles: number[], startPeriod: number): QuantileLocations[] {
-    const sortedProbabilities = quantiles.slice().sort().reverse();
+export function findCIs(trajectories: number[][], CIs: number[], startPeriod: number): CILocations[] {
+    const sortedProbabilities = CIs.slice().sort().reverse();
     const sortedTails = sortedProbabilities.map(p => (1 - p) / 2.0);
 
     const x = new Array<number>(trajectories.length - startPeriod);
-    const y_bottom = zeros([quantiles.length, trajectories.length - startPeriod]);
-    const y_top = zeros([quantiles.length, trajectories.length - startPeriod]);
+    const y_bottom = zeros([CIs.length, trajectories.length - startPeriod]);
+    const y_top = zeros([CIs.length, trajectories.length - startPeriod]);
 
     for (let p = 0; p < trajectories.length - startPeriod; p++) {
         x[p] = startPeriod + p;
@@ -72,7 +72,7 @@ export function findQuantiles(trajectories: number[][], quantiles: number[], sta
 
         let sum = 0;
         let w = 0;
-        for (let i = 0; i < quantiles.length; i++) {
+        for (let i = 0; i < CIs.length; i++) {
             while (sum < sortedTails[i] && w < periodDistribution.length) {
                 sum += periodDistribution[w++];
             }
@@ -81,7 +81,7 @@ export function findQuantiles(trajectories: number[][], quantiles: number[], sta
 
         sum = 0;
         w = periodDistribution.length - 1;
-        for (let i = 0; i < quantiles.length; i++) {
+        for (let i = 0; i < CIs.length; i++) {
             while (sum < sortedTails[i] && w > 0) {
                 sum += periodDistribution[w--];
             }
@@ -89,8 +89,8 @@ export function findQuantiles(trajectories: number[][], quantiles: number[], sta
         }
     }
 
-    const result = new Array<QuantileLocations>();
-    for (let i = 0; i < quantiles.length; i++) {
+    const result = new Array<CILocations>();
+    for (let i = 0; i < CIs.length; i++) {
         result.push({
             probability: sortedProbabilities[i],
             x: x,

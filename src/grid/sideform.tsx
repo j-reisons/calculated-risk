@@ -1,21 +1,21 @@
 import isEqual from 'lodash.isequal';
 import React, { useState } from 'react';
 import { initGridFormState } from '../InitState';
-import { GRID_PARAM, GridFormState, GridState, QUANTILES_PARAM, START_PARAM, TrajectoriesStartFormState, TrajectoriesStartState, linLogGrid } from './state';
+import { GRID_PARAM, GridFormState, GridState, CIs_PARAM, START_PARAM, TrajectoriesStartFormState, TrajectoriesStartState, linLogGrid } from './state';
 
 export interface SideFormProps {
     trajectoriesStartFormState: TrajectoriesStartFormState;
-    quantilesString: string;
+    CIsString: string;
     pickOnClick: boolean;
     setGridState: React.Dispatch<React.SetStateAction<GridState>>;
     setTrajectoriesStartFormState: React.Dispatch<React.SetStateAction<TrajectoriesStartFormState>>;
-    setQuantilesString: React.Dispatch<React.SetStateAction<string>>;
+    setCIsString: React.Dispatch<React.SetStateAction<string>>;
     setTrajectoriesStartState: React.Dispatch<React.SetStateAction<TrajectoriesStartState>>;
-    setQuantiles: React.Dispatch<React.SetStateAction<number[]>>;
+    setCIs: React.Dispatch<React.SetStateAction<number[]>>;
     setPickOnClick: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export const SideForm = ({ trajectoriesStartFormState, quantilesString, pickOnClick, setGridState, setTrajectoriesStartFormState, setQuantilesString, setTrajectoriesStartState, setQuantiles, setPickOnClick }: SideFormProps) => {
+export const SideForm = ({ trajectoriesStartFormState, CIsString, pickOnClick, setGridState, setTrajectoriesStartFormState, setCIsString, setTrajectoriesStartState, setCIs, setPickOnClick }: SideFormProps) => {
 
     const [gridFormState, setGridFormState] = useState<GridFormState>(initGridFormState);
 
@@ -48,14 +48,14 @@ export const SideForm = ({ trajectoriesStartFormState, quantilesString, pickOnCl
         }
     };
 
-    const syncQuantilesString = (event: React.ChangeEvent<HTMLInputElement>) => { setQuantilesString(event.target.value) }
-    const syncQuantiles = () => {
-        const newState = quantilesIfValid(quantilesString);
+    const syncCIsString = (event: React.ChangeEvent<HTMLInputElement>) => { setCIsString(event.target.value) }
+    const syncCIs = () => {
+        const newState = CIsIfValid(CIsString);
         if (newState !== null) {
             const params = new URLSearchParams(window.location.search);
-            params.set(QUANTILES_PARAM, quantilesString);
+            params.set(CIs_PARAM, CIsString);
             history.replaceState({}, "", '?' + params.toString())
-            setQuantiles(s => { return isEqual(s, newState) ? s : newState });
+            setCIs(s => { return isEqual(s, newState) ? s : newState });
         }
     }
 
@@ -106,10 +106,10 @@ export const SideForm = ({ trajectoriesStartFormState, quantilesString, pickOnCl
                     id="startingPeriod" name="startingPeriod"
                     pattern="^\d+$" /></div>
 
-            <div>Quantiles
-                <br /><input type="text" inputMode="numeric" value={quantilesString}
-                    onChange={syncQuantilesString} onBlur={syncQuantiles}
-                    id="quantiles" name="quantiles"
+            <div>Confidence intervals
+                <br /><input type="text" inputMode="numeric" value={CIsString}
+                    onChange={syncCIsString} onBlur={syncCIs}
+                    id="CIs" name="CIs"
                     pattern="^\s*(\d+(\.\d+)?%)(\s*,\s*(\d+(\.\d+)?%))*\s*$" /></div>
 
             <input type="checkbox" id="pickOnClick" name="pickOnClick" checked={pickOnClick}
@@ -165,12 +165,12 @@ export function trajectoriesStartStateIfValid(trajectoriesStartFormState: Trajec
     return { startingWealth, startingPeriod }
 }
 
-export function quantilesIfValid(quantilesString: string): number[] | null {
-    let quantiles: number[];
-    try { quantiles = quantilesString.split(',').map(s => s.replace('%', '')).map(s => parseFloat(s) / 100); }
+export function CIsIfValid(CIsString: string): number[] | null {
+    let confidenceIntervals: number[];
+    try { confidenceIntervals = CIsString.split(',').map(s => s.replace('%', '')).map(s => parseFloat(s) / 100); }
     catch (e) { return null; }
 
-    if (!quantiles.every(q => q >= 0 && q <= 1)) return null;
+    if (!confidenceIntervals.every(q => q >= 0 && q <= 1)) return null;
 
-    return quantiles;
+    return confidenceIntervals;
 }

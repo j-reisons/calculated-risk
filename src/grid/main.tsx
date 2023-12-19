@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { initPickOnClick, initQuantiles, initQuantilesString, initTrajectoriesStartFormState, initTrajectoriesStartState } from "../InitState";
+import { initPickOnClick, initCIs, initCIsString, initTrajectoriesStartFormState, initTrajectoriesStartState } from "../InitState";
 import { CashflowsState, StrategiesState, UtilityState } from "../input/state";
 import { GridPlot } from "./gridplot";
 import "./main.css";
@@ -21,28 +21,28 @@ export const Grid = ({ gridState, strategiesState, cashflowsState, utilityState,
 
     const [trajectoriesStartState, setTrajectoriesStartState] = useState<TrajectoriesStartState>(initTrajectoriesStartState);
     const [trajectoriesStartFormState, setTrajectoriesStartFormState] = useState<TrajectoriesStartFormState>(initTrajectoriesStartFormState);
-    const [quantilesString, setQuantilesString] = useState<string>(initQuantilesString!);
-    const [quantiles, setQuantiles] = useState<number[]>(initQuantiles);
+    const [CIsString, setCIsString] = useState<string>(initCIsString!);
+    const [CIs, setCIs] = useState<number[]>(initCIs);
     const [pickOnClick, setPickOnClick] = useState<boolean>(initPickOnClick);
 
     return (
         <div className="grid">
             <SideForm
                 trajectoriesStartFormState={trajectoriesStartFormState}
-                quantilesString={quantilesString}
+                CIsString={CIsString}
                 pickOnClick={pickOnClick}
                 setGridState={setGridState}
                 setTrajectoriesStartFormState={setTrajectoriesStartFormState}
-                setQuantilesString={setQuantilesString}
+                setCIsString={setCIsString}
                 setTrajectoriesStartState={setTrajectoriesStartState}
-                setQuantiles={setQuantiles}
+                setCIs={setCIs}
                 setPickOnClick={setPickOnClick} />
             <GridPlot
                 gridState={gridState}
                 strategiesState={strategiesState}
                 cashflowsState={cashflowsState}
                 utilityState={utilityState}
-                quantiles={quantiles}
+                CIs={CIs}
                 trajectoriesStartState={trajectoriesStartState}
                 pickOnClick={pickOnClick}
                 trajectoriesState={trajectoriesState}

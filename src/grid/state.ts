@@ -26,7 +26,7 @@ export interface TrajectoriesStartState {
     readonly startingWealth: number | null,
     readonly startingPeriod: number | null,
 }
-export const QUANTILES_PARAM = "quantiles";
+export const CIs_PARAM = "CIs";
 
 export interface TrajectoriesState {
     readonly startPeriod: number;

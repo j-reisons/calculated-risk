@@ -21,8 +21,8 @@ export const defaultTrajectoriesStartState = {
 };
 
 
-export const defaultQuantilesString = "68%, 95%, 99%";
-export const defaultQuantiles = [0.68, 0.95, 0.99];
+export const defaultCIString = "68%, 95%, 99%";
+export const defaultCIs = [0.68, 0.95, 0.99];
 
 
 export const defaultCashflowsForm = {
