@@ -1,5 +1,4 @@
 import { linLogGrid } from "./grid/state";
-import { step } from "./input/state";
 import { Normal } from "./input/strategies/distributions/normal";
 
 export const defaultGridForm = {
@@ -42,20 +41,19 @@ export const defaultStrategiesForm = {
 }
 export const defaultStrategies = {
     strategies: [
-        { name: 'cash', ...Normal.createArgs([0.01, 0.01])!, colorIndex: 0 },
-        { name: 'e_25', ...Normal.createArgs([0.02, 0.05])!, colorIndex: 0.25 },
-        { name: 'e_50', ...Normal.createArgs([0.03, 0.1])!, colorIndex: 0.5 },
-        { name: 'e_75', ...Normal.createArgs([0.04, 0.15])!, colorIndex: 0.75 },
-        { name: 'e_100', ...Normal.createArgs([0.05, 0.2])!, colorIndex: 1.0 }
+        { name: 'cash', ...Normal.createArgs([0.01, 0.01])!, color: 'rgb(5,10,172)' },
+        { name: 'e_25', ...Normal.createArgs([0.02, 0.05])!, color: 'rgb(77,101,226)' },
+        { name: 'e_50', ...Normal.createArgs([0.03, 0.1])!, color: 'rgb(190,190,190)' },
+        { name: 'e_75', ...Normal.createArgs([0.04, 0.15])!, color: 'rgb(221,123,80)' },
+        { name: 'e_100', ...Normal.createArgs([0.05, 0.2])!, color: 'rgb(178,10,28)' }
     ]
 };
 
-
 export const defaultUtilityFormState = {
-    utilityString: "Utility(w) = step(w - 100000)",
+    utilityString: "Utility(w) = w > 100000 ? 1 : 0",
     utilityStringParses: true,
     textAreaFocused: false
 }
 export const defaultUtility = {
-    utilityFunction: (x: number) => { return step(x - 100000) },
+    utilityFunction: (w: number) => { return w > 100000 ? 1 : 0 },
 }

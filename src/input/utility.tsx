@@ -40,8 +40,8 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
         setState({ ...state, textAreaFocused: false, utilityStringParses: utilityOrNull !== null });
     }
 
-    const wealthValues = gridState.wealthValues;
-    const utility = gridState.wealthValues.map(utilityState.utilityFunction);
+    const wealthValues = trajectoriesState ? trajectoriesState.extendedValues : gridState.wealthValues;
+    const utility = wealthValues.map(utilityState.utilityFunction);
     // No complex numbers or other shenanigans
     const valid = utility.every(isPositiveFiniteNumber)
     const redBorder = !state.textAreaFocused && (!state.utilityStringParses || !valid);
@@ -73,11 +73,11 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
 
     return (
         <div className="container"
-        style={{ gridColumn: 3 }}>
+            style={{ gridColumn: 3 }}>
             <div className="title">Utility</div>
             <textarea className={"input-box"}
                 style={redBorder ? { borderColor: "red" } : {}}
-                placeholder={'# Assign Utility(w), e.g. \nUtility(w) = step(w - 100000)'}
+                placeholder={'# Assign Utility(w), e.g. \nUtility(w) = w > 100000 ? 1 : 0'}
                 onChange={handleInput}
                 onFocus={onFocus}
                 onBlur={onBlur}

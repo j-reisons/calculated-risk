@@ -43,7 +43,7 @@ export interface Strategy {
     readonly PDF: (r: number) => number;
     readonly pointsOfInterest: number[];
     readonly deltas: Delta[];
-    readonly colorIndex: number;
+    readonly color: string;
 }
 export interface Delta {
     readonly location: number;
@@ -64,7 +64,7 @@ export interface UtilityFormState {
     readonly utilityStringParses: boolean;
 }
 export function parseUtility(utilityString: string): ((i: number) => number) | null {
-    const scope = { Utility: null, step: step };
+    const scope = { Utility: null};
     try {
         evaluate(utilityString, scope);
         const parsed = scope.Utility as unknown as ((i: number) => number);
@@ -77,9 +77,6 @@ export function parseUtility(utilityString: string): ((i: number) => number) | n
 }
 export function isPositiveFiniteNumber(x: unknown) {
     return typeof x === 'number' && isFinite(x) && x >=0
-}
-export function step(x: number): number {
-    return x > 0 ? 1 : 0;
 }
 export interface UtilityState {
     readonly utilityFunction: (wealth: number) => number;

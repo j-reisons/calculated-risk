@@ -43,25 +43,3 @@ export function linLogGrid(linStep: number, wealthMax: number, logStep: number, 
     const wealthValues = [...wealthBoundaries.keys()].slice(0, -1).map(i => (wealthBoundaries[i] + wealthBoundaries[i + 1]) / 2);
     return { linStep, wealthMax, logStep, wealthBoundaries, wealthValues, periods }
 }
-
-export const RdBu: [number, string][] = [
-    [0, 'rgb(5,10,172)'],
-    [0.35, 'rgb(106,137,247)'],
-    [0.5, 'rgb(190,190,190)'],
-    [0.6, 'rgb(220,170,132)'],
-    [0.7, 'rgb(230,145,90)'],
-    [1, 'rgb(178,10,28)']
-];
-
-export function interpolateColor(index: number, colorscale: [number, string][]): string {
-    index = Math.min(1, Math.max(0, index));
-    const itop = Math.max(colorscale.findIndex(([stop]) => stop >= index), 1);
-    const [bot, colorBot] = colorscale[itop - 1];
-    const [top, colorTop] = colorscale[itop];
-    const factor = (index - bot) / (top - bot);
-    const topRGB = colorTop.match(/\d+/g)!.map(Number);
-    const botRGB = colorBot.match(/\d+/g)!.map(Number);
-    const result = botRGB.map((c1, i) => Math.round(c1 + (topRGB[i] - c1) * factor));
-    return `rgb(${result[0]},${result[1]},${result[2]})`;
-}
-

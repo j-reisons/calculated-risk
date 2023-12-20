@@ -3,7 +3,7 @@ import Plotly from "plotly.js-cartesian-dist";
 import React, { useState } from "react";
 import createPlotlyComponent from 'react-plotly.js/factory';
 import { initStrategiesForm } from "../../InitState";
-import { GridState, RdBu, interpolateColor } from "../../grid/state";
+import { GridState } from "../../grid/state";
 import { STRATEGIES_PARAM, StrategiesFormState, StrategiesState, Strategy } from "../state";
 import { compileStrategiesArray } from "./compiler";
 
@@ -83,8 +83,6 @@ function toPlotlyData(strategy: Strategy, step: number): Plotly.Data[] {
     max = max == 0 ? 1 : max;
     const CDF = x.map(strategy.CDF);
 
-    const color = interpolateColor(strategy.colorIndex, RdBu);
-
     const pdfTrace = {
         name: strategy.name,
         x: x,
@@ -93,7 +91,7 @@ function toPlotlyData(strategy: Strategy, step: number): Plotly.Data[] {
         type: 'scatter',
         mode: 'lines',
         hovertemplate: "Return: %{x:.2%}<br>CDF: %{customdata:.2%}",
-        line: { color: color }
+        line: { color: strategy.color }
     } as Plotly.Data;
 
     const deltaTraces: Plotly.Data[] = [];
@@ -110,7 +108,7 @@ function toPlotlyData(strategy: Strategy, step: number): Plotly.Data[] {
                 hoverinfo: 'none',
                 line: {
                     width: 3,
-                    color: color
+                    color: strategy.color
                 },
                 marker: {
                     size: [0, 20],

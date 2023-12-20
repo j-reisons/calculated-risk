@@ -203,8 +203,21 @@ A bar chart below the input box allows to visualize the final array.
 
 #### Utility form
 The utility form is for specifying a utility function.
-This is done by writing a short [MathJS](https://mathjs.org/) script.
-The script should assign a real-valued function of a single real argument to the "Utility(w)" variable.
+This is done by writing a short [MathJS](https://mathjs.org/) script.  
+The script should assign a $[1, +\infty] \to \mathbb{R}^+$ function to the "Utility(w)" variable.  
+You will usually want this function to be monotonic and concave, but the calculator will not force you.  
+
+Some examples of input:
+```
+Utility(w) = w
+```
+```
+Utility(w) = log(w)
+```
+```
+gamma = 2
+Utility(w) = gamma == 1 ? log(w) : (w^(1-gamma) - 1) / (1 - gamma)
+```
 
 syntax
 plot

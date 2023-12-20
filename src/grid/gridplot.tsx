@@ -5,7 +5,7 @@ import createPlotlyComponent from 'react-plotly.js/factory';
 import { CashflowsState, StrategiesState, Strategy, UtilityState } from "../input/state";
 import { Problem, Solution, solve } from "../solver/main";
 import { CILocations, computeTrajectories, findCIs } from "../solver/trajectories";
-import { GridState, RdBu, TrajectoriesStartFormState, TrajectoriesStartState, TrajectoriesState, interpolateColor } from "./state";
+import { GridState, TrajectoriesStartFormState, TrajectoriesStartState, TrajectoriesState } from "./state";
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -87,7 +87,7 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
                 dx: range(0, gridState.periods).valueOf(),
                 y: gridState.wealthValues,
                 z: solution.optimalStrategies,
-                colorscale: computeColorScale(strategiesState.strategies),
+                colorscale: computeColorScale(strategiesState.strategies, solution.optimalStrategies),
                 customdata: customData(solution.expectedUtilities, solution.riskOfRuin, solution.optimalStrategies, strategiesState.strategies.map(s => s.name)) as unknown as Plotly.Datum[][],
                 hovertemplate: "Period: %{x:.0f}<br>Wealth: %{y:.4s}<br>Strategy: %{customdata[0]}<br>Utility: %{customdata[1]:.4g}<br>Risk of ruin: %{customdata[2]:.2%}",
                 type: 'heatmap',
@@ -169,6 +169,28 @@ function customData(expectedUtilities: number[][], riskOfRuin: number[][], optim
 }
 
 // This keeps the heatmap colors constant on commenting / uncommenting of strategies without the need to update the indices.
-function computeColorScale(strategies: Strategy[]): [number, string][] {
-    return strategies.map((s, i) => [i / (strategies.length - 1), interpolateColor(s.colorIndex, RdBu)])
+function computeColorScale(strategies: Strategy[], optimalStrategies: number[][]): [number, string][] {
+
+    // The range of the colorscale depends on the values present in the plot.
+    const uniqueValues: Set<number> = new Set();
+    for (const row of optimalStrategies) {
+        for (const num of row) {
+            uniqueValues.add(num);
+        }
+    }
+
+    // strategies can get out of sync with optimalStrategies during an update, hence the filter.
+    const sortedUniques = [...uniqueValues].filter(v => v < strategies.length).sort();
+
+    const min = sortedUniques[0];
+    const max = sortedUniques[sortedUniques.length - 1];
+
+    if (min === max) {
+        return [[0, strategies[min].color], [1, strategies[max].color]];
+    }
+    else {
+        const sortedUniquesColorIndex = sortedUniques.map(i => (i - min) / (max - min));
+        return sortedUniques.map((s, i) => [sortedUniquesColorIndex[i], strategies[s].color]);
+    }
+
 }
