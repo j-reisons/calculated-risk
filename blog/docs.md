@@ -122,7 +122,7 @@ To compute how the probability distribution of wealth evolves from a starting po
 
 The grid form allows to set $wealth\\_max$, $log\\_step$, $lin\\_step$, and the number of periods.  
 This defines the wealth and time discretization over which the calculation takes place.  
-The form fields expect integer inputs, except $log\\_step$ which also accepts decimals and expects a $\\%$ symbol at the end.
+The form fields expect integer inputs, except $log\\_step$ which also accepts decimals and expects a $\\%$ at the end.
 
 #### Trajectories form
 
@@ -131,28 +131,89 @@ This can be done either through the corresponding form fields, or by selecting "
 starting point on the policy map.
 
 The wealth trajectories are plotted over the policy map as greyed-out confidence intervals.
-This is configured by the confidence intervals field, which expects comma separated percentage values.
+This is configured by the confidence intervals field, which expects comma separated percentages.
 
 #### Strategies form
 
-Strategies syntax
-Supported distributions
-Duplicate strategies will both be disqualified
-Color stability
+The strategies form is for specifying strategy names and their associated return distributions.  
+This is done by using a domain specific language that looks like this:
+
+```
+cash = delta(0%)
+# commented_out_strategy = LogNormal(3%,5%)
+coinflip = 0.5*delta(-1) + 0.5*delta(1)
+equities = Normal(5%, 20%)
+```
+A strategy definition looks like an assignment, with the name on the left and return distribution on the right of the equals sign.
+
+The following distributions are currently implemented
+  * $Normal(\mu,\sigma)$
+  * $LogNormal(\mu,\sigma)$
+  * $delta(x)$, the dirac delta
+  * $Cauchy(x,\gamma)$
+  * Positive linear combinations of the above summing to one.
+    * When writing a linear combination, the coefficient must come first in each linear term.
+
+Strategy colors are determined by the order in which the strategies are specified: 
+ordering strategies by their perceived riskiness is a good idea to get a legible policy map.
+
+Commented lines start with '#'. Commented lines impact the colors of the remaining strategies:
+the colorscale is chosen as if there was a strategy in place of the commented line.
+This is done to allow visual comparison of strategy maps when exploring the effects of adding or removing strategies:
+specify the superset of strategies to be considered, then comment out lines as needed.
+
+Due to quirks in the solver implementation, if multiple strategies are present with identical return distributions then none
+will be selected: don't specify duplicates.
+
+Where a number is expected, i.e. linear coefficients and distribution arguments, any expression that [MathJS](https://mathjs.org/) can handle will work.
+E.g. for specifying 0.5 you can write ```0.5```, ```50%```, ```1/2```, but also weirder things like ```sin(pi/6)```.
+
+The distribution plot below the input box allows you to check that the strategies have been specified as intended.
+Hovering over a distribution brings up the value of the return CDF at that point.  
+The distributions are plotted with $log\\_step$ resolution, which can serve as a quick check that the wealth discretization is fine enough to represent the distributions well.
 
 #### Cashflows form
-syntax
-plot
-cashflow - period mismatch
+The cashflows form is for specifying each periods cashflows.
+This is done by writing a short [MathJS](https://mathjs.org/) script.
+The script should assign a 1D array of numbers to the "cashflows" variable.
+A few examples of valid input:
+
+```
+cashflows = []
+```
+
+```
+cashflows = [1,2,3,4,5]
+```
+
+```
+cashflows = 40000*concat(ones(5),zeros(5)) - 30000*concat(zeros(5),ones(5))
+```
+
+```
+horizon = 80
+retirement = 40
+deposits = 40000 * concat(ones(retirement),zeros(horizon-retirement))
+withdrawals = -30000 * concat(zeros(retirement),ones(horizon-retirement))
+cashflows = deposits + withdrawals
+```
+
+In case of a mismatch between the length of the specified array and the number of periods the array is either truncated or extended with zeroes to match the number of periods.  
+A bar chart below the input box allows to visualize the final array.
 
 #### Utility form
-Utility view
+The utility form is for specifying a utility function.
+This is done by writing a short [MathJS](https://mathjs.org/) script.
+The script should assign a real-valued function of a single real argument to the "Utility(w)" variable.
+
 syntax
 plot
 utility
 Terminal distribution
 
 #### Policy map
+
+#### Deeplinks
 
 ### Known issues
 Grey screen of death

@@ -90,21 +90,14 @@ function compilePlus(plusNode: OperatorNode): WeightedDistribution[] | null {
 }
 
 function compileTimes(timesNode: OperatorNode): WeightedDistribution[] | null {
-    const types = timesNode.args.map(a => a.type);
-
-    const weightIndex = types.findIndex(s => s !== "FunctionNode");
-    const functionIndex = types.findIndex(s => s === "FunctionNode");
-
-    if (weightIndex === -1 || functionIndex === -1) return null;
-
     let weight;
     try {
-        weight = timesNode.args[weightIndex].compile().evaluate();
+        weight = timesNode.args[0].compile().evaluate();
     } catch (e) {
         return null;
     }
 
-    const distribution = compileSimpleDistribution(timesNode.args[functionIndex] as FunctionNode)
+    const distribution = compileSimpleDistribution(timesNode.args[1] as FunctionNode)
     if (distribution === null) return null;
 
     return [{ weight, distribution }];
