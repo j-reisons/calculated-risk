@@ -205,7 +205,7 @@ A bar chart below the input box allows to visualize the final array.
 The utility form is for specifying a utility function.
 This is done by writing a short [MathJS](https://mathjs.org/) script.  
 The script should assign a $[1, +\infty] \to \mathbb{R}^+$ function to the "Utility(w)" variable.  
-You will usually want this function to be monotonic and concave, but the calculator will not force you.  
+You will usually want this function to be monotonic and concave, but the form will not force you.  
 
 Some examples of input:
 ```
@@ -219,16 +219,18 @@ gamma = 2
 Utility(w) = gamma == 1 ? log(w) : (w^(1-gamma) - 1) / (1 - gamma)
 ```
 
-syntax
-plot
-utility
-Terminal distribution
+The specified function is plotted below the input box.
+If a starting wealth and period have been specified in the trajectories form, the terminal distribution of wealth is also plotted here.
 
 #### Policy map
 
+The policy map displays optimal policy choices for each value of wealth and time.
+Strategy colors match those in the plot of the strategies form.
+If a starting point and confidence intervals are specified in the trajectories form, wealth trajectories are displayed as greyed out confidence intervals.
+Hovering over an area of the policy map displays the strategy name, expected utility, and risk of ruin (odds of bankruptcy) for trajectories starting from that point.
+
 #### Deeplinks
 
-### Known issues
-Grey screen of death
-
-Aliasing
+Every input you specify is persisted in the URL.
+This can be used to save and share your results.  
+If you make your inputs long enough you might run out of URL, though this typically shouldn't be an issue.
