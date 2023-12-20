@@ -50,6 +50,7 @@ export const CashflowsForm = ({ gridState, cashflowsState, setCashflowsState }: 
         marker: {
             color: 'rgb(5,10,172)'
         },
+        name: '',
         hovertemplate: "Period: %{x}<br>Cashflow: %{y}",
     }];
     const margin = 30;

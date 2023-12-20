@@ -68,15 +68,15 @@ export function parseUtility(utilityString: string): ((i: number) => number) | n
     try {
         evaluate(utilityString, scope);
         const parsed = scope.Utility as unknown as ((i: number) => number);
-        const test = parsed(1000);
-        if (!isFiniteNumber(test)) return null;
+        const test = parsed(10);
+        if (!isPositiveFiniteNumber(test)) return null;
         return (i: number) => { return parsed(i) };
     } catch (e) {
         return null
     }
 }
-export function isFiniteNumber(x: unknown) {
-    return typeof x === 'number' && isFinite(x)
+export function isPositiveFiniteNumber(x: unknown) {
+    return typeof x === 'number' && isFinite(x) && x >=0
 }
 export function step(x: number): number {
     return x > 0 ? 1 : 0;

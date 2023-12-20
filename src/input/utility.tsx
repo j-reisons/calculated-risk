@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import createPlotlyComponent from 'react-plotly.js/factory';
 import { initUtilityForm } from "../InitState";
 import { GridState, TrajectoriesState } from "../grid/state";
-import { UTILITY_PARAM, UtilityFormState, UtilityState, isFiniteNumber, parseUtility } from "./state";
+import { UTILITY_PARAM, UtilityFormState, UtilityState, isPositiveFiniteNumber, parseUtility } from "./state";
 
 const Plot = createPlotlyComponent(Plotly);
 
@@ -43,7 +43,7 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
     const wealthValues = gridState.wealthValues;
     const utility = gridState.wealthValues.map(utilityState.utilityFunction);
     // No complex numbers or other shenanigans
-    const valid = utility.every(isFiniteNumber)
+    const valid = utility.every(isPositiveFiniteNumber)
     const redBorder = !state.textAreaFocused && (!state.utilityStringParses || !valid);
 
     let terminalDistributionTraces: Plotly.Data[] = [];
