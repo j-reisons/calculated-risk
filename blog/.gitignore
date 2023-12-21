@@ -3,3 +3,7 @@ _site
 .jekyll-cache
 .jekyll-metadata
 vendor
+# build artifacts of npm run build-calculator
+assets/*.js
+assets/*.css
+_includes/calculator.html

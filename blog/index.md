@@ -12,4 +12,4 @@ I'm hoping I can convince you too.
 * For a more didactic approach, [head to the case studies](/cases).
 * For more exhaustive information, [head to the docs](/docs).
 
-N.B. While the calculator technically works on mobile, it's by no means a pleasant experience: it was built with desktop in mind.
+N.B. While the calculator technically works on mobile, it's an awful experience: do yourself a favor and browse this on desktop.

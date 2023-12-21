@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build-calculator": "tsc && vite build --config vite-calculator.config.ts && mv ./dist/assets/* ./blog/assets && mv ./dist/calculator.html ./blog/_includes/calculator.html",
     "test": "jest",
     "snap": "jest --updateSnapshot && node ./src/testutils/updateSnaps.js",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
