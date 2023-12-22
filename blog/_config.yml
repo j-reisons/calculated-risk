@@ -8,3 +8,10 @@ header_pages:
   - cases.md
   - docs.md
   - calculator.md
+collections:
+ cases:
+   output: true
+   permalink: /:collection/:name
+   order:
+    - tutorial.md
+excerpt_separator: <!--more-->
