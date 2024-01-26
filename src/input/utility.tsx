@@ -52,8 +52,8 @@ export const UtilityForm = ({ gridState, utilityState, trajectoriesState, setUti
     const traces: Plotly.Data[] = [
         {
             name: "",
-            x: wealthValues,
-            y: utility,
+            x: [0, ...wealthValues],
+            y: [0, ...utility],
             type: 'scatter',
             hovertemplate: "Wealth: %{x:.4s}<br>Utility: %{y:.4g}",
             line: { color: 'rgb(5,10,172)' },

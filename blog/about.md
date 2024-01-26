@@ -29,7 +29,6 @@ Almost all published investing advice focuses on what to invest in, rather than 
 
 Part of this is simple supply and demand: picking stocks or industries is interesting and exciting. 
 Setting up your finances with a view to three decades from now? Much less sexy. People write what people read.
-
 The other part is that most people, even the financially literate, even many of the financial professionals giving out advice, simply are not trained on how to approach these questions in a methodical way.  
 While the relevant foundations of choice theory and optimal betting have been established since the 1960s, the transition of these ideas out of academia into financial education and practice has been slow.  
 Some of this slowness can be attributed to the lack of computing power available when these ideas first appeared, some to various accidents of history.

@@ -108,7 +108,8 @@ export const GridPlot = ({ gridState, strategiesState, cashflowsState, utilitySt
         width: 1250,
         height: 500,
         xaxis: {
-            range: [0, gridState.periods]
+            range: [0, gridState.periods],
+            tickvals: gridState.periods > 4 ? undefined : [...Array(gridState.periods).keys()]
         },
         yaxis: {
             range: [0, gridState.wealthMax]
@@ -182,8 +183,8 @@ function computeColorScale(strategies: Strategy[], optimalStrategies: number[][]
     // strategies can get out of sync with optimalStrategies during an update, hence the filter.
     const sortedUniques = [...uniqueValues].filter(v => v < strategies.length).sort();
 
-    const min = sortedUniques[0];
-    const max = sortedUniques[sortedUniques.length - 1];
+    const min = sortedUniques[0] || 0;
+    const max = sortedUniques[sortedUniques.length - 1] || strategies.length - 1;
 
     if (min === max) {
         return [[0, strategies[min].color], [1, strategies[max].color]];

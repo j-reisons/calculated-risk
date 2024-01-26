@@ -11,7 +11,7 @@ permalink: /docs/
 The model of investing used by the calculator is based on the following assumptions:
 
 #### Time
-* We are investing towards some time horizon.
+* We are investing towards some predetermined time horizon.
 * The time between now and the horizon is broken up into periods.
 * We may only change strategies at the end of a period.
 

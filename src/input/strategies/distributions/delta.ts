@@ -16,7 +16,7 @@ export class DeltaDist implements Distribution {
         this.scale = 0;
         this.support = [location, location];
         this.PDF = ((_) => 0);
-        this.pointsOfInterest = [];
+        this.pointsOfInterest = [location];
         this.deltas = [{ location, weight: 1 }]
     }
 
