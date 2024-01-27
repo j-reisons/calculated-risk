@@ -3,7 +3,7 @@ import unpack from "ndarray-unpack";
 import { Strategy } from "../input/state";
 import { TransitionTensor } from "./core";
 import { solveCore as solveCoreCPU } from "./coreCPU";
-import { solveCore as solveCoreGPU } from "./coreGPU";
+// import { solveCore as solveCoreGPU } from "./coreGPU";
 import { computeRiskOfRuin, computeTransitionTensor, extendWealthRange, replaceUnknownStrategies } from "./transform";
 
 
@@ -39,18 +39,20 @@ export async function solve(originalProblem: Problem): Promise<Solution> {
     const finalUtilities = problem.wealthValues.map(problem.utilityFunction);
     finalUtilities[0] = 0;
 
-    let hasGPU = false;
-    try {
-        const adapter = await navigator.gpu?.requestAdapter();
-        const device = await adapter?.requestDevice();
-        if (device) {
-            hasGPU = true;
-        }
-    } catch (e) { e; }
+    // let hasGPU = false;
+    // try {
+    //     const adapter = await navigator.gpu?.requestAdapter();
+    //     const device = await adapter?.requestDevice();
+    //     if (device) {
+    //         hasGPU = true;
+    //     }
+    // } catch (e) { e; }
 
-    const { optimalStrategies, expectedUtilities } = hasGPU ?
-        await solveCoreGPU({ transitionTensor, finalUtilities }) :
-        solveCoreCPU({ transitionTensor, finalUtilities });
+    // const { optimalStrategies, expectedUtilities } = hasGPU ?
+    //     await solveCoreGPU({ transitionTensor, finalUtilities }) :
+    //     solveCoreCPU({ transitionTensor, finalUtilities });
+
+    const { optimalStrategies, expectedUtilities } = solveCoreCPU({ transitionTensor, finalUtilities });
 
     replaceUnknownStrategies(optimalStrategies);
     const riskofRuin = computeRiskOfRuin(transitionTensor, optimalStrategies);
