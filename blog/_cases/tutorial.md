@@ -3,7 +3,7 @@ name: Tutorial
 layout: page
 ---
 
-This case introduces the basics of our expected utility model, building up from a coin flip bet to a simple retirement plan.
+This case introduces the basics of expected utility models, building up from a coin flip bet to a simple retirement plan.
 This will allow us to get acquainted with the features of the calculator along the way.
 
 You may have heard the advice that portfolio risk should decrease as you age. While there are legitimate reasons for such advice, some commonly heard arguments are [suspect](http://danluu.com/norstad/risk-time/). Our expected utility model will display this property; we will try to understand why.
@@ -12,14 +12,14 @@ You may have heard the advice that portfolio risk should decrease as you age. Wh
 
 ### Coin flips and step functions
 
-Imagine you want to buy some item for yourself, say a fancy watch priced at 10000$.
+Imagine you want to buy some item for yourself, say a fancy watch priced at 10'000$.
 You have a fancy watch budget you’ve been saving into.
 There are no items other than this fancy watch that you would like to spend this budget on.
 Finally, you have to act fast: the fancy watch will sell out by the end of the day. Waiting to save more money is not an option.
 
 
 What should you do in this situation?
-It all depends on the size of your fancy watch budget. If you’d saved more than 10000$, you can go ahead and get the watch. If you didn’t, tough luck.
+It all depends on the size of your fancy watch budget. If you’d saved more than 10'000$, you can go ahead and get the watch. If you didn’t, tough luck.
 If we drew how happy we are with our watch-buying as a function of how much money we have, it might look like this:
 
 {:refdef: style="text-align: center;"}
@@ -29,9 +29,9 @@ If we drew how happy we are with our watch-buying as a function of how much mone
 This idea of how happy we are as a function of money is called the **utility of money**.
 
 Now what if on this fateful day I offered you to place a coin flip bet with your watch budget? Heads you double it, tails you lose it. What should you do?
-* If you have more than 10000\\$ saved, you should not take the bet and simply buy the watch as before. There is no benefit to playing: you would go from being certain to afford the watch to having only a 50% chance.
-* If you have between 5000\\$ and 10000\\$, you should take the bet. Without the bet you are sure to miss out on the watch, while with the bet you now have a 50% chance to afford it.
-* Below 5000$ it doesn’t matter whether you take the bet or not: you will surely be watchless.
+* If you have more than 10'000\\$ saved, you should not take the bet and simply buy the watch as before. There is no benefit to playing: you would go from being certain to afford the watch to having only a 50% chance.
+* If you have between 5'000\\$ and 10'000\\$, you should take the bet. Without the bet you are sure to miss out on the watch, while with the bet you now have a 50% chance to afford it.
+* Below 5'000$ it doesn’t matter whether you take the bet or not: you will surely be watchless.
 
 **[Here](/calculator/?utility=Utility(w)+%3D+w+>+10000+%3F+1+%3A+0&strategies=no_bet+%3D+delta(0)%0Abet+%3D+0.5*delta(-1)+%2B+0.5*delta(1)%0A&cashflows=cashflows+%3D+[0]&grid={"linStep"%3A"100"%2C"wealthMax"%3A"20000"%2C"logStep"%3A"1%25"%2C"periods"%3A"1"}&start={"startingWealth"%3A""%2C"startingPeriod"%3A""})** is how this decision looks like in the calculator. Let's take a closer look at some of the UI elements.
 
@@ -52,13 +52,13 @@ In the utility form, we recognize our step utility function expressed in terms o
 {: refdef}
 
 This Liechstenstein flag looking thing is the policy map calculated for this problem.
-For each possible size of our watch fund (wealth), the strategy maximizing the utility function is displayed: above 10000\\$ we should not take the coinflip (blue), between 10000\\$ and 5000\\$ we should (red). Below 5000\\$ both strategies have the same expected utility, namely 0, which yields no clear choice. This ambiguity is resolved by filling in with the strategy directly above, i.e. taking the coinflip bet (red).
+For each possible size of our watch fund (wealth), the strategy maximizing the utility function is displayed: above 10'000\\$ we should not take the coinflip (blue), between 10'000\\$ and 5'000\\$ we should (red). Below 5'000\\$ both strategies have the same expected utility, namely 0, which yields no clear choice. This ambiguity is resolved by filling in with the strategy directly above, i.e. taking the coinflip bet (red).
 
 {:refdef: style="text-align: center;"}
 ![](/assets/tutorial/tooltip.png)
 {: refdef}
 
-Hovering over an area of the policy map brings up a tooltip with the name of the optimal strategy, the expected utility, and risk of ruin for the specific point. As expected, with a wealth of 7350\\$ we are choosing to bet on the coinflip, have a 50% chance of achieving our goal (Utility=0.5) and a 50% chance of losing it all (Risk of ruin = 50%).
+Hovering over an area of the policy map brings up a tooltip with the name of the optimal strategy, the expected utility, and risk of ruin for the specific point. As expected, with a wealth of 7'350\\$ we are choosing to bet on the coinflip, have a 50% chance of achieving our goal (Utility=0.5) and a 50% chance of losing it all (Risk of ruin = 50%).
 
 {:refdef: style="text-align: center;"}
 ![](/assets/tutorial/grid_form.png)
@@ -91,11 +91,11 @@ In fact we would have been happy to pick a coinflip even with much worse than 50
 ### Multiple periods
 
 What if instead of a single coinflip bet, I offered you the chance to play up to two times in a row?  
-If you have a chance to double your money twice, the minimum starting ammount you need to have a chance of getting to 10000\\$ shifts from 5000\\$ to 2500\\$. The optimal strategy becomes
-* If you have more than 10000\\$, play 0 times for a success rate of 100%
-* If you have between 5000\\$ and 10000\\$, play once for a success rate of 50%
-* If you have between 2500\\$ and 5000\\$, play twice for a success rate of 25%
-* Below 2500$, you will fail no matter what
+If you have a chance to double your money twice, the minimum starting ammount you need to have a chance of getting to 10'000\\$ shifts from 5'000\\$ to 2'500\\$. The optimal strategy becomes
+* If you have more than 10'000\\$, play 0 times for a success rate of 100%
+* If you have between 5'000\\$ and 10'000\\$, play once for a success rate of 50%
+* If you have between 2'500\\$ and 5'000\\$, play twice for a success rate of 25%
+* Below 2'500$, you will fail no matter what
 
 To get this result from the calculator, we change "Periods" from 1 to 2. **[Here](/calculator/?utility=Utility(w)+%3D+w+>+10000+%3F+1+%3A+0&strategies=no_bet+%3D+delta(0)%0Abet+%3D+0.5*delta(-1)+%2B+0.5*delta(1)%0A&cashflows=cashflows+%3D+[0]&grid={"linStep"%3A"100"%2C"wealthMax"%3A"20000"%2C"logStep"%3A"1%25"%2C"periods"%3A"2"}&start={"startingWealth"%3A""%2C"startingPeriod"%3A""})** is what that looks like.
 
@@ -104,19 +104,19 @@ To get this result from the calculator, we change "Periods" from 1 to 2. **[Here
 {: refdef}
 
 Here we see our first use of the X axis to represent time. To represent the notion of playing up to two times in a row, time is broken up into two periods. In each period we have the choice to either play or not play, i.e. pick the "bet" or "no_bet" strategy, based on our current wealth. The decision rule shown in the policy map above reads:
- * In the first period, only bet if your have less than 5000\\$
- * In the second period, only bet if your have less than 10000\\$
+ * In the first period, only bet if your have less than 5'000\\$
+ * In the second period, only bet if your have less than 10'000\\$
 
 Taken together, these rules produce the optimal strategy mentioned above.
 
 ### Switching distributions
 
-Most of us don't go around betting our life savings on coinflips. What does our original single-period problem look like if, instead of choosing between coinflip or no-coinflip, we consider instead whether to put our money into a safe or a risky portfolio for a year, with the same goal of reaching 10000\\$ at the end? For concreteness sake, let's consider a 1-year sovereign bond in your currency of choice vs a diversified stock portfolio.
+Most of us don't go around betting our life savings on coinflips. What does our original single-period problem look like if, instead of choosing between coinflip or no-coinflip, we consider instead whether to put our money into a safe or a risky portfolio for a year, with the same goal of reaching 10'000\\$ at the end? For concreteness sake, let's consider a 1-year sovereign bond in your currency of choice vs a diversified stock portfolio.
 
 **[Here](/calculator/?utility=Utility(w)+%3D+w+>+10000+%3F+1+%3A+0&strategies=bonds+%3D+delta(1%25)%0Aequities+%3D+Normal(5%25%2C20%25)%0A&cashflows=cashflows+%3D+[0]&grid={"linStep"%3A"100"%2C"wealthMax"%3A"20000"%2C"logStep"%3A"1%25"%2C"periods"%3A"1"}&start={"startingWealth"%3A""%2C"startingPeriod"%3A""})** is one way you could model it: the bond guarantees a 1% return, while equity returns are normally distributed with 5% expected return and 20% volatility.
 
-This switch modifies the expected utility below 10000\\$: instead of a sharp step from 50% to 0% at 5000\$ in the coinflip case, there is now a continuum of odds. The decision boundary between the safe and risky strategy, however, remains almost the same: our policy map is still the flag of Liechstenstein.  
-The same logic as in the coinflip case applies: above ~10000\\$ (9900\\$ due to the 1% bond return) you are still guaranteed success with the safe strategy. Below, the safe strategy still guarantees failure, and you are forced into the risky option.
+This switch modifies the expected utility below 10'000\\$: instead of a sharp step from 50% to 0% at 5'000\$ in the coinflip case, there is now a continuum of odds. The decision boundary between the safe and risky strategy, however, remains almost the same: our policy map is still the flag of Liechstenstein.  
+The same logic as in the coinflip case applies: above ~10'000\\$ (9'900\\$ due to the 1% bond return) you are still guaranteed success with the safe strategy. Below, the safe strategy still guarantees failure, and you are forced into the risky option.
 Keep this general pattern in mind as we now increase our number of periods and introduce cashflows into the mix.
 
 ### Retirement as not going broke
@@ -129,7 +129,7 @@ The idea of retirement is financially pretty straightforward: you save and inves
 ![](/assets/tutorial/cashflows_form.png)
 {: refdef}
 
-Cashflows allow us to represent saving and spending. In this example, we have a little MathJS script to initialize an array of 30 repeats of +20000\\$ followed by 30 repeats of -40000\\$, corresponding to 30 years (periods) of savings until retirement followed by 30 years of withdrawals in retirement.
+Cashflows allow us to represent saving and spending. In this example, we have a little MathJS script to initialize an array of 30 repeats of +20'000\\$ followed by 30 repeats of -40'000\\$, corresponding to 30 years (periods) of savings until retirement followed by 30 years of withdrawals in retirement.
 
 The rest of the inputs should be familiar: a step function utility at 0\\$ represents the goal of not going broke by the end of the 60 planned periods. The bonds and equities strategies are as before.
 
@@ -204,7 +204,7 @@ However if your planned saving and spending is not achieveable with low risk inv
 Initial capital of 200k, 90% confidence interval
 {: refdef}
 
-**[A more extreme example](/calculator/?utility=Utility(w)+%3D+w+>+0+%3F+1+%3A+0&strategies=bonds+%3D+Normal(1%25%2C2%25)%0Aequities_25+%3D+Normal(2%25%2C5%25)%0Aequities_50+%3D+Normal(3%25%2C10%25)%0Aequities_75+%3D+Normal(4%25%2C15%25)%0Aequities+%3D+Normal(5%25%2C20%25)%0A&cashflows=work+%3D+30%3B+death+%3D+60%3B%0Aretirement+%3D+death+-+work%0Adeposits+%3D20000*concat(ones(work)%2Czeros(retirement))%0Awithdrawals+%3D-40000*concat(zeros(work)%2Cones(retirement))%0Acashflows+%3D+deposits+%2B+withdrawals&grid={"linStep"%3A"1000"%2C"wealthMax"%3A"1500000"%2C"logStep"%3A"1%25"%2C"periods"%3A"60"}&start={"startingWealth"%3A"1000"%2C"startingPeriod"%3A"1"}&CIs=60%25%2C+90%25)**, a half-funded retirement with no initial capital eventually climbs out with 82% odds.
+**[A more extreme example](/calculator/?utility=Utility%28w%29+%3D+w+>+0+%3F+1+%3A+0&strategies=bonds+%3D+Normal%281%25%2C2%25%29%0Aequities_25+%3D+Normal%282%25%2C5%25%29%0Aequities_50+%3D+Normal%283%25%2C10%25%29%0Aequities_75+%3D+Normal%284%25%2C15%25%29%0Aequities+%3D+Normal%285%25%2C20%25%29%0A&cashflows=work+%3D+30%3B+death+%3D+60%3B%0Aretirement+%3D+death+-+work%0Adeposits+%3D20000*concat%28ones%28work%29%2Czeros%28retirement%29%29%0Awithdrawals+%3D-40000*concat%28zeros%28work%29%2Cones%28retirement%29%29%0Acashflows+%3D+deposits+%2B+withdrawals&grid=%7B"linStep"%3A"1000"%2C"wealthMax"%3A"1500000"%2C"logStep"%3A"1%25"%2C"periods"%3A"60"%7D&start=%7B"startingWealth"%3A"1000"%2C"startingPeriod"%3A"1"%7D&CIs=60%25)**, a half-funded retirement with no initial capital eventually climbs out with 82% odds.
 
 {:refdef: style="text-align: center;"}
 ![](/assets/tutorial/half-funded.png)

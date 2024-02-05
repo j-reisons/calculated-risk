@@ -7,8 +7,6 @@ layout: default
     <h1 class="page-heading">{{ page.title }}</h1>
   {%- endif -%}
 
-  {{ content }}
-
   {% for case in site.cases %}
   <a class="post-link" href="{{ case.url | relative_url }}">
     {{ case.title | escape }}
@@ -16,4 +14,5 @@ layout: default
   {{ case.excerpt }}
   {% endfor %}
 
+  {{ content }}
 </div>
